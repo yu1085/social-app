@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 动态详情页面专用颜色 -->
+    
+    <!-- 主要颜色 -->
+    <color name="detail_background">#FFFFFF</color>
+    <color name="detail_text_primary">#333333</color>
+    <color name="detail_text_secondary">#000000</color>
+    <color name="detail_text_hint">#DADADA</color>
+    <color name="detail_text_placeholder">#B6B7B9</color>
+    
+    <!-- 年龄标签背景色 -->
+    <color name="detail_age_background">#FBADBA</color>
+    
+    <!-- 喜欢按钮颜色 -->
+    <color name="detail_like_color">#A2C3FF</color>
+    
+    <!-- 输入框背景色 -->
+    <color name="detail_input_background">#F5F5F5</color>
+    
+    <!-- Home键指示器颜色 -->
+    <color name="detail_home_indicator">#111111</color>
+</resources>

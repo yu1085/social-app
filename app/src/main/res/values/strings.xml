@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">心聊临摹</string>
+    
+    <!-- 底部导航 -->
+    <string name="nav_home">首页</string>
+    <string name="nav_square">广场</string>
+    <string name="nav_message">私信</string>
+    <string name="nav_profile">我的</string>
+    
+    <!-- 广场界面 -->
+    <string name="square_dynamic">动态</string>
+    <string name="square_video">小视频</string>
+    <string name="square_latest">最新</string>
+    <string name="square_friends">知友</string>
+    <string name="square_like">喜欢</string>
+    <string name="square_nearby">附近</string>
+    
+    <!-- 用户信息 -->
+    <string name="user_status_free">空闲</string>
+    <string name="user_age_format">%d岁</string>
+    <string name="user_distance_format">%.2fkm</string>
+    <string name="user_free_minute">免费1分钟</string>
+    <string name="user_like">喜欢</string>
+    
+    <!-- 动态内容 -->
+    <string name="dynamic_content_friend">有没有人交朋友啊?睡不着在一起聊聊呗。</string>
+    <string name="dynamic_published_format" formatted="false">%s 发布于%s</string>
+    <string name="dynamic_yesterday">昨天</string>
+    <string name="dynamic_location_anhui">安徽省</string>
+    
+    <!-- 消息通知 -->
+    <string name="notification_count_format">%d</string>
+    <string name="notification_dynamic">动态</string>
+    
+    <!-- 通用 -->
+    <string name="action_click">点击</string>
+    <string name="action_like">点赞</string>
+    <string name="action_comment">评论</string>
+    <string name="action_share">分享</string>
+    <string name="action_follow">关注</string>
+    
+    <!-- 错误信息 -->
+    <string name="error_network">网络连接失败</string>
+    <string name="error_unknown">未知错误</string>
+    <string name="error_loading">加载失败</string>
+    
+    <!-- 提示信息 -->
+    <string name="tip_loading">加载中...</string>
+    <string name="tip_no_data">暂无数据</string>
+    <string name="tip_pull_refresh">下拉刷新</string>
+    <string name="tip_release_refresh">释放刷新</string>
+    
+    <!-- 用户详情页 -->
+    <string name="user_detail_call">语音通话</string>
+    <string name="user_detail_message">发送消息</string>
+    <string name="user_detail_status_free">空闲</string>
+    <string name="user_detail_status_busy">忙碌</string>
+    <string name="user_detail_status_online">在线</string>
+    <string name="user_detail_status_offline">离线</string>
+</resources>

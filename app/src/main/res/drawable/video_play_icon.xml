@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="44dp"
+    android:height="30dp"
+    android:viewportWidth="44"
+    android:viewportHeight="30">
+    
+    <!-- 蓝色圆角矩形背景 (Rectangle 416) -->
+    <path
+        android:fillColor="#4E88F4"
+        android:pathData="M4,0 L29,0 Q33,0 33,2.48 L33,27.48 Q33,30 29,30 L4,30 Q0,30 0,27.48 L0,2.48 Q0,0 4,0 Z" />
+    
+    <!-- 白色播放按钮三角形 (Polygon 3) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,6 L28,15 L12,24 Z" />
+</vector>

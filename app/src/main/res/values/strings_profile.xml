@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 个人中心页面字符串资源 -->
+    
+    <!-- 页面标题 -->
+    <string name="profile_title">我的</string>
+    
+    <!-- 用户信息 -->
+    <string name="profile_user_name">迷途拥抱987</string>
+    <string name="profile_user_id_format">ID:%s</string>
+    <string name="profile_setting">设置</string>
+    
+    <!-- 会员中心 -->
+    <string name="profile_membership_center">会员中心</string>
+    <string name="profile_vip_privilege">开通会员，享专属特权</string>
+    <string name="profile_enable_vip">开通VIP</string>
+    
+    <!-- 财富等级 -->
+    <string name="profile_wealth_level">财富等级</string>
+    <string name="profile_item_shop">道具商城</string>
+    
+    <!-- 钱包 -->
+    <string name="profile_wallet">我的钱包</string>
+    <string name="profile_balance">余额</string>
+    <string name="profile_recharge">充值</string>
+    
+    <!-- 功能设置 -->
+    <string name="profile_call_price_setting">设置来电及价格</string>
+    <string name="profile_voice_call">语音接听</string>
+    <string name="profile_video_call">视频接听</string>
+    <string name="profile_message_charge">私信收费</string>
+    <string name="profile_free">免费</string>
+    
+    <!-- 功能菜单 -->
+    <string name="profile_invite_friends">邀请好友</string>
+    <string name="profile_my_verification">我的认证</string>
+    <string name="profile_my_coupons">我的卡券</string>
+    <string name="profile_who_viewed_me">谁看过我</string>
+    <string name="profile_my_guardian">我的守护</string>
+
+    
+    <!-- 状态文本 -->
+    <string name="profile_enabled">开启</string>
+    <string name="profile_disabled">关闭</string>
+    <string name="profile_vip_member">VIP会员</string>
+    <string name="profile_normal_user">普通用户</string>
+    
+    <!-- 提示信息 -->
+    <string name="profile_click_to_setting">点击设置</string>
+    <string name="profile_click_to_recharge">点击充值</string>
+    <string name="profile_click_to_vip">点击开通VIP</string>
+    <string name="profile_click_to_menu">点击菜单项</string>
+    
+    <!-- 错误信息 -->
+    <string name="profile_error_insufficient_balance">余额不足</string>
+    <string name="profile_error_network">网络连接失败</string>
+    <string name="profile_error_unknown">未知错误</string>
+    
+    <!-- 成功信息 -->
+    <string name="profile_success_recharge">充值成功</string>
+    <string name="profile_success_vip_enabled">VIP开通成功</string>
+    <string name="profile_success_setting_saved">设置保存成功</string>
+</resources>

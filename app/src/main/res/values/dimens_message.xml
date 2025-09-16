@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 私信消息页面专用尺寸 -->
+    
+    <!-- 间距 -->
+    <dimen name="message_padding_small">8dp</dimen>
+    <dimen name="message_padding_medium">16dp</dimen>
+    <dimen name="message_padding_large">20dp</dimen>
+    <dimen name="message_padding_xlarge">40dp</dimen>
+    <dimen name="message_padding_xxlarge">60dp</dimen>
+    
+    <!-- 圆角 -->
+    <dimen name="message_corner_small">10dp</dimen>
+    <dimen name="message_corner_medium">24dp</dimen>
+    <dimen name="message_corner_large">28dp</dimen>
+    <dimen name="message_corner_xlarge">52dp</dimen>
+    <dimen name="message_corner_xxlarge">200dp</dimen>
+    
+    <!-- 头像尺寸 -->
+    <dimen name="message_avatar_small">31dp</dimen>
+    <dimen name="message_avatar_medium">51dp</dimen>
+    <dimen name="message_avatar_large">67dp</dimen>
+    <dimen name="message_avatar_xlarge">92dp</dimen>
+    
+    <!-- 状态指示器尺寸 -->
+    <dimen name="status_indicator_small">18dp</dimen>
+    <dimen name="status_indicator_medium">30dp</dimen>
+    
+    <!-- 推荐用户卡片尺寸 -->
+    <dimen name="recommended_card_height">200dp</dimen>
+    <dimen name="recommended_card_spacing">16dp</dimen>
+    
+    <!-- 消息项高度 -->
+    <dimen name="message_item_height">87dp</dimen>
+    <dimen name="message_item_spacing">16dp</dimen>
+    
+    <!-- 底部导航尺寸 -->
+    <dimen name="message_bottom_nav_height">92dp</dimen>
+    <dimen name="home_indicator_height">68dp</dimen>
+    <dimen name="home_indicator_width">270dp</dimen>
+    <dimen name="home_indicator_thickness">10dp</dimen>
+    
+    <!-- 顶部区域高度 -->
+    <dimen name="top_section_height">200dp</dimen>
+    
+    <!-- 图标尺寸 -->
+    <dimen name="message_icon_size_small">50dp</dimen>
+    <dimen name="message_icon_size_medium">100dp</dimen>
+</resources>

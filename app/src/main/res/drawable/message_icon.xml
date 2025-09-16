@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="17dp"
+    android:height="15dp"
+    android:viewportWidth="17"
+    android:viewportHeight="15">
+    
+    <!-- 聊天气泡 -->
+    <path
+        android:fillColor="#ECECEC"
+        android:pathData="M1,1H16C16.55,1 17,1.45 17,2V10C17,10.55 16.55,11 16,11H5L1,15V1Z" />
+</vector>

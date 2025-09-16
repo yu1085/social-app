@@ -1,0 +1,1330 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <!-- 功能入口区域 - 固定在顶部 -->
+    <LinearLayout
+        android:id="@+id/function_entry_area"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- 视频速配卡片 -->
+        <LinearLayout
+            android:id="@+id/video_match_button"
+            android:layout_width="168dp"
+            android:layout_height="80dp"
+            android:background="@drawable/rectangle_404"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground">
+
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="32dp"
+                android:src="@drawable/frame_1_icon" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="视频速配"
+                    android:textColor="#212121"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="13264人在线"
+                    android:textColor="#74777C"
+                    android:textSize="11sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="16dp"
+            android:layout_height="1dp" />
+
+        <!-- 语音速配卡片 -->
+        <LinearLayout
+            android:id="@+id/voice_match_button"
+            android:layout_width="168dp"
+            android:layout_height="80dp"
+            android:background="@drawable/rectangle_405"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground">
+
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="32dp"
+                android:src="@drawable/frame_2_icon" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="语音速配"
+                    android:textColor="#212121"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="1153人在线"
+                    android:textColor="#74777C"
+                    android:textSize="10sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- 分类标签栏 - 固定在功能入口下方 -->
+    <LinearLayout
+        android:id="@+id/category_tabs_area"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toBottomOf="@id/function_entry_area"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <HorizontalScrollView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:scrollbars="none"
+            android:overScrollMode="never">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- 活跃 - 按照设计规范的标签 -->
+                <LinearLayout
+                    android:id="@+id/tab_active"
+                    android:layout_width="28dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="16dp"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="@drawable/tab_ripple_effect">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="活跃"
+                        android:textColor="@color/tab_text_color"
+                        android:textSize="14sp"
+                        android:includeFontPadding="false"
+                        android:fontFamily="sans-serif"
+                        android:lineHeight="19.6sp" />
+
+                </LinearLayout>
+
+                <!-- 热门 - 按照设计规范的标签 -->
+                <LinearLayout
+                    android:id="@+id/tab_hot"
+                    android:layout_width="28dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="16dp"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="@drawable/tab_ripple_effect">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="热门"
+                        android:textColor="@color/tab_text_color"
+                        android:textSize="14sp"
+                        android:includeFontPadding="false"
+                        android:fontFamily="sans-serif"
+                        android:lineHeight="19.6sp" />
+
+                </LinearLayout>
+
+                <!-- 附近 - 按照设计规范的标签 -->
+                <LinearLayout
+                    android:id="@+id/tab_nearby"
+                    android:layout_width="28dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="16dp"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="@drawable/tab_ripple_effect">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="附近"
+                        android:textColor="@color/tab_text_color"
+                        android:textSize="14sp"
+                        android:includeFontPadding="false"
+                        android:fontFamily="sans-serif"
+                        android:lineHeight="19.6sp" />
+
+                </LinearLayout>
+
+                <!-- 新人 - 按照设计规范的标签 -->
+                <LinearLayout
+                    android:id="@+id/tab_new"
+                    android:layout_width="28dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="16dp"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="@drawable/tab_ripple_effect">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="新人"
+                        android:textColor="@color/tab_text_color"
+                        android:textSize="14sp"
+                        android:includeFontPadding="false"
+                        android:fontFamily="sans-serif"
+                        android:lineHeight="19.6sp" />
+
+                </LinearLayout>
+
+                <!-- 专享 - 初始与其他一致，点击再放大高亮 -->
+                <LinearLayout
+                    android:id="@+id/tab_exclusive"
+                    android:layout_width="28dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="16dp"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="@drawable/tab_ripple_effect"
+                    android:stateListAnimator="@null">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="专享"
+                        android:textColor="@color/tab_text_color"
+                        android:textSize="14sp"
+                        android:includeFontPadding="false"
+                        android:fontFamily="sans-serif"
+                        android:lineHeight="19.6sp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </HorizontalScrollView>
+
+        <!-- 筛选按钮 - 图标 + 文字 -->
+        <LinearLayout
+            android:id="@+id/filter_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="59dp"
+            android:minHeight="32dp"
+            android:background="@drawable/rectangle_406"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:layout_marginStart="12dp"
+            android:layout_gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/frame_4_icon"
+                android:layout_marginEnd="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="筛选"
+                android:textColor="#212121"
+                android:textSize="11sp"
+                android:fontFamily="sans-serif"
+                android:lineHeight="15.4sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- 底部导航栏 - 固定在屏幕底部 -->
+    <LinearLayout
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="#FFFFFF"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- 首页 -->
+        <LinearLayout
+            android:id="@+id/nav_home"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/home_icon_nav" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="首页"
+                android:textColor="#212121"
+                android:textSize="10sp" />
+
+        </LinearLayout>
+
+        <!-- 广场 -->
+        <LinearLayout
+            android:id="@+id/nav_square"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/square_icon_nav" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="广场"
+                android:textColor="#BDBDBF"
+                android:textSize="10sp" />
+
+        </LinearLayout>
+
+        <!-- 消息 -->
+        <LinearLayout
+            android:id="@+id/nav_message"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/message_icon_nav" />
+
+                <!-- 消息数量提示 -->
+                <TextView
+                    android:layout_width="20dp"
+                    android:layout_height="16dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="-4dp"
+                    android:layout_marginEnd="-2dp"
+                    android:background="@drawable/message_badge_bg"
+                    android:gravity="center"
+                    android:text="69"
+                    android:textColor="#FFFFFF"
+                    android:textSize="8sp"
+                    android:minWidth="20dp"
+                    android:minHeight="16dp" />
+
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="消息"
+                android:textColor="#BDBDBF"
+                android:textSize="10sp" />
+
+        </LinearLayout>
+
+        <!-- 我的 -->
+        <LinearLayout
+            android:id="@+id/nav_profile"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/profile_icon_nav" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="我的"
+                android:textColor="#BDBDBF"
+                android:textSize="10sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Compose 承载容器：广场/消息/我的（默认隐藏） -->
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/compose_square"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/category_tabs_area"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/compose_message"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/category_tabs_area"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/compose_profile"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/category_tabs_area"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- 用户卡片区域 - 可滚动，位于固定区域之间 -->
+    <ScrollView
+        android:id="@+id/user_cards_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="#FFFFFF"
+        app:layout_constraintTop_toBottomOf="@id/category_tabs_area"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- 第一行用户卡片 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:orientation="horizontal">
+
+                <!-- 用户卡片1 - 不吃香菜 -->
+                <FrameLayout
+                    android:id="@+id/user_card_1"
+                    android:layout_width="171dp"
+                    android:layout_height="236dp"
+                    android:layout_marginEnd="16dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?android:attr/selectableItemBackground">
+                    
+                    <ImageView
+                        android:layout_width="171dp"
+                        android:layout_height="236dp"
+                        android:src="@drawable/rectangle_411_1"
+                        android:scaleType="centerCrop"
+                        android:clickable="false"
+                        android:focusable="false" />
+                    
+                    <!-- 状态标签背景 - 按照设计文档：10%透明度黑色，6.5px圆角 -->
+                    <TextView
+                        android:layout_width="36dp"
+                        android:layout_height="13dp"
+                        android:layout_marginStart="7dp"
+                        android:layout_marginTop="7dp"
+                        android:background="@drawable/status_badge_bg_design"
+                        android:gravity="center_vertical|start"
+                        android:paddingStart="16dp"
+                        android:text="空闲"
+                        android:textColor="#FFFFFF"
+                        android:textSize="9sp"
+                        android:fontFamily="sans-serif"
+                        android:lineHeight="12.6sp" />
+
+                    <!-- 状态指示器 - 绿色表示空闲，按照设计文档精确坐标 -->
+                    <View
+                        android:layout_width="5dp"
+                        android:layout_height="5dp"
+                        android:layout_marginStart="13dp"
+                        android:layout_marginTop="11dp"
+                        android:background="@drawable/status_indicator_green" />
+
+                    <!-- 左下角用户信息区域 - 垂直排列，优化间距 -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:layout_gravity="bottom|start"
+                        android:orientation="vertical">
+                        
+                        <!-- 用户名 -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="不吃香菜"
+                            android:textColor="#FFFFFF"
+                            android:textSize="12sp"
+                            android:fontFamily="sans-serif"
+                            android:textStyle="bold" />
+
+                        <!-- 价格信息 - 紧凑样式 -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="#00000000"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp">
+
+                            <ImageView
+                                android:layout_width="10dp"
+                                android:layout_height="10dp"
+                                android:src="@drawable/group_3_1"
+                                android:layout_marginEnd="3dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="300/分钟"
+                                android:textColor="#FFFFFF"
+                                android:textSize="8sp"
+                                android:fontFamily="sans-serif"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <!-- 位置信息 - 紧凑样式 -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="#00000000"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            android:paddingTop="1dp"
+                            android:paddingBottom="1dp">
+
+                            <ImageView
+                                android:layout_width="8dp"
+                                android:layout_height="8dp"
+                                android:src="@drawable/vector_3"
+                                android:layout_marginEnd="2dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:maxLines="1"
+                                android:text="北京"
+                                android:textColor="#FFFFFF"
+                                android:textSize="7sp"
+                                android:fontFamily="sans-serif"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- 右下角头像 - 38×38像素白色圆背景 + 中心图标 -->
+                    <FrameLayout
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:layout_marginStart="133dp"
+                        android:layout_marginTop="198dp"
+                        android:background="@drawable/ellipse_white_bg">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/subtract_1" />
+
+                    </FrameLayout>
+                    
+                </FrameLayout>
+
+                <!-- 用户卡片2 - 你的菜 -->
+                <FrameLayout
+                    android:id="@+id/user_card_2"
+                    android:layout_width="171dp"
+                    android:layout_height="236dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?android:attr/selectableItemBackground">
+                    
+                    <ImageView
+                        android:layout_width="171dp"
+                        android:layout_height="236dp"
+                        android:src="@drawable/rectangle_412_1"
+                        android:scaleType="centerCrop"
+                        android:clickable="false"
+                        android:focusable="false" />
+                    
+                    <!-- 状态标签背景 - 按照设计文档精确坐标 -->
+                    <TextView
+                        android:layout_width="36dp"
+                        android:layout_height="13dp"
+                        android:layout_marginStart="7dp"
+                        android:layout_marginTop="7dp"
+                        android:background="@drawable/status_badge_bg_design"
+                        android:gravity="center_vertical|start"
+                        android:paddingStart="16dp"
+                        android:text="忙碌"
+                        android:textColor="#FFFFFF"
+                        android:textSize="9sp"
+                        android:fontFamily="sans-serif"
+                        android:lineHeight="12.6sp" />
+
+                    <!-- 状态指示器 - 橙色表示忙碌，按照设计文档精确坐标 -->
+                    <View
+                        android:layout_width="5dp"
+                        android:layout_height="5dp"
+                        android:layout_marginStart="13dp"
+                        android:layout_marginTop="11dp"
+                        android:background="@drawable/status_indicator_orange" />
+
+                    <!-- 左下角用户信息区域 - 垂直排列 -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:layout_gravity="bottom|start"
+                        android:orientation="vertical">
+
+                        <!-- 用户名 -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="你的菜"
+                            android:textColor="#FFFFFF"
+                            android:textSize="12sp"
+                            android:fontFamily="sans-serif"
+                            android:textStyle="bold" />
+
+                        <!-- 价格信息 - 紧凑样式 -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="#00000000"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp">
+
+                            <ImageView
+                                android:layout_width="10dp"
+                                android:layout_height="10dp"
+                                android:src="@drawable/group_3_1"
+                                android:layout_marginEnd="3dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="300/分钟"
+                                android:textColor="#FFFFFF"
+                                android:textSize="8sp"
+                                android:fontFamily="sans-serif"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <!-- 位置信息 - 紧凑样式 -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="#00000000"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            android:paddingTop="1dp"
+                            android:paddingBottom="1dp">
+
+                            <ImageView
+                                android:layout_width="8dp"
+                                android:layout_height="8dp"
+                                android:src="@drawable/vector_3"
+                                android:layout_marginEnd="2dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:maxLines="1"
+                                android:text="广州"
+                                android:textColor="#FFFFFF"
+                                android:textSize="7sp"
+                                android:fontFamily="sans-serif"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- 右下角头像 - Ellipse 12 白色圆背景 + 中心 Subtract-1 图标 -->
+                    <FrameLayout
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:layout_marginStart="133dp"
+                        android:layout_marginTop="198dp"
+                        android:background="@drawable/ellipse_white_bg">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/subtract_1" />
+
+                    </FrameLayout>
+                    
+                </FrameLayout>
+
+            </LinearLayout>
+
+            <!-- 第二行用户卡片 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:orientation="horizontal">
+
+                <!-- 用户卡片3 - 复制用户1模板 -->
+                <FrameLayout
+                    android:id="@+id/user_card_3"
+                    android:layout_width="171dp"
+                    android:layout_height="236dp"
+                    android:layout_marginEnd="16dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?android:attr/selectableItemBackground">
+                    
+                    <ImageView
+                        android:layout_width="171dp"
+                        android:layout_height="236dp"
+                        android:src="@drawable/rectangle_411_1"
+                        android:scaleType="centerCrop"
+                        android:clickable="false"
+                        android:focusable="false" />
+                    
+                    <!-- 状态标签背景 -->
+                    <TextView
+                        android:layout_width="36dp"
+                        android:layout_height="13dp"
+                        android:layout_marginStart="7dp"
+                        android:layout_marginTop="7dp"
+                        android:background="@drawable/status_badge_bg_design"
+                        android:gravity="center_vertical|start"
+                        android:paddingStart="16dp"
+                        android:text="在线"
+                        android:textColor="#FFFFFF"
+                        android:textSize="9sp"
+                        android:fontFamily="sans-serif"
+                        android:lineHeight="12.6sp" />
+
+                    <!-- 状态指示器 -->
+                    <View
+                        android:layout_width="5dp"
+                        android:layout_height="5dp"
+                        android:layout_marginStart="13dp"
+                        android:layout_marginTop="11dp"
+                        android:background="@drawable/status_indicator_green" />
+
+                    <!-- 用户信息区域 -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:layout_gravity="bottom|start"
+                        android:orientation="vertical">
+                        
+                        <!-- 用户名 -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="小仙女"
+                            android:textColor="#FFFFFF"
+                            android:textSize="12sp"
+                            android:fontFamily="sans-serif"
+                            android:textStyle="bold" />
+
+                        <!-- 价格信息 -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="#00000000"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp">
+
+                            <ImageView
+                                android:layout_width="10dp"
+                                android:layout_height="10dp"
+                                android:src="@drawable/group_3_1"
+                                android:layout_marginEnd="3dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="500/分钟"
+                                android:textColor="#FFFFFF"
+                                android:textSize="8sp"
+                                android:fontFamily="sans-serif"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <!-- 位置信息 -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="#00000000"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            android:paddingTop="1dp"
+                            android:paddingBottom="1dp">
+
+                            <ImageView
+                                android:layout_width="8dp"
+                                android:layout_height="8dp"
+                                android:src="@drawable/vector_3"
+                                android:layout_marginEnd="2dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:maxLines="1"
+                                android:text="上海"
+                                android:textColor="#FFFFFF"
+                                android:textSize="7sp"
+                                android:fontFamily="sans-serif"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- 右下角头像 -->
+                    <FrameLayout
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:layout_marginStart="133dp"
+                        android:layout_marginTop="198dp"
+                        android:background="@drawable/ellipse_white_bg">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/subtract_1" />
+
+                    </FrameLayout>
+                    
+                </FrameLayout>
+
+                <!-- 用户卡片4 - 复制用户2模板 -->
+                <FrameLayout
+                    android:id="@+id/user_card_4"
+                    android:layout_width="171dp"
+                    android:layout_height="236dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?android:attr/selectableItemBackground">
+                    
+                    <ImageView
+                        android:layout_width="171dp"
+                        android:layout_height="236dp"
+                        android:src="@drawable/rectangle_412_1"
+                        android:scaleType="centerCrop"
+                        android:clickable="false"
+                        android:focusable="false" />
+                    
+                    <!-- 状态标签背景 -->
+                    <TextView
+                        android:layout_width="36dp"
+                        android:layout_height="13dp"
+                        android:layout_marginStart="7dp"
+                        android:layout_marginTop="7dp"
+                        android:background="@drawable/status_badge_bg_design"
+                        android:gravity="center_vertical|start"
+                        android:paddingStart="16dp"
+                        android:text="离线"
+                        android:textColor="#FFFFFF"
+                        android:textSize="9sp"
+                        android:fontFamily="sans-serif"
+                        android:lineHeight="12.6sp" />
+
+                    <!-- 状态指示器 -->
+                    <View
+                        android:layout_width="5dp"
+                        android:layout_height="5dp"
+                        android:layout_marginStart="13dp"
+                        android:layout_marginTop="11dp"
+                        android:background="@drawable/status_indicator_red" />
+
+                    <!-- 用户信息区域 -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:layout_gravity="bottom|start"
+                        android:orientation="vertical">
+
+                        <!-- 用户名 -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="甜心宝贝"
+                            android:textColor="#FFFFFF"
+                            android:textSize="12sp"
+                            android:fontFamily="sans-serif"
+                            android:textStyle="bold" />
+
+                        <!-- 价格信息 -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="#00000000"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp">
+
+                            <ImageView
+                                android:layout_width="10dp"
+                                android:layout_height="10dp"
+                                android:src="@drawable/group_3_1"
+                                android:layout_marginEnd="3dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="400/分钟"
+                                android:textColor="#FFFFFF"
+                                android:textSize="8sp"
+                                android:fontFamily="sans-serif"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <!-- 位置信息 -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="#00000000"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            android:paddingTop="1dp"
+                            android:paddingBottom="1dp">
+
+                            <ImageView
+                                android:layout_width="8dp"
+                                android:layout_height="8dp"
+                                android:src="@drawable/vector_3"
+                                android:layout_marginEnd="2dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:maxLines="1"
+                                android:text="深圳"
+                                android:textColor="#FFFFFF"
+                                android:textSize="7sp"
+                                android:fontFamily="sans-serif"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- 右下角头像 -->
+                    <FrameLayout
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:layout_marginStart="133dp"
+                        android:layout_marginTop="198dp"
+                        android:background="@drawable/ellipse_white_bg">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/subtract_1" />
+
+                    </FrameLayout>
+                    
+                </FrameLayout>
+
+            </LinearLayout>
+
+            <!-- 第三行用户卡片 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:orientation="horizontal">
+
+                <!-- 用户卡片5 -->
+                <FrameLayout
+                    android:layout_width="171dp"
+                    android:layout_height="236dp"
+                    android:layout_marginEnd="16dp">
+                    
+                    <ImageView
+                        android:layout_width="171dp"
+                        android:layout_height="236dp"
+                        android:src="@drawable/rectangle_411_1"
+                        android:scaleType="centerCrop" />
+                    
+                    <TextView
+                        android:layout_width="36dp"
+                        android:layout_height="13dp"
+                        android:layout_marginStart="7dp"
+                        android:layout_marginTop="7dp"
+                        android:background="@drawable/status_badge_bg_design"
+                        android:gravity="center_vertical|start"
+                        android:paddingStart="16dp"
+                        android:text="空闲"
+                        android:textColor="#FFFFFF"
+                        android:textSize="9sp"
+                        android:fontFamily="sans-serif"
+                        android:lineHeight="12.6sp" />
+
+                    <View
+                        android:layout_width="5dp"
+                        android:layout_height="5dp"
+                        android:layout_marginStart="13dp"
+                        android:layout_marginTop="11dp"
+                        android:background="@drawable/status_indicator_green" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:layout_gravity="bottom|start"
+                        android:orientation="vertical">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="可爱多"
+                            android:textColor="#FFFFFF"
+                            android:textSize="12sp"
+                            android:fontFamily="sans-serif"
+                            android:textStyle="bold" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="#00000000"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp">
+
+                            <ImageView
+                                android:layout_width="10dp"
+                                android:layout_height="10dp"
+                                android:src="@drawable/group_3_1"
+                                android:layout_marginEnd="3dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="600/分钟"
+                                android:textColor="#FFFFFF"
+                                android:textSize="8sp"
+                                android:fontFamily="sans-serif"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="#00000000"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            android:paddingTop="1dp"
+                            android:paddingBottom="1dp">
+
+                            <ImageView
+                                android:layout_width="8dp"
+                                android:layout_height="8dp"
+                                android:src="@drawable/vector_3"
+                                android:layout_marginEnd="2dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:maxLines="1"
+                                android:text="杭州"
+                                android:textColor="#FFFFFF"
+                                android:textSize="7sp"
+                                android:fontFamily="sans-serif"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <FrameLayout
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:layout_marginStart="133dp"
+                        android:layout_marginTop="198dp"
+                        android:background="@drawable/ellipse_white_bg">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/subtract_1" />
+
+                    </FrameLayout>
+                    
+                </FrameLayout>
+
+                <!-- 用户卡片6 -->
+                <FrameLayout
+                    android:layout_width="171dp"
+                    android:layout_height="236dp">
+                    
+                    <ImageView
+                        android:layout_width="171dp"
+                        android:layout_height="236dp"
+                        android:src="@drawable/rectangle_412_1"
+                        android:scaleType="centerCrop" />
+                    
+                    <TextView
+                        android:layout_width="36dp"
+                        android:layout_height="13dp"
+                        android:layout_marginStart="7dp"
+                        android:layout_marginTop="7dp"
+                        android:background="@drawable/status_badge_bg_design"
+                        android:gravity="center_vertical|start"
+                        android:paddingStart="16dp"
+                        android:text="忙碌"
+                        android:textColor="#FFFFFF"
+                        android:textSize="9sp"
+                        android:fontFamily="sans-serif"
+                        android:lineHeight="12.6sp" />
+
+                    <View
+                        android:layout_width="5dp"
+                        android:layout_height="5dp"
+                        android:layout_marginStart="13dp"
+                        android:layout_marginTop="11dp"
+                        android:background="@drawable/status_indicator_orange" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:layout_gravity="bottom|start"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="小甜心"
+                            android:textColor="#FFFFFF"
+                            android:textSize="12sp"
+                            android:fontFamily="sans-serif"
+                            android:textStyle="bold" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="#00000000"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp">
+
+                            <ImageView
+                                android:layout_width="10dp"
+                                android:layout_height="10dp"
+                                android:src="@drawable/group_3_1"
+                                android:layout_marginEnd="3dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="350/分钟"
+                                android:textColor="#FFFFFF"
+                                android:textSize="8sp"
+                                android:fontFamily="sans-serif"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="#00000000"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            android:paddingTop="1dp"
+                            android:paddingBottom="1dp">
+
+                            <ImageView
+                                android:layout_width="8dp"
+                                android:layout_height="8dp"
+                                android:src="@drawable/vector_3"
+                                android:layout_marginEnd="2dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:maxLines="1"
+                                android:text="成都"
+                                android:textColor="#FFFFFF"
+                                android:textSize="7sp"
+                                android:fontFamily="sans-serif"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <FrameLayout
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:layout_marginStart="133dp"
+                        android:layout_marginTop="198dp"
+                        android:background="@drawable/ellipse_white_bg">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/subtract_1" />
+
+                    </FrameLayout>
+                    
+                </FrameLayout>
+
+            </LinearLayout>
+
+            
+        </LinearLayout>
+
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

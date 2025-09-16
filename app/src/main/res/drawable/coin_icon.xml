@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="16dp"
+    android:height="16dp"
+    android:viewportWidth="16"
+    android:viewportHeight="16">
+    
+    <!-- 金色圆形背景 -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M8,0 A8,8 0 1,1 8,16 A8,8 0 1,1 8,0 Z" />
+    
+    <!-- 高光效果 -->
+    <path
+        android:fillColor="#FFF8DC"
+        android:pathData="M6,4 A4,4 0 0,1 10,8 A4,4 0 0,1 6,12 A4,4 0 0,1 2,8 A4,4 0 0,1 6,4 Z" />
+    
+    <!-- 日元符号 -->
+    <path
+        android:fillColor="#8B4513"
+        android:pathData="M7,5 L9,5 L9,6 L8,6 L8,8 L9,8 L9,9 L8,9 L8,11 L7,11 L7,9 L6,9 L6,8 L7,8 L7,6 L6,6 L6,5 Z" />
+</vector>

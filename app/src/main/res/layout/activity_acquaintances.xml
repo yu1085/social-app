@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF">
+
+    <!-- 顶部状态栏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:background="#00000000">
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_gravity="center_vertical"
+            android:text="01:25"
+            android:textColor="#000000"
+            android:textSize="14sp" />
+            
+        <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+        
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginEnd="8dp"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/ic_signal" />
+            
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginEnd="8dp"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/ic_wifi" />
+            
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_gravity="center_vertical"
+            android:text="29"
+            android:textColor="#000000"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- 头部导航栏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp">
+
+        <!-- 返回按钮 -->
+        <ImageView
+            android:id="@+id/iv_back"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_arrow_back"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+
+        <!-- 标题 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="知友"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+
+        <!-- 设置图标 -->
+        <ImageView
+            android:id="@+id/iv_settings"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_settings"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <!-- 筛选选项和距离筛选 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="20dp"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical">
+
+        <!-- 城市筛选 -->
+        <LinearLayout
+            android:id="@+id/ll_city_filter"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginEnd="8dp"
+            android:background="#E3F2FD"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingHorizontal="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="城市"
+                android:textColor="#1976D2"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 首字母筛选 -->
+        <LinearLayout
+            android:id="@+id/ll_letter_filter"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginEnd="8dp"
+            android:background="#F5F5F5"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingHorizontal="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="首字母"
+                android:textColor="#999999"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+
+        <!-- 距离筛选 -->
+        <TextView
+            android:id="@+id/tv_distance_filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="距离 三"
+            android:textColor="#666666"
+            android:textSize="12sp"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <!-- 谁加我知友区域 -->
+    <LinearLayout
+        android:id="@+id/ll_who_added_me"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#E3F2FD"
+        android:padding="16dp"
+        android:layout_margin="20dp"
+        android:gravity="center_vertical">
+
+        <!-- 图标 -->
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_add_friend"
+            android:tint="#1976D2" />
+
+        <Space android:layout_width="12dp" android:layout_height="wrap_content" />
+
+        <!-- 文字内容 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="谁加我知友"
+                android:textColor="#1976D2"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="看看谁加我为知友了"
+                android:textColor="#1976D2"
+                android:textSize="12sp"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+
+        <!-- 查看按钮 -->
+        <LinearLayout
+            android:id="@+id/ll_view_who_added_me"
+            android:layout_width="60dp"
+            android:layout_height="32dp"
+            android:background="#FFFFFF"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="查看"
+                android:textColor="#666666"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 知友列表 -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingHorizontal="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 知友项目 -->
+            <LinearLayout
+                android:id="@+id/acquaintance_item_1"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+
+                <!-- 选择圆圈 -->
+                <ImageView
+                    android:id="@+id/selection_circle"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="12dp"
+                    android:src="@drawable/selection_circle_unselected"
+                    android:visibility="gone" />
+
+                <!-- 头像 -->
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/group_27"
+                    android:scaleType="centerCrop"
+                    android:background="@drawable/circle_background" />
+
+                <Space android:layout_width="12dp" android:layout_height="wrap_content" />
+
+                <!-- 用户信息 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <!-- 第一行：姓名和关系等级 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="梦梦"
+                            android:textColor="#333333"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+
+                        <!-- 关系等级标签 -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Lv.3 相知"
+                            android:textColor="#FFFFFF"
+                            android:textSize="10sp"
+                            android:background="@drawable/relationship_level_bg"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="2dp" />
+                    </LinearLayout>
+
+                    <!-- 第二行：距离 -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="[距19.90km]"
+                        android:textColor="#999999"
+                        android:textSize="12sp"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+
+                <!-- 操作图标 -->
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_video"
+                    android:background="@drawable/circle_light_blue_bg"
+                    android:padding="6dp"
+                    android:tint="#1976D2" />
+            </LinearLayout>
+
+            <!-- 更多知友项目... -->
+            <LinearLayout
+                android:id="@+id/acquaintance_item_2"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+
+                <!-- 选择圆圈 -->
+                <ImageView
+                    android:id="@+id/selection_circle_2"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="12dp"
+                    android:src="@drawable/selection_circle_unselected"
+                    android:visibility="gone" />
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/group_28"
+                    android:scaleType="centerCrop"
+                    android:background="@drawable/circle_background" />
+
+                <Space android:layout_width="12dp" android:layout_height="wrap_content" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="碎碎"
+                            android:textColor="#333333"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Lv.3 相知"
+                            android:textColor="#FFFFFF"
+                            android:textSize="10sp"
+                            android:background="@drawable/relationship_level_bg"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="2dp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="[距26.62km]"
+                        android:textColor="#999999"
+                        android:textSize="12sp"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_message"
+                    android:background="@drawable/circle_light_blue_bg"
+                    android:padding="6dp"
+                    android:tint="#1976D2" />
+            </LinearLayout>
+
+                         <!-- 添加更多知友项目... -->
+         </LinearLayout>
+     </ScrollView>
+     
+     <!-- 删除按钮 -->
+     <LinearLayout
+         android:id="@+id/delete_button"
+         android:layout_width="wrap_content"
+         android:layout_height="48dp"
+         android:layout_gravity="end|bottom"
+         android:layout_margin="20dp"
+         android:background="@drawable/delete_button_bg"
+         android:gravity="center"
+         android:paddingHorizontal="24dp"
+         android:clickable="true"
+         android:focusable="true"
+         android:visibility="gone">
+         
+         <TextView
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:text="删除"
+             android:textColor="#FFFFFF"
+             android:textSize="16sp"
+             android:textStyle="bold" />
+     </LinearLayout>
+ </LinearLayout>

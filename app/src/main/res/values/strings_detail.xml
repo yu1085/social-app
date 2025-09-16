@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 动态详情页面字符串资源 -->
+    
+    <!-- 标题 -->
+    <string name="detail_title">动态详情</string>
+    
+    <!-- 用户信息 -->
+    <string name="detail_user_name">小倩</string>
+    <string name="detail_user_age">27</string>
+    <string name="detail_user_distance">6.34km</string>
+    
+    <!-- 动态内容 -->
+    <string name="detail_dynamic_title">减肥餐</string>
+    
+    <!-- 时间和位置 -->
+    <string name="detail_time_location">08-12 11:57 安徽省</string>
+    
+    <!-- 按钮文字 -->
+    <string name="detail_like_button">喜欢</string>
+    
+    <!-- 输入框提示 -->
+    <string name="detail_input_placeholder">请输入内容</string>
+    
+    <!-- 内容描述 -->
+    <string name="detail_avatar_desc">用户头像</string>
+    <string name="detail_age_icon_desc">年龄</string>
+    <string name="detail_like_icon_desc">喜欢</string>
+    <string name="detail_dynamic_image_desc">动态图片</string>
+    <string name="detail_like_action_desc">点赞</string>
+    <string name="detail_comment_action_desc">评论</string>
+</resources>

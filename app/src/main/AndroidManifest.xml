@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- 网络权限 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    
+    <!-- 如果需要访问WiFi状态 -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    
+    <!-- 位置权限 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <application
+            android:name=".MyApplication"
+            android:allowBackup="true"
+            android:dataExtractionRules="@xml/data_extraction_rules"
+            android:fullBackupContent="@xml/backup_rules"
+            android:label="@string/app_name"
+            android:supportsRtl="true"
+            android:theme="@style/Theme.MyApplication"
+            android:usesCleartextTraffic="true"
+            android:networkSecurityConfig="@xml/network_security_config">
+        <!-- 登录页面 - 启动页面 -->
+        <activity
+                android:name=".LoginActivity"
+                android:exported="true"
+                android:theme="@style/Theme.MyApplication">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        
+        <!-- 性别选择页面 -->
+        <activity
+                android:name=".GenderSelectionActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="选择性别" />
+        
+        <!-- 个人中心测试页面 -->
+        <activity
+                android:name=".ProfileTestActivity"
+                android:exported="true"
+                android:theme="@style/Theme.MyApplication"
+                android:label="个人中心测试" />
+        
+        <!-- 主页面 -->
+        <activity
+                android:name=".MainActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication" />
+        
+        <!-- 广场页面（承载 Compose 的 SquareScreen） -->
+        <activity
+                android:name=".SquareActivity"
+                android:exported="true"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait" />
+        
+        <!-- 消息页面（已存在） -->
+        <activity
+                android:name=".MessageActivity"
+                android:exported="true"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait" />
+        
+        <!-- 动态详情页面 -->
+        <activity
+                android:name=".DynamicDetailActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait" />
+                
+        <!-- 个人中心页面 - 完全独立实现 -->
+        <activity
+                android:name=".ProfileActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="@string/profile_title" />
+                
+        <!-- 设置页面 -->
+        <activity
+                android:name=".SettingsActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="设置" />
+                
+        <!-- VIP会员中心页面 -->
+        <activity
+                android:name=".VipCenterActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="会员中心" />
+                
+        <!-- 会员服务协议页面 -->
+        <activity
+                android:name=".MembershipAgreementActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="会员服务协议" />
+                
+        <!-- 财富等级页面 -->
+        <activity
+                android:name=".WealthLevelActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="财富等级" />
+                
+        <!-- 道具商城页面 -->
+        <activity
+                android:name=".PropMallActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="道具商城" />
+                
+        <!-- 邀请好友页面 -->
+        <activity
+                android:name=".InviteFriendsActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="邀请好友" />
+                
+        <!-- 我的认证页面 -->
+        <activity
+                android:name=".MyCertificationActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="我的认证" />
+                
+        <!-- 我的卡券页面 -->
+        <activity
+                android:name=".MyCouponsActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="我的卡券" />
+                
+        <!-- 谁看过我页面 -->
+        <activity
+                android:name=".WhoViewedMeActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="谁看过我" />
+                
+        <!-- 我的守护页面 -->
+        <activity
+                android:name=".MyGuardActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="我的守护" />
+                
+        <!-- 守护收入榜页面 -->
+        <activity
+                android:name=".GuardIncomeRankingActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="守护收入榜" />
+                
+        <!-- 我的礼物页面 -->
+        <activity
+                android:name=".MyGiftsActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="我的礼物" />
+                
+        <!-- 礼物明细页面 -->
+        <activity
+                android:name=".GiftDetailsActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="礼物明细" />
+                
+        <!-- 我的客服页面 -->
+        <activity
+                android:name=".MyCustomerServiceActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="我的客服" />
+                
+        <!-- 我的钱包页面 -->
+        <activity
+                android:name=".MyWalletActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="我的钱包" />
+                
+        <!-- 充值页面 -->
+        <activity
+                android:name=".RechargeActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="充值" />
+                
+        <!-- 钱包明细页面 -->
+        <activity
+                android:name=".WalletDetailsActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="明细" />
+                
+        <!-- 如何赚聊币页面 -->
+        <activity
+                android:name=".HowToEarnCoinsActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="如何赚聊币" />
+                
+        <!-- 卡券明细页面 -->
+        <activity
+                android:name=".CouponDetailsActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="明细" />
+                
+        <!-- VIP订阅页面 -->
+        <activity
+                android:name=".VipSubscriptionActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="VIP会员" />
+                
+        <!-- 账号相关页面 -->
+        <activity
+                android:name=".AccountManagementActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="账号相关" />
+                
+        <!-- 黑名单页面 -->
+        <activity
+                android:name=".BlacklistActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="黑名单" />
+                
+        <!-- 隐私设置页面 -->
+        <activity
+                android:name=".PrivacySettingsActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="隐私设置" />
+                
+        <!-- 通知设置页面 -->
+        <activity
+                android:name=".NotificationSettingsActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="通知设置" />
+                
+        <!-- 系统权限设置页面 -->
+        <activity
+                android:name=".SystemPermissionActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="系统权限管理" />
+                
+        <!-- 更换新手机号页面 -->
+        <activity
+                android:name=".ChangePhoneActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="更换新手机号" />
+                
+        <!-- 视频帧率设置页面 -->
+        <activity
+                android:name=".VideoFramerateActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="视频帧率" />
+                
+        <!-- 个人信息浏览导出页面 -->
+        <activity
+                android:name=".PersonalInfoBrowseActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="个人信息浏览导出" />
+                
+        <!-- 个人信息导出页面 -->
+        <activity
+                android:name=".PersonalInfoExportActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="个人信息浏览与导出" />
+                
+        <!-- 收集个人信息清单页面 -->
+        <activity
+                android:name=".PersonalInfoCollectionActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="收集个人信息清单" />
+                
+        <!-- 青少年模式页面 -->
+        <activity
+                android:name=".YouthModeActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="青少年模式" />
+                
+        <!-- 与第三方共享信息清单页面 -->
+        <activity
+                android:name=".ThirdPartySharingActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="与第三方共享信息清单" />
+                
+        <!-- 建议反馈页面 -->
+        <activity
+                android:name=".SuggestionActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="建议" />
+                
+        <!-- 举报页面 -->
+        <activity
+                android:name=".ReportActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="举报" />
+                
+        <!-- 举报记录页面 -->
+        <activity
+                android:name=".ReportRecordsActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="举报记录" />
+                
+        <!-- 关于知聊页面 -->
+        <activity
+                android:name=".AboutActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="关于知聊" />
+                
+        <!-- 筛选页面 -->
+        <activity
+                android:name=".FilterActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="筛选" />
+                
+        <!-- 视频速配页面 -->
+        <activity
+                android:name=".VideoMatchActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="视频速配" />
+                
+        <!-- 语音速配页面 -->
+        <activity
+                android:name=".VoiceMatchActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="语音速配" />
+                
+        <!-- 财富等级规则说明页面 -->
+        <activity
+                android:name=".WealthRulesActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="规则说明" />
+                
+        <!-- 我的道具页面 -->
+        <activity
+                android:name=".MyPropsActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="我的道具" />
+                
+        <!-- 道具记录页面 -->
+        <activity
+                android:name=".PropsRecordsActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="记录" />
+                
+        <!-- 搜索页面 -->
+        <activity
+                android:name=".SearchActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="搜索" />
+                
+        <!-- 用户详情页面 -->
+        <activity
+                android:name=".UserDetailActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait" />
+                
+        <!-- 礼物展示页面 -->
+        <activity
+                android:name=".GiftsActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait" />
+                
+        <!-- 守护者排行榜页面 -->
+        <activity
+                android:name=".GuardianActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait" />
+                
+        <!-- 上周贡献榜页面 -->
+        <activity
+                android:name=".LastWeekContributionActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait" />
+                
+        <!-- 聊天窗口页面 -->
+        <activity
+                android:name=".ChatActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait" />
+                
+        <!-- 知友页面 -->
+        <activity
+                android:name=".AcquaintancesActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait" />
+                
+        <!-- 喜欢页面 -->
+        <activity
+                android:name=".LikesActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait" />
+                
+        <!-- 亲密页面 -->
+        <activity
+                android:name=".IntimacyActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait" />
+                
+        <!-- 前后端联调测试页面 -->
+        <activity
+                android:name=".TestActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="联调测试" />
+                
+
+    </application>
+
+</manifest>

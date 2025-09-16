@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="25dp"
+    android:height="25dp"
+    android:viewportWidth="25"
+    android:viewportHeight="25">
+    
+    <!-- 指南针/目标图标 -->
+    <path
+        android:fillColor="#BDBDBF"
+        android:pathData="M12.5,2C6.98,2 2.5,6.48 2.5,12C2.5,17.52 6.98,22 12.5,22C18.02,22 22.5,17.52 22.5,12C22.5,6.48 18.02,2 12.5,2ZM12.5,20C7.59,20 3.5,15.91 3.5,11C3.5,6.09 7.59,2 12.5,2C17.41,2 21.5,6.09 21.5,11C21.5,15.91 17.41,20 12.5,20Z" />
+    
+    <!-- 指针 -->
+    <path
+        android:fillColor="#BDBDBF"
+        android:pathData="M12.5,6L16.5,12L12.5,18L8.5,12L12.5,6Z" />
+</vector>

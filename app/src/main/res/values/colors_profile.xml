@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 个人中心页面颜色资源 -->
+    
+    <!-- 背景色 -->
+    <color name="profile_background">#F7F8FA</color>
+    <color name="profile_card_background">#FFFFFF</color>
+    
+    <!-- 装饰色 -->
+    <color name="profile_decoration_left">#F3F6FD</color>
+    <color name="profile_decoration_right">#FEF4FC</color>
+    
+    <!-- 会员中心渐变 -->
+    <color name="profile_membership_gradient_start">#F5F8FD</color>
+    <color name="profile_membership_gradient_end">#E8EEFA</color>
+    
+    <!-- 财富等级渐变 -->
+    <color name="profile_wealth_gradient_start">#F5F8FD</color>
+    <color name="profile_wealth_gradient_end">#E8EEFA</color>
+    
+    <!-- 道具商城渐变 -->
+    <color name="profile_item_shop_gradient_start">#FDF8F5</color>
+    <color name="profile_item_shop_gradient_end">#FAF1EC</color>
+    
+    <!-- 文字颜色 -->
+    <color name="profile_text_primary">#333333</color>
+    <color name="profile_text_secondary">#666666</color>
+    <color name="profile_text_disabled">#CCCCCC</color>
+    
+    <!-- 会员相关颜色 -->
+    <color name="profile_vip_primary">#B97A2E</color>
+    <color name="profile_vip_button">#FFDAA9</color>
+    
+    <!-- 按钮颜色 -->
+    <color name="profile_button_primary">#498AFE</color>
+    <color name="profile_button_secondary">#ECEDF2</color>
+    <color name="profile_button_disabled">#DDDDDD</color>
+    
+    <!-- 图标颜色 -->
+    <color name="profile_icon_wealth">#ABC9FF</color>
+    <color name="profile_icon_item_shop">#FEDCC3</color>
+    <color name="profile_icon_progress_wealth">#7DA1ED</color>
+    <color name="profile_icon_progress_item_shop">#F3C8B7</color>
+    
+    <!-- 状态颜色 -->
+    <color name="profile_status_enabled">#498AFE</color>
+    <color name="profile_status_disabled">#ECEDF2</color>
+    <color name="profile_status_success">#4CAF50</color>
+    <color name="profile_status_error">#F44336</color>
+    
+    <!-- 分割线颜色 -->
+    <color name="profile_divider">#F0F0F0</color>
+    
+    <!-- 头像占位色 -->
+    <color name="profile_avatar_placeholder">#E0E0E0</color>
+    
+    <!-- 通知徽章颜色 -->
+    <color name="profile_notification_badge">#FB6570</color>
+</resources>

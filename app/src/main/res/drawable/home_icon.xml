@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="22dp"
+    android:height="14dp"
+    android:viewportWidth="22"
+    android:viewportHeight="14">
+    
+    <!-- 房子轮廓 -->
+    <path
+        android:fillColor="#588BFF"
+        android:pathData="M1,7L11,1L21,7V13H1V7Z" />
+    
+    <!-- 门 -->
+    <path
+        android:fillColor="#588BFF"
+        android:pathData="M8,13V9H14V13H8Z" />
+</vector>

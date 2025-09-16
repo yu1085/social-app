@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 主色调 -->
+    <color name="primary">#FF6B9D</color>
+    <color name="primary_dark">#E55A8A</color>
+    <color name="primary_light">#FF8FB8</color>
+    
+    <!-- 辅助色 -->
+    <color name="secondary">#4ECDC4</color>
+    <color name="secondary_dark">#45B7AF</color>
+    <color name="secondary_light">#6FD5CE</color>
+    
+    <!-- 背景色 -->
+    <color name="background">#FFFFFF</color>
+    <color name="surface">#F8F9FA</color>
+    <color name="card_background">#FFFFFF</color>
+    
+    <!-- 文字颜色 -->
+    <color name="text_primary">#212529</color>
+    <color name="text_secondary">#6C757D</color>
+    <color name="text_hint">#ADB5BD</color>
+    
+    <!-- 状态颜色 -->
+    <color name="success">#28A745</color>
+    <color name="warning">#FFC107</color>
+    <color name="error">#DC3545</color>
+    <color name="info">#17A2B8</color>
+    
+    <!-- 边框和分割线 -->
+    <color name="border">#E9ECEF</color>
+    <color name="divider">#F1F3F4</color>
+    
+    <!-- 阴影 -->
+    <color name="shadow">#000000</color>
+    
+    <!-- 透明色 -->
+    <color name="transparent">#00000000</color>
+    <color name="semi_transparent">#80000000</color>
+    
+    <!-- 基础颜色 -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    
+    <!-- 灰色系列 -->
+    <color name="gray_100">#F8F9FA</color>
+    <color name="gray_300">#DEE2E6</color>
+    <color name="gray_600">#6C757D</color>
+</resources>

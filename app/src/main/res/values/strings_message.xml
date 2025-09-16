@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 私信消息页面专用字符串 -->
+    
+    <!-- 页面标题 -->
+    <string name="message_title">消息</string>
+    <string name="message_tab_message">消息</string>
+    <string name="message_tab_call">通话</string>
+    <string name="message_tab_relationship">关系</string>
+    
+    <!-- 顶部区域 -->
+    <string name="message_top_title">潜力女神</string>
+    <string name="message_notification_hint">开启通知，别让喜欢的人等太久</string>
+    <string name="message_refresh">换一批</string>
+    <string name="message_enable_notification">去开启</string>
+    
+    <!-- 用户状态 -->
+    <string name="user_status_idle">空闲</string>
+    <string name="user_status_busy">忙碌</string>
+    
+    <!-- 消息内容 -->
+    <string name="message_video_call">[视频通话]</string>
+    <string name="message_greeting">晚上好呀，在干嘛?</string>
+    <string name="message_visitor_hint">有个小姐姐看了你，对你很感兴趣，点击看...</string>
+    <string name="message_expiry_reminder">给您赠送的免费私信马上要过期了哦，还...</string>
+    
+    <!-- 消息发送者 -->
+    <string name="message_sender_cute">你的小可爱512</string>
+    <string name="message_sender_mermaid">漫步的美人鱼</string>
+    <string name="message_sender_visitor">谁来看过我</string>
+    <string name="message_sender_system">提醒</string>
+    
+    <!-- 时间 -->
+    <string name="message_time_just_now">刚刚</string>
+    <string name="message_time_hours_ago">12小时前</string>
+    
+    <!-- 底部导航 -->
+    <string name="message_nav_home">首页</string>
+    <string name="message_nav_square">广场</string>
+    <string name="message_nav_message">私信</string>
+    <string name="message_nav_profile">我的</string>
+    
+    <!-- 操作按钮 -->
+    <string name="message_action_view">查看</string>
+    <string name="message_action_click">点击</string>
+    
+    <!-- 系统消息 -->
+    <string name="message_system_notification">系统通知</string>
+    <string name="message_visitor_notification">访客通知</string>
+</resources>
