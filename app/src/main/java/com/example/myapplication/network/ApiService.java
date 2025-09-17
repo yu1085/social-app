@@ -123,6 +123,25 @@ public interface ApiService {
         @Query("size") int size
     );
     
+    // 通话相关
+    @POST("call/initiate")
+    Call<ApiResponse<Object>> initiateCall(@Header("Authorization") String authHeader, @Body Object callRequest);
+    
+    @POST("call/accept")
+    Call<ApiResponse<Object>> acceptCall(@Header("Authorization") String authHeader, @Body Object acceptRequest);
+    
+    @POST("call/reject")
+    Call<ApiResponse<Object>> rejectCall(@Header("Authorization") String authHeader, @Body Object rejectRequest);
+    
+    @POST("call/end")
+    Call<ApiResponse<Object>> endCall(@Header("Authorization") String authHeader, @Body Object endRequest);
+    
+    @GET("call/status/{callSessionId}")
+    Call<ApiResponse<Object>> getCallStatus(@Header("Authorization") String authHeader, @Path("callSessionId") String callSessionId);
+    
+    @GET("call/history")
+    Call<ApiResponse<Object>> getCallHistory(@Header("Authorization") String authHeader, @Query("page") int page, @Query("size") int size);
+    
     // 充值请求类
     class RechargeRequest {
         private java.math.BigDecimal amount;

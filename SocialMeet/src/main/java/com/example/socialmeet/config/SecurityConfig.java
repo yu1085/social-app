@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/health").permitAll()
                         .requestMatchers("/api/admin/**").permitAll()  // 允许管理员API
                         .requestMatchers("/api/users/**").permitAll()  // 允许所有用户API
+                        .requestMatchers("/api/call/**").permitAll()   // 允许通话API
                         .requestMatchers("/h2-console/**").permitAll()  // 允许H2控制台
                         .requestMatchers("/api-docs/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()

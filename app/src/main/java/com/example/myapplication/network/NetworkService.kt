@@ -73,4 +73,92 @@ object NetworkService {
             }
         }
     }
+    
+    /**
+     * 发起通话
+     */
+    suspend fun initiateCall(token: String, receiverId: Long): Response<ApiResponse<Any>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val request = mapOf("receiverId" to receiverId)
+                val call = NetworkConfig.getApiService().initiateCall("Bearer $token", request)
+                call.execute()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+    }
+    
+    /**
+     * 接受通话
+     */
+    suspend fun acceptCall(token: String, callSessionId: String): Response<ApiResponse<Any>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val request = mapOf("callSessionId" to callSessionId)
+                val call = NetworkConfig.getApiService().acceptCall("Bearer $token", request)
+                call.execute()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+    }
+    
+    /**
+     * 拒绝通话
+     */
+    suspend fun rejectCall(token: String, callSessionId: String): Response<ApiResponse<Any>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val request = mapOf("callSessionId" to callSessionId)
+                val call = NetworkConfig.getApiService().rejectCall("Bearer $token", request)
+                call.execute()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+    }
+    
+    /**
+     * 结束通话
+     */
+    suspend fun endCall(token: String, callSessionId: String, reason: String = "NORMAL"): Response<ApiResponse<Any>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val request = mapOf("callSessionId" to callSessionId, "reason" to reason)
+                val call = NetworkConfig.getApiService().endCall("Bearer $token", request)
+                call.execute()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+    }
+    
+    /**
+     * 获取通话状态
+     */
+    suspend fun getCallStatus(token: String, callSessionId: String): Response<ApiResponse<Any>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val call = NetworkConfig.getApiService().getCallStatus("Bearer $token", callSessionId)
+                call.execute()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+    }
+    
+    /**
+     * 获取通话历史
+     */
+    suspend fun getCallHistory(token: String, page: Int = 0, size: Int = 20): Response<ApiResponse<Any>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val call = NetworkConfig.getApiService().getCallHistory("Bearer $token", page, size)
+                call.execute()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+    }
 }
