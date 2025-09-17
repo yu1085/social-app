@@ -40,7 +40,7 @@ public class GiftService {
         return gifts.stream().map(GiftDTO::new).collect(Collectors.toList());
     }
     
-    public List<GiftDTO> getGiftsByCategory(Gift.GiftCategory category) {
+    public List<GiftDTO> getGiftsByCategory(String category) {
         List<Gift> gifts = giftRepository.findByCategoryAndIsActiveTrueOrderByPriceAsc(category);
         return gifts.stream().map(GiftDTO::new).collect(Collectors.toList());
     }

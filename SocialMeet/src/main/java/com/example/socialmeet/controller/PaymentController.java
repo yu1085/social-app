@@ -33,8 +33,8 @@ public class PaymentController {
             String jwt = token.replace("Bearer ", "");
             Long userId = jwtUtil.getUserIdFromToken(jwt);
             
-            PaymentOrder.OrderType orderType = PaymentOrder.OrderType.valueOf(type.toUpperCase());
-            PaymentOrder.PaymentMethod method = PaymentOrder.PaymentMethod.valueOf(paymentMethod.toUpperCase());
+            String orderType = String.valueOf(type.toUpperCase());
+            String method = String.valueOf(paymentMethod.toUpperCase());
             
             if (amount.compareTo(BigDecimal.ZERO) <= 0) {
                 return ResponseEntity.badRequest().body(ApiResponse.error("支付金额必须大于0"));
@@ -82,7 +82,7 @@ public class PaymentController {
             String jwt = token.replace("Bearer ", "");
             Long userId = jwtUtil.getUserIdFromToken(jwt);
             
-            PaymentOrder.OrderStatus orderStatus = PaymentOrder.OrderStatus.valueOf(status.toUpperCase());
+            String orderStatus = String.valueOf(status.toUpperCase());
             List<PaymentOrderDTO> orders = paymentService.getUserPaymentOrdersByStatus(userId, orderStatus);
             return ResponseEntity.ok(ApiResponse.success(orders));
         } catch (Exception e) {

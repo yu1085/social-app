@@ -29,13 +29,13 @@ public class PostController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<PostDTO>>> getPosts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "10") int size) {
         try {
             Pageable pageable = PageRequest.of(page, size);
-            Page<Post> posts = postRepository.findByStatusOrderByCreatedAtDesc("PUBLISHED", pageable);
+            Page<Post> posts = postRepository.findByIsActiveTrueOrderByCreatedAtDesc(pageable);
             
             List<PostDTO> postDTOs = posts.getContent().stream()
-                    .map(PostDTO::new)
+                    .map(this::convertToDTO)
                     .collect(Collectors.toList());
             
             return ResponseEntity.ok(ApiResponse.success(postDTOs));
@@ -55,13 +55,14 @@ public class PostController {
             Post post = new Post();
             post.setUserId(userId);
             post.setContent(postDTO.getContent());
-            post.setImages(postDTO.getImages());
+            post.setImageUrl(postDTO.getImageUrl());
+            post.setVideoUrl(postDTO.getVideoUrl());
             post.setLocation(postDTO.getLocation());
             post.setStatus("PUBLISHED");
             
             post = postRepository.save(post);
             
-            return ResponseEntity.ok(ApiResponse.success(new PostDTO(post)));
+            return ResponseEntity.ok(ApiResponse.success(convertToDTO(post)));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error("发布动态失败: " + e.getMessage()));
         }
@@ -73,9 +74,9 @@ public class PostController {
             Post post = postRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("动态不存在"));
             
-            return ResponseEntity.ok(ApiResponse.success(new PostDTO(post)));
+            return ResponseEntity.ok(ApiResponse.success(convertToDTO(post)));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error("获取动态详情失败: " + e.getMessage()));
+            return ResponseEntity.badRequest().body(ApiResponse.error("获取动态失败: " + e.getMessage()));
         }
     }
     
@@ -96,12 +97,13 @@ public class PostController {
             }
             
             post.setContent(postDTO.getContent());
-            post.setImages(postDTO.getImages());
+            post.setImageUrl(postDTO.getImageUrl());
+            post.setVideoUrl(postDTO.getVideoUrl());
             post.setLocation(postDTO.getLocation());
             
             post = postRepository.save(post);
             
-            return ResponseEntity.ok(ApiResponse.success(new PostDTO(post)));
+            return ResponseEntity.ok(ApiResponse.success(convertToDTO(post)));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error("更新动态失败: " + e.getMessage()));
         }
@@ -123,6 +125,7 @@ public class PostController {
             }
             
             post.setStatus("DELETED");
+            post.setIsActive(false);
             postRepository.save(post);
             
             return ResponseEntity.ok(ApiResponse.success("删除动态成功"));
@@ -142,11 +145,11 @@ public class PostController {
             Post post = postRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("动态不存在"));
             
-            // TODO: 实现点赞功能
+            // TODO: 实现点赞逻辑
             post.setLikeCount(post.getLikeCount() + 1);
             post = postRepository.save(post);
             
-            return ResponseEntity.ok(ApiResponse.success(new PostDTO(post)));
+            return ResponseEntity.ok(ApiResponse.success(convertToDTO(post)));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error("点赞失败: " + e.getMessage()));
         }
@@ -163,15 +166,29 @@ public class PostController {
             Post post = postRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("动态不存在"));
             
-            // TODO: 实现取消点赞功能
-            if (post.getLikeCount() > 0) {
-                post.setLikeCount(post.getLikeCount() - 1);
-                post = postRepository.save(post);
-            }
+            // TODO: 实现取消点赞逻辑
+            post.setLikeCount(Math.max(0, post.getLikeCount() - 1));
+            post = postRepository.save(post);
             
-            return ResponseEntity.ok(ApiResponse.success(new PostDTO(post)));
+            return ResponseEntity.ok(ApiResponse.success(convertToDTO(post)));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error("取消点赞失败: " + e.getMessage()));
         }
+    }
+    
+    private PostDTO convertToDTO(Post post) {
+        PostDTO dto = new PostDTO();
+        dto.setId(post.getId());
+        dto.setUserId(post.getUserId());
+        dto.setContent(post.getContent());
+        dto.setImageUrl(post.getImageUrl());
+        dto.setVideoUrl(post.getVideoUrl());
+        dto.setLocation(post.getLocation());
+        dto.setLikeCount(post.getLikeCount());
+        dto.setCommentCount(post.getCommentCount());
+        dto.setIsLiked(false); // TODO: 实现点赞状态检查
+        dto.setCreatedAt(post.getCreatedAt());
+        dto.setUpdatedAt(post.getUpdatedAt());
+        return dto;
     }
 }

@@ -31,9 +31,8 @@ public class Like {
     @JoinColumn(name = "comment_id")
     private Comment comment;
     
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private LikeType type;
+    @Column(name = "type")
+    private String type;
     
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

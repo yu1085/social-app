@@ -22,7 +22,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findActiveUsers();
     
     @Query("SELECT u FROM User u WHERE u.gender = :gender AND u.isActive = true")
-    List<User> findByGender(@Param("gender") User.Gender gender);
+    List<User> findByGender(@Param("gender") String gender);
     
     @Query("SELECT u FROM User u WHERE u.nickname LIKE %:keyword% AND u.isActive = true")
     List<User> findByNicknameContaining(@Param("keyword") String keyword);

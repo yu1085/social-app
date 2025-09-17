@@ -49,11 +49,16 @@
                 android:theme="@style/Theme.MyApplication"
                 android:label="个人中心测试" />
         
-        <!-- 主页面 -->
+        <!-- 主页面 - 启动页面 -->
         <activity
                 android:name=".MainActivity"
-                android:exported="false"
-                android:theme="@style/Theme.MyApplication" />
+                android:exported="true"
+                android:theme="@style/Theme.MyApplication">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
         
         <!-- 广场页面（承载 Compose 的 SquareScreen） -->
         <activity
@@ -204,13 +209,6 @@
                 android:screenOrientation="portrait"
                 android:label="我的钱包" />
                 
-        <!-- 充值页面 -->
-        <activity
-                android:name=".RechargeActivity"
-                android:exported="false"
-                android:theme="@style/Theme.MyApplication"
-                android:screenOrientation="portrait"
-                android:label="充值" />
                 
         <!-- 钱包明细页面 -->
         <activity

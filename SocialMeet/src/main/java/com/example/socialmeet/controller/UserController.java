@@ -45,7 +45,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<List<UserDTO>>> searchUsers(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String location,
-            @RequestParam(required = false) User.Gender gender,
+            @RequestParam(required = false) String gender,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         try {
@@ -135,6 +135,92 @@ public class UserController {
             return ResponseEntity.ok(ApiResponse.success(List.of()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error("获取粉丝列表失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 获取首页用户卡片列表 - 包含用户状态和价格信息
+     */
+    @GetMapping("/home-cards")
+    public ResponseEntity<ApiResponse<List<Object>>> getHomeUserCards(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            // 获取活跃用户
+            List<User> users = userRepository.findActiveUsers();
+            
+            // 限制返回数量
+            int start = page * size;
+            int end = Math.min(start + size, users.size());
+            List<User> pagedUsers = users.subList(start, end);
+            
+            // 构建用户卡片数据
+            List<Object> userCards = pagedUsers.stream().map(user -> {
+                java.util.Map<String, Object> card = new java.util.HashMap<>();
+                card.put("id", user.getId());
+                card.put("nickname", user.getNickname());
+                card.put("avatar", user.getAvatarUrl());
+                card.put("age", user.getAge());
+                card.put("location", user.getLocation());
+                card.put("bio", user.getBio());
+                card.put("isOnline", user.getIsOnline());
+                
+                // 根据在线状态设置状态和价格
+                if (user.getIsOnline()) {
+                    card.put("status", "空闲");
+                    card.put("statusColor", "green");
+                    card.put("callPrice", 300);
+                } else {
+                    card.put("status", "离线");
+                    card.put("statusColor", "gray");
+                    card.put("callPrice", 200);
+                }
+                
+                return card;
+            }).collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ApiResponse.success(userCards));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("获取用户卡片失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 获取用户详情 - 包含状态和价格信息
+     */
+    @GetMapping("/{id}/detail")
+    public ResponseEntity<ApiResponse<Object>> getUserDetail(@PathVariable Long id) {
+        try {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("用户不存在"));
+            
+            java.util.Map<String, Object> userDetail = new java.util.HashMap<>();
+            userDetail.put("id", user.getId());
+            userDetail.put("nickname", user.getNickname());
+            userDetail.put("avatar", user.getAvatarUrl());
+            userDetail.put("age", user.getAge());
+            userDetail.put("location", user.getLocation());
+            userDetail.put("bio", user.getBio());
+            userDetail.put("isOnline", user.getIsOnline());
+            userDetail.put("gender", user.getGender());
+            userDetail.put("createdAt", user.getCreatedAt());
+            
+            // 根据在线状态设置状态和价格
+            if (user.getIsOnline()) {
+                userDetail.put("status", "空闲");
+                userDetail.put("statusColor", "green");
+                userDetail.put("callPrice", 300);
+                userDetail.put("messagePrice", 10);
+            } else {
+                userDetail.put("status", "离线");
+                userDetail.put("statusColor", "gray");
+                userDetail.put("callPrice", 200);
+                userDetail.put("messagePrice", 8);
+            }
+            
+            return ResponseEntity.ok(ApiResponse.success(userDetail));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("获取用户详情失败: " + e.getMessage()));
         }
     }
 }

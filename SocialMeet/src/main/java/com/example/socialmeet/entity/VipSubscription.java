@@ -23,9 +23,8 @@ public class VipSubscription {
     @Column(name = "end_date", nullable = false)
     private LocalDateTime endDate;
     
-    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private SubscriptionStatus status = SubscriptionStatus.ACTIVE;
+    private String status = "ACTIVE";
     
     @Column(name = "amount", precision = 10, scale = 2, nullable = false)
     private BigDecimal amount;
@@ -56,14 +55,7 @@ public class VipSubscription {
         this.startDate = startDate;
         this.endDate = endDate;
         this.amount = amount;
-    }
-    
-    // Enums
-    public enum SubscriptionStatus {
-        ACTIVE, EXPIRED, CANCELLED
-    }
-    
-    // Getters and Setters
+    }    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -104,11 +96,11 @@ public class VipSubscription {
         this.endDate = endDate;
     }
     
-    public SubscriptionStatus getStatus() {
+    public String getStatus() {
         return status;
     }
     
-    public void setStatus(SubscriptionStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
     
@@ -138,7 +130,7 @@ public class VipSubscription {
     
     // Business methods
     public boolean isActive() {
-        return status == SubscriptionStatus.ACTIVE && 
+        return "ACTIVE".equals(status) && 
                LocalDateTime.now().isBefore(endDate);
     }
     

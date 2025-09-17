@@ -12,8 +12,9 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.myapplication.dto.LoginRequest;
 import com.example.myapplication.dto.LoginResponse;
-import com.example.myapplication.network.NetworkService;
+import com.example.myapplication.network.NetworkConfig;
 import com.example.myapplication.auth.AuthManager;
+import com.example.myapplication.utils.SafeToast;
 
 public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
@@ -21,7 +22,6 @@ public class LoginActivity extends AppCompatActivity {
     private EditText etPhone, etVerificationCode;
     private Button btnLogin, btnSendCode;
     private ProgressDialog progressDialog;
-    private NetworkService networkService;
     private CountDownTimer countDownTimer;
     private boolean isCodeSent = false;
 
@@ -31,7 +31,6 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         
         initViews();
-        initNetworkService();
         setClickListeners();
     }
     
@@ -46,10 +45,6 @@ public class LoginActivity extends AppCompatActivity {
         progressDialog.setCancelable(false);
     }
     
-    private void initNetworkService() {
-        networkService = NetworkService.getInstance(this);
-    }
-    
     private void setClickListeners() {
         btnLogin.setOnClickListener(v -> loginOrRegister());
         btnSendCode.setOnClickListener(v -> sendVerificationCode());
@@ -57,16 +52,13 @@ public class LoginActivity extends AppCompatActivity {
     
     private void sendVerificationCode() {
         String phone = etPhone.getText().toString().trim();
-        
         if (TextUtils.isEmpty(phone)) {
-            etPhone.setError("请输入手机号");
-            etPhone.requestFocus();
+            SafeToast.showShort(this, "请输入手机号");
             return;
         }
         
         if (!isValidPhone(phone)) {
-            etPhone.setError("请输入正确的手机号");
-            etPhone.requestFocus();
+            SafeToast.showShort(this, "请输入正确的手机号");
             return;
         }
         
@@ -74,24 +66,40 @@ public class LoginActivity extends AppCompatActivity {
         startCountDown();
         
         // 发送验证码请求
-        networkService.sendVerificationCode(phone, new NetworkService.NetworkCallback<String>() {
-            @Override
-            public void onSuccess(String message) {
+        new Thread(() -> {
+            try {
+                Log.d(TAG, "开始发送验证码请求，手机号: " + phone);
+                var call = NetworkConfig.getApiService().sendVerificationCode(phone);
+                Log.d(TAG, "验证码请求已创建，开始执行");
+                var response = call.execute();
+                Log.d(TAG, "验证码请求执行完成，状态码: " + response.code());
+                
                 runOnUiThread(() -> {
-                    Toast.makeText(LoginActivity.this, "验证码已发送", Toast.LENGTH_SHORT).show();
-                    isCodeSent = true;
+                    if (isFinishing() || isDestroyed()) return;
+                    
+                    if (response.isSuccessful() && response.body() != null) {
+                        var apiResponse = response.body();
+                        if (apiResponse.isSuccess()) {
+                            SafeToast.showShort(LoginActivity.this, "验证码已发送");
+                            isCodeSent = true;
+                        } else {
+                            SafeToast.showShort(LoginActivity.this, "发送失败: " + apiResponse.getMessage());
+                        }
+                    } else {
+                        // 后端不可用时，显示固定验证码
+                        SafeToast.showLong(LoginActivity.this, "后端不可用，使用测试验证码：123456");
+                        isCodeSent = true;
+                    }
                 });
-            }
-            
-            @Override
-            public void onError(String error) {
+            } catch (Exception e) {
                 runOnUiThread(() -> {
+                    if (isFinishing() || isDestroyed()) return;
                     // 后端不可用时，显示固定验证码
                     Toast.makeText(LoginActivity.this, "后端不可用，使用测试验证码：123456", Toast.LENGTH_LONG).show();
                     isCodeSent = true;
                 });
             }
-        });
+        }).start();
     }
     
     private void loginOrRegister() {
@@ -102,9 +110,10 @@ public class LoginActivity extends AppCompatActivity {
         String phone = etPhone.getText().toString().trim();
         String code = etVerificationCode.getText().toString().trim();
 
-
         if (!isCodeSent) {
-            Toast.makeText(this, "请先获取验证码", Toast.LENGTH_SHORT).show();
+            if (!isFinishing() && !isDestroyed()) {
+                Toast.makeText(this, "请先获取验证码", Toast.LENGTH_SHORT).show();
+            }
             return;
         }
 
@@ -115,63 +124,98 @@ public class LoginActivity extends AppCompatActivity {
             progressDialog.show();
             
             // 使用验证码登录/注册
-            networkService.loginWithVerificationCode(phone, code, new NetworkService.NetworkCallback<LoginResponse>() {
-                @Override
-                public void onSuccess(LoginResponse loginResponse) {
+            new Thread(() -> {
+                try {
+                    var call = NetworkConfig.getApiService().loginWithVerificationCode(phone, code);
+                    var response = call.execute();
+                    
                     runOnUiThread(() -> {
+                        if (isFinishing() || isDestroyed()) return;
+                        
                         progressDialog.dismiss();
-                        Toast.makeText(LoginActivity.this, "测试登录成功！", Toast.LENGTH_SHORT).show();
-                        Log.d(TAG, "测试登录成功，用户ID: " + loginResponse.getUser().getId());
-                        Log.d(TAG, "用户昵称: " + loginResponse.getUser().getNickname());
+                        if (response.isSuccessful() && response.body() != null) {
+                            var apiResponse = response.body();
+                            if (apiResponse.isSuccess()) {
+                                LoginResponse loginResponse = apiResponse.getData();
+                                Toast.makeText(LoginActivity.this, "测试登录成功！", Toast.LENGTH_SHORT).show();
+                                Log.d(TAG, "测试登录成功，用户ID: " + loginResponse.getUser().getId());
+                                Log.d(TAG, "用户昵称: " + loginResponse.getUser().getNickname());
 
-                        // 登录成功后跳转到性别选择界面
-                        Intent intent = new Intent(LoginActivity.this, GenderSelectionActivity.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        finish();
+                                // 保存登录信息
+                                AuthManager.getInstance(this).saveToken(loginResponse.getToken());
+                                AuthManager.getInstance(this).saveUserId(loginResponse.getUser().getId());
+
+                                // 登录成功后跳转到性别选择界面
+                                Intent intent = new Intent(LoginActivity.this, GenderSelectionActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                Toast.makeText(LoginActivity.this, "测试登录失败: " + apiResponse.getMessage(), Toast.LENGTH_LONG).show();
+                                Log.e(TAG, "测试登录失败: " + apiResponse.getMessage());
+                            }
+                        } else {
+                            Toast.makeText(LoginActivity.this, "测试登录失败: 网络错误", Toast.LENGTH_LONG).show();
+                            Log.e(TAG, "测试登录失败: 网络错误");
+                        }
+                    });
+                } catch (Exception e) {
+                    runOnUiThread(() -> {
+                        if (isFinishing() || isDestroyed()) return;
+                        
+                        progressDialog.dismiss();
+                        Toast.makeText(LoginActivity.this, "测试登录失败: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        Log.e(TAG, "测试登录失败: " + e.getMessage());
                     });
                 }
-
-                @Override
-                public void onError(String error) {
-                    runOnUiThread(() -> {
-                        progressDialog.dismiss();
-                        Toast.makeText(LoginActivity.this, "测试登录失败: " + error, Toast.LENGTH_LONG).show();
-                        Log.e(TAG, "测试登录失败: " + error);
-                    });
-                }
-            });
+            }).start();
             return;
         }
 
         progressDialog.show();
 
         // 使用验证码登录/注册
-        networkService.loginWithVerificationCode(phone, code, new NetworkService.NetworkCallback<LoginResponse>() {
-            @Override
-            public void onSuccess(LoginResponse loginResponse) {
+        new Thread(() -> {
+            try {
+                var call = NetworkConfig.getApiService().loginWithVerificationCode(phone, code);
+                var response = call.execute();
+                
                 runOnUiThread(() -> {
+                    if (isFinishing() || isDestroyed()) return;
+                    
                     progressDialog.dismiss();
-                    Toast.makeText(LoginActivity.this, "登录成功！", Toast.LENGTH_SHORT).show();
-                    Log.d(TAG, "登录成功，用户ID: " + loginResponse.getUser().getId());
+                    if (response.isSuccessful() && response.body() != null) {
+                        var apiResponse = response.body();
+                        if (apiResponse.isSuccess()) {
+                            LoginResponse loginResponse = apiResponse.getData();
+                            Toast.makeText(LoginActivity.this, "登录成功！", Toast.LENGTH_SHORT).show();
+                            Log.d(TAG, "登录成功，用户ID: " + loginResponse.getUser().getId());
 
-                    // 登录成功后跳转到性别选择界面
-                    Intent intent = new Intent(LoginActivity.this, GenderSelectionActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                    finish();
+                            // 保存登录信息
+                            AuthManager.getInstance(this).saveToken(loginResponse.getToken());
+                            AuthManager.getInstance(this).saveUserId(loginResponse.getUser().getId());
+
+                            // 登录成功后跳转到性别选择界面
+                            Intent intent = new Intent(LoginActivity.this, GenderSelectionActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            Toast.makeText(LoginActivity.this, "登录失败: " + apiResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(LoginActivity.this, "登录失败: 网络错误", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    if (isFinishing() || isDestroyed()) return;
+                    
+                    progressDialog.dismiss();
+                    Toast.makeText(LoginActivity.this, "登录失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
             }
-
-            @Override
-            public void onError(String error) {
-                runOnUiThread(() -> {
-                    progressDialog.dismiss();
-                    Toast.makeText(LoginActivity.this, "登录失败: " + error, Toast.LENGTH_LONG).show();
-                    Log.e(TAG, "登录失败: " + error);
-                });
-            }
-        });
+        }).start();
     }
     
     private boolean validateInput() {
@@ -179,25 +223,25 @@ public class LoginActivity extends AppCompatActivity {
         String code = etVerificationCode.getText().toString().trim();
         
         if (TextUtils.isEmpty(phone)) {
-            etPhone.setError("请输入手机号");
+            if (!isFinishing() && !isDestroyed()) {
+                Toast.makeText(this, "请输入手机号", Toast.LENGTH_SHORT).show();
+            }
             etPhone.requestFocus();
             return false;
         }
         
         if (!isValidPhone(phone)) {
-            etPhone.setError("请输入正确的手机号");
+            if (!isFinishing() && !isDestroyed()) {
+                Toast.makeText(this, "请输入正确的手机号", Toast.LENGTH_SHORT).show();
+            }
             etPhone.requestFocus();
             return false;
         }
         
         if (TextUtils.isEmpty(code)) {
-            etVerificationCode.setError("请输入验证码");
-            etVerificationCode.requestFocus();
-            return false;
-        }
-        
-        if (code.length() != 6) {
-            etVerificationCode.setError("请输入6位验证码");
+            if (!isFinishing() && !isDestroyed()) {
+                Toast.makeText(this, "请输入验证码", Toast.LENGTH_SHORT).show();
+            }
             etVerificationCode.requestFocus();
             return false;
         }
@@ -211,36 +255,24 @@ public class LoginActivity extends AppCompatActivity {
     
     private void startCountDown() {
         btnSendCode.setEnabled(false);
-        btnSendCode.setText("60s后重发");
-        
         countDownTimer = new CountDownTimer(60000, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                btnSendCode.setText((millisUntilFinished / 1000) + "s后重发");
+                btnSendCode.setText("重新发送(" + (millisUntilFinished / 1000) + "s)");
             }
             
             @Override
             public void onFinish() {
-                resetSendCodeButton();
+                btnSendCode.setEnabled(true);
+                btnSendCode.setText("发送验证码");
             }
         };
         countDownTimer.start();
     }
     
-    private void resetSendCodeButton() {
-        btnSendCode.setEnabled(true);
-        btnSendCode.setText("获取验证码");
-        if (countDownTimer != null) {
-            countDownTimer.cancel();
-        }
-    }
-    
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (progressDialog != null && progressDialog.isShowing()) {
-            progressDialog.dismiss();
-        }
         if (countDownTimer != null) {
             countDownTimer.cancel();
         }

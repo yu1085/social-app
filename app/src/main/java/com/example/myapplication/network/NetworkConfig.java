@@ -7,7 +7,12 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import java.util.concurrent.TimeUnit;
 
 public class NetworkConfig {
-    private static final String BASE_URL = "http://10.0.2.2:8080/api/"; // Android模拟器访问本地服务器
+    // 支持多种网络配置
+    private static final String BASE_URL_EMULATOR = "http://10.0.2.2:8080/api/"; // Android模拟器访问本地服务器
+    private static final String BASE_URL_LOCALHOST = "http://localhost:8080/api/"; // 本地服务器
+    private static final String BASE_URL_127 = "http://127.0.0.1:8080/api/"; // 127.0.0.1地址
+    private static final String BASE_URL = BASE_URL_EMULATOR; // 使用10.0.2.2地址，Android模拟器访问本地服务器
+    
     private static Retrofit retrofit;
     private static ApiService apiService;
 

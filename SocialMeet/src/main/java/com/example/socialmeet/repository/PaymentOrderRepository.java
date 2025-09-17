@@ -16,7 +16,7 @@ public interface PaymentOrderRepository extends JpaRepository<PaymentOrder, Long
     Optional<PaymentOrder> findByOrderNo(String orderNo);
     
     @Query("SELECT po FROM PaymentOrder po WHERE po.userId = :userId AND po.status = :status ORDER BY po.createdAt DESC")
-    List<PaymentOrder> findByUserIdAndStatus(@Param("userId") Long userId, @Param("status") PaymentOrder.OrderStatus status);
+    List<PaymentOrder> findByUserIdAndStatus(@Param("userId") Long userId, @Param("status") String status);
     
     @Query("SELECT po FROM PaymentOrder po WHERE po.status = 'PENDING' AND po.createdAt < :expiredTime")
     List<PaymentOrder> findExpiredPendingOrders(@Param("expiredTime") LocalDateTime expiredTime);

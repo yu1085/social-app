@@ -86,48 +86,43 @@ object ProfileComposeHost {
                             android.widget.Toast.makeText(context, "跳转到道具商城页面", android.widget.Toast.LENGTH_SHORT).show()
                         },
                         onMenuClick = { menuItem ->
-                            // 处理菜单点击事件 - 直接调用ProfileActivity的handleMenuClick
+                            // 处理菜单点击事件
                             val context = target.context
-                            if (context is com.example.myapplication.ProfileActivity) {
-                                com.example.myapplication.handleMenuClick(menuItem, context)
-                            } else {
-                                // 如果context不是ProfileActivity，则直接处理
-                                when (menuItem) {
-                                    "邀请好友" -> {
-                                        val intent = Intent(context, com.example.myapplication.InviteFriendsActivity::class.java)
-                                        context.startActivity(intent)
-                                    }
-                                    "我的认证" -> {
-                                        val intent = Intent(context, com.example.myapplication.MyCertificationActivity::class.java)
-                                        context.startActivity(intent)
-                                    }
-                                    "我的卡券" -> {
-                                        val intent = Intent(context, com.example.myapplication.MyCouponsActivity::class.java)
-                                        context.startActivity(intent)
-                                    }
-                                    "谁看过我" -> {
-                                        val intent = Intent(context, com.example.myapplication.WhoViewedMeActivity::class.java)
-                                        context.startActivity(intent)
-                                    }
-                                    "我的守护" -> {
-                                        val intent = Intent(context, com.example.myapplication.MyGuardActivity::class.java)
-                                        context.startActivity(intent)
-                                    }
-                                    "我的礼物" -> {
-                                        val intent = Intent(context, com.example.myapplication.MyGiftsActivity::class.java)
-                                        context.startActivity(intent)
-                                    }
-                                    "我的客服" -> {
-                                        val intent = Intent(context, com.example.myapplication.MyCustomerServiceActivity::class.java)
-                                        context.startActivity(intent)
-                                    }
-                                    "我的钱包" -> {
-                                        val intent = Intent(context, com.example.myapplication.MyWalletActivity::class.java)
-                                        context.startActivity(intent)
-                                    }
-                                    else -> {
-                                        android.widget.Toast.makeText(context, "点击了: $menuItem", android.widget.Toast.LENGTH_SHORT).show()
-                                    }
+                            when (menuItem) {
+                                "邀请好友" -> {
+                                    val intent = Intent(context, com.example.myapplication.InviteFriendsActivity::class.java)
+                                    context.startActivity(intent)
+                                }
+                                "我的认证" -> {
+                                    val intent = Intent(context, com.example.myapplication.MyCertificationActivity::class.java)
+                                    context.startActivity(intent)
+                                }
+                                "我的卡券" -> {
+                                    val intent = Intent(context, com.example.myapplication.MyCouponsActivity::class.java)
+                                    context.startActivity(intent)
+                                }
+                                "谁看过我" -> {
+                                    val intent = Intent(context, com.example.myapplication.WhoViewedMeActivity::class.java)
+                                    context.startActivity(intent)
+                                }
+                                "我的守护" -> {
+                                    val intent = Intent(context, com.example.myapplication.MyGuardActivity::class.java)
+                                    context.startActivity(intent)
+                                }
+                                "我的礼物" -> {
+                                    val intent = Intent(context, com.example.myapplication.MyGiftsActivity::class.java)
+                                    context.startActivity(intent)
+                                }
+                                "我的客服" -> {
+                                    val intent = Intent(context, com.example.myapplication.MyCustomerServiceActivity::class.java)
+                                    context.startActivity(intent)
+                                }
+                                "我的钱包" -> {
+                                    val intent = Intent(context, com.example.myapplication.MyWalletActivity::class.java)
+                                    context.startActivity(intent)
+                                }
+                                else -> {
+                                    android.widget.Toast.makeText(context, "点击了: $menuItem", android.widget.Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }
@@ -172,23 +167,31 @@ object ProfileComposeHost {
             
             // 然后尝试从API获取真实数据
             withContext(Dispatchers.IO) {
-                val networkService = NetworkService.getInstance(context)
-                networkService.getProfile(object : NetworkService.NetworkCallback<UserDTO> {
-                    override fun onSuccess(user: UserDTO) {
-                        android.util.Log.d("ProfileComposeHost", "获取用户信息成功: ${user.nickname}")
-                        // 更新ViewModel中的用户信息
-                        viewModel.updateUserInfo(
-                            nickname = user.nickname ?: "用户",
-                            id = user.id ?: 0L,
-                            avatarUrl = user.avatarUrl ?: ""
-                        )
-                    }
+                try {
+                    val apiService = com.example.myapplication.network.NetworkConfig.getApiService()
+                    val call = apiService.getProfile(authManager.getAuthHeader() ?: "")
+                    val response = call.execute()
                     
-                    override fun onError(error: String) {
-                        android.util.Log.e("ProfileComposeHost", "获取用户信息失败: $error")
-                        // 保持测试值
+                    if (response.isSuccessful && response.body() != null) {
+                        val apiResponse = response.body()
+                        if (apiResponse?.isSuccess() == true) {
+                            val user = apiResponse.getData()
+                            android.util.Log.d("ProfileComposeHost", "获取用户信息成功: ${user?.nickname}")
+                            // 更新ViewModel中的用户信息
+                            viewModel.updateUserInfo(
+                                nickname = user?.nickname ?: "用户",
+                                id = user?.id ?: 0L,
+                                avatarUrl = user?.avatarUrl ?: ""
+                            )
+                        } else {
+                            android.util.Log.e("ProfileComposeHost", "API返回失败: ${apiResponse?.getMessage()}")
+                        }
+                    } else {
+                        android.util.Log.e("ProfileComposeHost", "网络请求失败: ${response.code()}")
                     }
-                })
+                } catch (e: Exception) {
+                    android.util.Log.e("ProfileComposeHost", "网络请求异常: ${e.message}")
+                }
             }
         } catch (e: Exception) {
             android.util.Log.e("ProfileComposeHost", "获取用户信息异常: ${e.message}", e)
@@ -200,7 +203,4 @@ object ProfileComposeHost {
             )
         }
     }
-
 }
-
-

@@ -16,9 +16,8 @@ public class UserView {
     @Column(name = "viewed_id", nullable = false)
     private Long viewedId;
     
-    @Enumerated(EnumType.STRING)
     @Column(name = "view_type")
-    private ViewType viewType = ViewType.PROFILE;
+    private String viewType = "PROFILE";
     
     @Column(name = "related_id")
     private Long relatedId;
@@ -34,19 +33,12 @@ public class UserView {
     // Constructors
     public UserView() {}
     
-    public UserView(Long viewerId, Long viewedId, ViewType viewType, Long relatedId) {
+    public UserView(Long viewerId, Long viewedId, String viewType, Long relatedId) {
         this.viewerId = viewerId;
         this.viewedId = viewedId;
         this.viewType = viewType;
         this.relatedId = relatedId;
-    }
-    
-    // Enums
-    public enum ViewType {
-        PROFILE, POST, MESSAGE
-    }
-    
-    // Getters and Setters
+    }    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -71,11 +63,11 @@ public class UserView {
         this.viewedId = viewedId;
     }
     
-    public ViewType getViewType() {
+    public String getViewType() {
         return viewType;
     }
     
-    public void setViewType(ViewType viewType) {
+    public void setViewType(String viewType) {
         this.viewType = viewType;
     }
     

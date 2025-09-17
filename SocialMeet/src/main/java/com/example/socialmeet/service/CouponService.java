@@ -30,7 +30,7 @@ public class CouponService {
         return coupons.stream().map(CouponDTO::new).collect(Collectors.toList());
     }
     
-    public List<CouponDTO> getCouponsByType(Coupon.CouponType type) {
+    public List<CouponDTO> getCouponsByType(String type) {
         List<Coupon> coupons = couponRepository.findByTypeAndIsActiveTrueOrderByCreatedAtDesc(type);
         return coupons.stream().map(CouponDTO::new).collect(Collectors.toList());
     }
@@ -68,7 +68,7 @@ public class CouponService {
         return userCoupons.stream().map(this::convertToUserCouponDTO).collect(Collectors.toList());
     }
     
-    public List<UserCouponDTO> getUserCouponsByStatus(Long userId, UserCoupon.CouponStatus status) {
+    public List<UserCouponDTO> getUserCouponsByStatus(Long userId, String status) {
         List<UserCoupon> userCoupons = userCouponRepository.findByUserIdAndStatus(userId, status);
         return userCoupons.stream().map(this::convertToUserCouponDTO).collect(Collectors.toList());
     }
@@ -94,7 +94,7 @@ public class CouponService {
         return true;
     }
     
-    public boolean useCouponByType(Long userId, Coupon.CouponType type) {
+    public boolean useCouponByType(Long userId, String type) {
         List<UserCoupon> usableCoupons = userCouponRepository
                 .findUsableCouponsByUserId(userId, LocalDateTime.now());
         

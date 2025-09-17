@@ -37,7 +37,7 @@ public class CouponController {
     @GetMapping("/type/{type}")
     public ResponseEntity<ApiResponse<List<CouponDTO>>> getCouponsByType(@PathVariable String type) {
         try {
-            Coupon.CouponType couponType = Coupon.CouponType.valueOf(type.toUpperCase());
+            String couponType = String.valueOf(type.toUpperCase());
             List<CouponDTO> coupons = couponService.getCouponsByType(couponType);
             return ResponseEntity.ok(ApiResponse.success(coupons));
         } catch (Exception e) {
@@ -96,7 +96,7 @@ public class CouponController {
             String jwt = token.replace("Bearer ", "");
             Long userId = jwtUtil.getUserIdFromToken(jwt);
             
-            UserCoupon.CouponStatus couponStatus = UserCoupon.CouponStatus.valueOf(status.toUpperCase());
+            String couponStatus = String.valueOf(status.toUpperCase());
             List<UserCouponDTO> userCoupons = couponService.getUserCouponsByStatus(userId, couponStatus);
             return ResponseEntity.ok(ApiResponse.success(userCoupons));
         } catch (Exception e) {
@@ -131,7 +131,7 @@ public class CouponController {
             String jwt = token.replace("Bearer ", "");
             Long userId = jwtUtil.getUserIdFromToken(jwt);
             
-            Coupon.CouponType couponType = Coupon.CouponType.valueOf(type.toUpperCase());
+            String couponType = String.valueOf(type.toUpperCase());
             boolean success = couponService.useCouponByType(userId, couponType);
             if (success) {
                 return ResponseEntity.ok(ApiResponse.success("使用卡券成功"));

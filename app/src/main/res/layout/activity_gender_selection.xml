@@ -1,20 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/white"
-    android:padding="24dp">
+    android:background="#FFFFFF">
 
-    <!-- 顶部标题区域 -->
+    <!-- 标题区域 -->
     <LinearLayout
-        android:layout_width="match_parent"
+        android:id="@+id/title_area"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="60dp"
-        android:layout_marginBottom="80dp"
-        android:gravity="center">
+        android:gravity="center"
+        android:padding="32dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/button_area">
 
         <TextView
             android:id="@+id/tv_title"
@@ -22,7 +24,7 @@
             android:layout_height="wrap_content"
             android:text="选择您的性别"
             android:textSize="28sp"
-            android:textColor="@color/black"
+            android:textColor="#212121"
             android:textStyle="bold"
             android:layout_marginBottom="16dp" />
 
@@ -30,137 +32,52 @@
             android:id="@+id/tv_subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="这将帮助我们为您推荐更合适的内容"
+            android:text="这将帮助我们为您推荐更合适的用户"
             android:textSize="16sp"
-            android:textColor="@color/gray_600"
+            android:textColor="#74777C"
             android:gravity="center"
             android:lineSpacingExtra="4dp" />
 
     </LinearLayout>
 
-    <!-- 性别选择区域 -->
+    <!-- 按钮区域 -->
     <LinearLayout
-        android:layout_width="match_parent"
+        android:id="@+id/button_area"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginBottom="60dp">
+        android:gravity="center"
+        android:padding="32dp"
+        app:layout_constraintTop_toBottomOf="@id/title_area"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- 男性选项 -->
-        <LinearLayout
-            android:id="@+id/male_option"
-            android:layout_width="match_parent"
-            android:layout_height="80dp"
-            android:orientation="horizontal"
-            android:background="@drawable/gender_option_bg"
-            android:padding="20dp"
-            android:layout_marginBottom="20dp"
-            android:gravity="center_vertical"
-            android:clickable="true"
-            android:focusable="true">
+        <!-- 男性按钮 -->
+        <Button
+            android:id="@+id/btn_male"
+            android:layout_width="280dp"
+            android:layout_height="60dp"
+            android:text="男性"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:background="@drawable/gender_button_male"
+            android:layout_marginBottom="24dp"
+            android:elevation="4dp" />
 
-            <ImageView
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_male"
-                android:layout_marginEnd="20dp" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="男性"
-                    android:textSize="18sp"
-                    android:textColor="@color/black"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="我是男性用户"
-                    android:textSize="14sp"
-                    android:textColor="@color/gray_600"
-                    android:layout_marginTop="4dp" />
-
-            </LinearLayout>
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_check"
-                android:visibility="gone"
-                android:id="@+id/iv_male_check" />
-
-        </LinearLayout>
-
-        <!-- 女性选项 -->
-        <LinearLayout
-            android:id="@+id/female_option"
-            android:layout_width="match_parent"
-            android:layout_height="80dp"
-            android:orientation="horizontal"
-            android:background="@drawable/gender_option_bg"
-            android:padding="20dp"
-            android:gravity="center_vertical"
-            android:clickable="true"
-            android:focusable="true">
-
-            <ImageView
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_female"
-                android:layout_marginEnd="20dp" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="女性"
-                    android:textSize="18sp"
-                    android:textColor="@color/black"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="我是女性用户"
-                    android:textSize="14sp"
-                    android:textColor="@color/gray_600"
-                    android:layout_marginTop="4dp" />
-
-            </LinearLayout>
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_check"
-                android:visibility="gone"
-                android:id="@+id/iv_female_check" />
-
-        </LinearLayout>
+        <!-- 女性按钮 -->
+        <Button
+            android:id="@+id/btn_female"
+            android:layout_width="280dp"
+            android:layout_height="60dp"
+            android:text="女性"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:background="@drawable/gender_button_female"
+            android:elevation="4dp" />
 
     </LinearLayout>
 
-    <!-- 确认按钮 -->
-    <Button
-        android:id="@+id/btn_confirm"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="确认"
-        android:textSize="16sp"
-        android:textColor="@color/white"
-        android:background="@drawable/btn_primary_bg"
-        android:layout_marginTop="40dp"
-        android:enabled="false"
-        android:alpha="0.5" />
-
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

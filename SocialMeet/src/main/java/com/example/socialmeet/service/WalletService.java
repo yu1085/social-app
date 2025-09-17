@@ -52,7 +52,7 @@ public class WalletService {
         walletRepository.save(wallet);
         
         // 记录交易
-        Transaction transaction = new Transaction(userId, Transaction.TransactionType.RECHARGE, 
+        Transaction transaction = new Transaction(userId, "RECHARGE", 
                                                amount, newBalance, description);
         transactionRepository.save(transaction);
         
@@ -71,7 +71,7 @@ public class WalletService {
         walletRepository.save(wallet);
         
         // 记录交易
-        Transaction transaction = new Transaction(userId, Transaction.TransactionType.CONSUME, 
+        Transaction transaction = new Transaction(userId, "CONSUME", 
                                                amount.negate(), newBalance, description);
         transaction.setRelatedId(relatedId);
         transactionRepository.save(transaction);
@@ -87,7 +87,7 @@ public class WalletService {
         walletRepository.save(wallet);
         
         // 记录交易
-        Transaction transaction = new Transaction(userId, Transaction.TransactionType.EARN, 
+        Transaction transaction = new Transaction(userId, "EARN", 
                                                amount, newBalance, description);
         transaction.setRelatedId(relatedId);
         transactionRepository.save(transaction);

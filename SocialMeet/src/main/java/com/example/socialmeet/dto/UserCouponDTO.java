@@ -9,7 +9,7 @@ public class UserCouponDTO {
     private Long couponId;
     private String couponName;
     private String couponDescription;
-    private UserCoupon.CouponStatus status;
+    private String status;
     private LocalDateTime usedAt;
     private LocalDateTime expiresAt;
     private LocalDateTime createdAt;
@@ -68,11 +68,11 @@ public class UserCouponDTO {
         this.couponDescription = couponDescription;
     }
     
-    public UserCoupon.CouponStatus getStatus() {
+    public String getStatus() {
         return status;
     }
     
-    public void setStatus(UserCoupon.CouponStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
     

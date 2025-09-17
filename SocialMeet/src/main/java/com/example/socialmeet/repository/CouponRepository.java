@@ -8,5 +8,5 @@ import java.util.List;
 @Repository
 public interface CouponRepository extends JpaRepository<Coupon, Long> {
     List<Coupon> findByIsActiveTrueOrderByCreatedAtDesc();
-    List<Coupon> findByTypeAndIsActiveTrueOrderByCreatedAtDesc(Coupon.CouponType type);
+    List<Coupon> findByTypeAndIsActiveTrueOrderByCreatedAtDesc(String type);
 }

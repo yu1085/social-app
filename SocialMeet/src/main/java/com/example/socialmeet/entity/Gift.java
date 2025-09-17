@@ -23,9 +23,8 @@ public class Gift {
     @Column(name = "price", precision = 10, scale = 2, nullable = false)
     private BigDecimal price;
     
-    @Enumerated(EnumType.STRING)
     @Column(name = "category")
-    private GiftCategory category;
+    private String category;
     
     @Column(name = "is_active")
     private Boolean isActive = true;
@@ -50,19 +49,12 @@ public class Gift {
     // Constructors
     public Gift() {}
     
-    public Gift(String name, String description, BigDecimal price, GiftCategory category) {
+    public Gift(String name, String description, BigDecimal price, String category) {
         this.name = name;
         this.description = description;
         this.price = price;
         this.category = category;
-    }
-    
-    // Enums
-    public enum GiftCategory {
-        LOVE, LUXURY, FUN, SPECIAL
-    }
-    
-    // Getters and Setters
+    }    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -103,11 +95,11 @@ public class Gift {
         this.price = price;
     }
     
-    public GiftCategory getCategory() {
+    public String getCategory() {
         return category;
     }
     
-    public void setCategory(GiftCategory category) {
+    public void setCategory(String category) {
         this.category = category;
     }
     

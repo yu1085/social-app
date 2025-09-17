@@ -7,11 +7,11 @@ import java.time.LocalDateTime;
 public class TransactionDTO {
     private Long id;
     private Long userId;
-    private Transaction.TransactionType type;
+    private String type;
     private BigDecimal amount;
     private BigDecimal balanceAfter;
     private String description;
-    private Transaction.TransactionStatus status;
+    private String status;
     private Long relatedId;
     private LocalDateTime createdAt;
     
@@ -47,11 +47,11 @@ public class TransactionDTO {
         this.userId = userId;
     }
     
-    public Transaction.TransactionType getType() {
+    public String getType() {
         return type;
     }
     
-    public void setType(Transaction.TransactionType type) {
+    public void setType(String type) {
         this.type = type;
     }
     
@@ -79,11 +79,11 @@ public class TransactionDTO {
         this.description = description;
     }
     
-    public Transaction.TransactionStatus getStatus() {
+    public String getStatus() {
         return status;
     }
     
-    public void setStatus(Transaction.TransactionStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
     

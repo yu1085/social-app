@@ -23,9 +23,8 @@ public class GuardRelationship {
     @Column(name = "end_date")
     private LocalDateTime endDate;
     
-    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private GuardStatus status = GuardStatus.ACTIVE;
+    private String status = "ACTIVE";
     
     @Column(name = "total_contribution", precision = 10, scale = 2)
     private BigDecimal totalContribution = BigDecimal.ZERO;
@@ -56,14 +55,7 @@ public class GuardRelationship {
     public GuardRelationship(Long guardianId, Long protectedId) {
         this.guardianId = guardianId;
         this.protectedId = protectedId;
-    }
-    
-    // Enums
-    public enum GuardStatus {
-        ACTIVE, EXPIRED, CANCELLED
-    }
-    
-    // Getters and Setters
+    }    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -104,11 +96,11 @@ public class GuardRelationship {
         this.endDate = endDate;
     }
     
-    public GuardStatus getStatus() {
+    public String getStatus() {
         return status;
     }
     
-    public void setStatus(GuardStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
     
@@ -138,7 +130,7 @@ public class GuardRelationship {
     
     // Business methods
     public boolean isActive() {
-        return status == GuardStatus.ACTIVE && 
+        return status == "ACTIVE" && 
                (endDate == null || LocalDateTime.now().isBefore(endDate));
     }
     

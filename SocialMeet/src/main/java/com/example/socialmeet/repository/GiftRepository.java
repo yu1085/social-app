@@ -8,6 +8,6 @@ import java.util.List;
 @Repository
 public interface GiftRepository extends JpaRepository<Gift, Long> {
     List<Gift> findByIsActiveTrueOrderByPriceAsc();
-    List<Gift> findByCategoryAndIsActiveTrueOrderByPriceAsc(Gift.GiftCategory category);
+    List<Gift> findByCategoryAndIsActiveTrueOrderByPriceAsc(String category);
     List<Gift> findByIsActiveTrueAndPriceBetweenOrderByPriceAsc(Double minPrice, Double maxPrice);
 }

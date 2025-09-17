@@ -10,7 +10,7 @@ public class GuardRelationshipDTO {
     private Long protectedId;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private GuardRelationship.GuardStatus status;
+    private String status;
     private BigDecimal totalContribution;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -79,11 +79,11 @@ public class GuardRelationshipDTO {
         this.endDate = endDate;
     }
     
-    public GuardRelationship.GuardStatus getStatus() {
+    public String getStatus() {
         return status;
     }
     
-    public void setStatus(GuardRelationship.GuardStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
     

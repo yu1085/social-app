@@ -19,9 +19,8 @@ public class IntimacyRelationship {
     @Column(name = "intimacy_score")
     private Integer intimacyScore = 0;
     
-    @Enumerated(EnumType.STRING)
     @Column(name = "level")
-    private IntimacyLevel level = IntimacyLevel.STRANGER;
+    private String level = "STRANGER";
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -46,14 +45,7 @@ public class IntimacyRelationship {
     public IntimacyRelationship(Long user1Id, Long user2Id) {
         this.user1Id = user1Id;
         this.user2Id = user2Id;
-    }
-    
-    // Enums
-    public enum IntimacyLevel {
-        STRANGER, ACQUAINTANCE, FRIEND, CLOSE_FRIEND
-    }
-    
-    // Getters and Setters
+    }    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -86,11 +78,11 @@ public class IntimacyRelationship {
         this.intimacyScore = intimacyScore;
     }
     
-    public IntimacyLevel getLevel() {
+    public String getLevel() {
         return level;
     }
     
-    public void setLevel(IntimacyLevel level) {
+    public void setLevel(String level) {
         this.level = level;
     }
     
@@ -118,13 +110,13 @@ public class IntimacyRelationship {
     
     private void updateLevel() {
         if (intimacyScore >= 1000) {
-            this.level = IntimacyLevel.CLOSE_FRIEND;
+            this.level = "CLOSE_FRIEND";
         } else if (intimacyScore >= 500) {
-            this.level = IntimacyLevel.FRIEND;
+            this.level = "FRIEND";
         } else if (intimacyScore >= 100) {
-            this.level = IntimacyLevel.ACQUAINTANCE;
+            this.level = "ACQUAINTANCE";
         } else {
-            this.level = IntimacyLevel.STRANGER;
+            this.level = "STRANGER";
         }
     }
 }

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,20 +25,35 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.myapplication.dto.WalletDTO
+import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.example.myapplication.viewmodel.WalletViewModel
+import java.math.BigDecimal
 
 class MyWalletActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MyWalletScreen(
+            MyApplicationTheme {
+                val walletViewModel: WalletViewModel = viewModel()
+                
+                // 加载钱包数据
+                LaunchedEffect(Unit) {
+                    walletViewModel.loadWalletBalance()
+                }
+                
+                MyWalletScreen(
+                walletViewModel = walletViewModel,
                 onBackClick = { finish() },
                 onDetailsClick = {
                     val intent = android.content.Intent(this, com.example.myapplication.WalletDetailsActivity::class.java)
                     startActivity(intent)
                 },
                 onRechargeClick = {
-                    val intent = android.content.Intent(this, com.example.myapplication.RechargeActivity::class.java)
-                    startActivity(intent)
+                    // 暂时注释掉充值功能
+                    // val intent = android.content.Intent(this, com.example.myapplication.RechargeActivity::class.java)
+                    // startActivity(intent)
                 },
                 onEarnCoinsClick = {
                     val intent = android.content.Intent(this, com.example.myapplication.HowToEarnCoinsActivity::class.java)
@@ -48,6 +64,7 @@ class MyWalletActivity : ComponentActivity() {
                     startActivity(intent)
                 }
             )
+            }
         }
     }
 }
@@ -55,12 +72,17 @@ class MyWalletActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyWalletScreen(
+    walletViewModel: WalletViewModel,
     onBackClick: () -> Unit,
     onDetailsClick: () -> Unit,
     onRechargeClick: () -> Unit,
     onEarnCoinsClick: () -> Unit,
     onCustomerServiceClick: () -> Unit
 ) {
+    // 从ViewModel获取真实数据
+    val walletData by walletViewModel.walletData.observeAsState()
+    val isLoading by walletViewModel.isLoading.observeAsState(false)
+    val errorMessage by walletViewModel.errorMessage.observeAsState()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -114,13 +136,26 @@ fun MyWalletScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
+                // 错误消息显示
+                errorMessage?.let { error ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Text(
+                            text = "加载失败: $error",
+                            color = Color(0xFFD32F2F),
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+                
                 // 余额卡片
                 WalletBalanceCard(
-                    totalBalance = 0,
-                    rechargeBalance = 0,
-                    giftBalance = 0,
-                    exchangeBalance = 0,
-                    incomeBalance = 0,
+                    walletData = walletData,
+                    isLoading = isLoading,
                     onIncomeClick = { /* 处理收益余额点击 */ }
                 )
                 
@@ -155,13 +190,15 @@ fun MyWalletScreen(
 
 @Composable
 fun WalletBalanceCard(
-    totalBalance: Int,
-    rechargeBalance: Int,
-    giftBalance: Int,
-    exchangeBalance: Int,
-    incomeBalance: Int,
+    walletData: WalletDTO?,
+    isLoading: Boolean,
     onIncomeClick: () -> Unit
 ) {
+    val totalBalance = try { walletData?.balance?.toInt() ?: 0 } catch (e: Exception) { 0 }
+    val rechargeBalance = try { walletData?.balance?.toInt() ?: 0 } catch (e: Exception) { 0 }  // 暂时使用总余额
+    val giftBalance = 0  // 赠送余额，暂时为0
+    val exchangeBalance = 0  // 兑换余额，暂时为0
+    val incomeBalance = 0  // 收益余额，暂时为0
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -181,17 +218,25 @@ fun WalletBalanceCard(
                     color = Color.White
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = totalBalance.toString(),
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "🪙",
-                    fontSize = 16.sp
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = totalBalance.toString(),
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "🪙",
+                        fontSize = 16.sp
+                    )
+                }
             }
             
             Spacer(modifier = Modifier.height(16.dp))

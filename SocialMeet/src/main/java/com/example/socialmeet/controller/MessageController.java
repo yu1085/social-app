@@ -6,9 +6,6 @@ import com.example.socialmeet.entity.Message;
 import com.example.socialmeet.repository.MessageRepository;
 import com.example.socialmeet.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,7 +33,7 @@ public class MessageController {
             List<Message> messages = messageRepository.findByReceiverIdOrderByCreatedAtDesc(userId);
             
             List<MessageDTO> messageDTOs = messages.stream()
-                    .map(MessageDTO::new)
+                    .map(this::convertToDTO)
                     .collect(Collectors.toList());
             
             return ResponseEntity.ok(ApiResponse.success(messageDTOs));
@@ -62,7 +59,7 @@ public class MessageController {
             
             message = messageRepository.save(message);
             
-            return ResponseEntity.ok(ApiResponse.success(new MessageDTO(message)));
+            return ResponseEntity.ok(ApiResponse.success(convertToDTO(message)));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error("发送消息失败: " + e.getMessage()));
         }
@@ -94,7 +91,7 @@ public class MessageController {
                     currentUserId, userId, currentUserId, userId);
             
             List<MessageDTO> messageDTOs = messages.stream()
-                    .map(MessageDTO::new)
+                    .map(this::convertToDTO)
                     .collect(Collectors.toList());
             
             return ResponseEntity.ok(ApiResponse.success(messageDTOs));
@@ -148,5 +145,33 @@ public class MessageController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error("删除消息失败: " + e.getMessage()));
         }
+    }
+    
+    // 获取未读消息数量
+    @GetMapping("/unread-count")
+    public ResponseEntity<ApiResponse<Integer>> getUnreadCount(@RequestHeader("Authorization") String authHeader) {
+        try {
+            String jwt = authHeader.replace("Bearer ", "");
+            Long userId = jwtUtil.getUserIdFromToken(jwt);
+            
+            List<Message> unreadMessages = messageRepository.findByReceiverIdAndIsReadFalse(userId);
+            int unreadCount = unreadMessages.size();
+            
+            return ResponseEntity.ok(ApiResponse.success(unreadCount));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("获取未读消息数量失败: " + e.getMessage()));
+        }
+    }
+    
+    private MessageDTO convertToDTO(Message message) {
+        MessageDTO dto = new MessageDTO();
+        dto.setId(message.getId());
+        dto.setSenderId(message.getSenderId());
+        dto.setReceiverId(message.getReceiverId());
+        dto.setContent(message.getContent());
+        dto.setMessageType(message.getMessageType());
+        dto.setIsRead(message.getIsRead());
+        dto.setCreatedAt(message.getCreatedAt());
+        return dto;
     }
 }

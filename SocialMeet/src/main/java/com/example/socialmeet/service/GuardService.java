@@ -33,19 +33,21 @@ public class GuardService {
         Optional<GuardRelationship> existing = guardRelationshipRepository
                 .findByGuardianIdAndProtectedId(guardianId, protectedId);
         
+        GuardRelationship relationship;
+        
         if (existing.isPresent()) {
-            GuardRelationship relationship = existing.get();
+            relationship = existing.get();
             if (relationship.isActive()) {
                 throw new RuntimeException("已经是该用户的守护者");
             }
             // 重新激活
-            relationship.setStatus(GuardRelationship.GuardStatus.ACTIVE);
+            relationship.setStatus("ACTIVE");
             relationship.setStartDate(LocalDateTime.now());
             relationship.setEndDate(null);
             relationship = guardRelationshipRepository.save(relationship);
         } else {
             // 创建新的守护关系
-            GuardRelationship relationship = new GuardRelationship(guardianId, protectedId);
+            relationship = new GuardRelationship(guardianId, protectedId);
             relationship = guardRelationshipRepository.save(relationship);
         }
         
@@ -58,7 +60,7 @@ public class GuardService {
         
         if (relationshipOpt.isPresent()) {
             GuardRelationship relationship = relationshipOpt.get();
-            relationship.setStatus(GuardRelationship.GuardStatus.CANCELLED);
+            relationship.setStatus("CANCELLED");
             relationship.setEndDate(LocalDateTime.now());
             guardRelationshipRepository.save(relationship);
             return true;

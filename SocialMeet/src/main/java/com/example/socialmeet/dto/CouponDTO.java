@@ -8,7 +8,7 @@ public class CouponDTO {
     private Long id;
     private String name;
     private String description;
-    private Coupon.CouponType type;
+    private String type;
     private BigDecimal value;
     private BigDecimal minAmount;
     private BigDecimal maxDiscount;
@@ -59,11 +59,11 @@ public class CouponDTO {
         this.description = description;
     }
     
-    public Coupon.CouponType getType() {
+    public String getType() {
         return type;
     }
     
-    public void setType(Coupon.CouponType type) {
+    public void setType(String type) {
         this.type = type;
     }
     

@@ -10,7 +10,7 @@ public class GiftDTO {
     private String description;
     private String imageUrl;
     private BigDecimal price;
-    private Gift.GiftCategory category;
+    private String category;
     private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -71,11 +71,11 @@ public class GiftDTO {
         this.price = price;
     }
     
-    public Gift.GiftCategory getCategory() {
+    public String getCategory() {
         return category;
     }
     
-    public void setCategory(Gift.GiftCategory category) {
+    public void setCategory(String category) {
         this.category = category;
     }
     

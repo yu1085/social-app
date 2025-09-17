@@ -40,7 +40,7 @@ public class GiftController {
     @GetMapping("/category/{category}")
     public ResponseEntity<ApiResponse<List<GiftDTO>>> getGiftsByCategory(@PathVariable String category) {
         try {
-            Gift.GiftCategory giftCategory = Gift.GiftCategory.valueOf(category.toUpperCase());
+            String giftCategory = String.valueOf(category.toUpperCase());
             List<GiftDTO> gifts = giftService.getGiftsByCategory(giftCategory);
             return ResponseEntity.ok(ApiResponse.success(gifts));
         } catch (Exception e) {

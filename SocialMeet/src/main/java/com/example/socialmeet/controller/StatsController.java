@@ -32,9 +32,9 @@ public class StatsController {
             String jwt = authHeader.replace("Bearer ", "");
             Long viewerId = jwtUtil.getUserIdFromToken(jwt);
             
-            UserView.ViewType type = viewType != null ? 
-                    UserView.ViewType.valueOf(viewType.toUpperCase()) : 
-                    UserView.ViewType.PROFILE;
+            String type = viewType != null ? 
+                    String.valueOf(viewType.toUpperCase()) : 
+                    "PROFILE";
             
             UserView userView = new UserView(viewerId, viewedId, type, relatedId);
             userViewRepository.save(userView);

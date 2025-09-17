@@ -8,10 +8,10 @@ public class PaymentOrderDTO {
     private Long id;
     private Long userId;
     private String orderNo;
-    private PaymentOrder.OrderType type;
+    private String type;
     private BigDecimal amount;
-    private PaymentOrder.OrderStatus status;
-    private PaymentOrder.PaymentMethod paymentMethod;
+    private String status;
+    private String paymentMethod;
     private String paymentNo;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -57,11 +57,11 @@ public class PaymentOrderDTO {
         this.orderNo = orderNo;
     }
     
-    public PaymentOrder.OrderType getType() {
+    public String getType() {
         return type;
     }
     
-    public void setType(PaymentOrder.OrderType type) {
+    public void setType(String type) {
         this.type = type;
     }
     
@@ -73,19 +73,19 @@ public class PaymentOrderDTO {
         this.amount = amount;
     }
     
-    public PaymentOrder.OrderStatus getStatus() {
+    public String getStatus() {
         return status;
     }
     
-    public void setStatus(PaymentOrder.OrderStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
     
-    public PaymentOrder.PaymentMethod getPaymentMethod() {
+    public String getPaymentMethod() {
         return paymentMethod;
     }
     
-    public void setPaymentMethod(PaymentOrder.PaymentMethod paymentMethod) {
+    public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
     

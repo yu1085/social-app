@@ -23,8 +23,8 @@ public class PaymentService {
     @Autowired
     private WalletService walletService;
     
-    public PaymentOrderDTO createPaymentOrder(Long userId, PaymentOrder.OrderType type, 
-                                            BigDecimal amount, PaymentOrder.PaymentMethod paymentMethod) {
+    public PaymentOrderDTO createPaymentOrder(Long userId, String type, 
+                                            BigDecimal amount, String paymentMethod) {
         PaymentOrder order = new PaymentOrder(userId, type, amount, paymentMethod);
         order = paymentOrderRepository.save(order);
         
@@ -44,7 +44,7 @@ public class PaymentService {
         return orders.stream().map(PaymentOrderDTO::new).collect(Collectors.toList());
     }
     
-    public List<PaymentOrderDTO> getUserPaymentOrdersByStatus(Long userId, PaymentOrder.OrderStatus status) {
+    public List<PaymentOrderDTO> getUserPaymentOrdersByStatus(Long userId, String status) {
         List<PaymentOrder> orders = paymentOrderRepository.findByUserIdAndStatus(userId, status);
         return orders.stream().map(PaymentOrderDTO::new).collect(Collectors.toList());
     }
@@ -56,16 +56,16 @@ public class PaymentService {
         }
         
         PaymentOrder order = orderOpt.get();
-        if (order.getStatus() != PaymentOrder.OrderStatus.PENDING) {
+        if (!order.getStatus().equals("PENDING")) {
             return false;
         }
         
-        order.setStatus(PaymentOrder.OrderStatus.SUCCESS);
+        order.setStatus("SUCCESS");
         order.setPaymentNo(paymentNo);
         order = paymentOrderRepository.save(order);
         
         // 处理支付成功后的业务逻辑
-        if (order.getType() == PaymentOrder.OrderType.RECHARGE) {
+        if (order.getType().equals("RECHARGE")) {
             // 充值到钱包
             walletService.recharge(order.getUserId(), order.getAmount(), 
                                  "支付充值: " + order.getOrderNo());
@@ -82,11 +82,11 @@ public class PaymentService {
         }
         
         PaymentOrder order = orderOpt.get();
-        if (order.getStatus() != PaymentOrder.OrderStatus.PENDING) {
+        if (!order.getStatus().equals("PENDING")) {
             return false;
         }
         
-        order.setStatus(PaymentOrder.OrderStatus.FAILED);
+        order.setStatus("FAILED");
         order = paymentOrderRepository.save(order);
         
         return true;
@@ -99,11 +99,11 @@ public class PaymentService {
         }
         
         PaymentOrder order = orderOpt.get();
-        if (order.getStatus() != PaymentOrder.OrderStatus.PENDING) {
+        if (!order.getStatus().equals("PENDING")) {
             return false;
         }
         
-        order.setStatus(PaymentOrder.OrderStatus.CANCELLED);
+        order.setStatus("CANCELLED");
         order = paymentOrderRepository.save(order);
         
         return true;
@@ -114,7 +114,7 @@ public class PaymentService {
         List<PaymentOrder> expiredOrders = paymentOrderRepository.findExpiredPendingOrders(expiredTime);
         
         for (PaymentOrder order : expiredOrders) {
-            order.setStatus(PaymentOrder.OrderStatus.CANCELLED);
+            order.setStatus("CANCELLED");
             paymentOrderRepository.save(order);
         }
     }

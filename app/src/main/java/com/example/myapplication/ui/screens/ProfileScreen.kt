@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,6 +25,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import android.app.Application
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.roundToInt
  
 import com.example.myapplication.R
 import com.example.myapplication.viewmodel.ProfileViewModel
@@ -48,17 +59,29 @@ fun ProfileScreen(
     profileViewModel: ProfileViewModel? = null
 ) {
     val scrollState = rememberScrollState()
-    val viewModel = profileViewModel ?: remember { ProfileViewModel() }
+    val context = LocalContext.current
+    val viewModel = profileViewModel ?: remember { ProfileViewModel(context.applicationContext as Application) }
+    
+    // 下拉刷新状态
+    var isRefreshing by remember { mutableStateOf(false) }
+    var pullOffset by remember { mutableStateOf(0f) }
+    
+    // 页面加载时立即刷新钱包数据
+    LaunchedEffect(Unit) {
+        android.util.Log.d("ProfileScreen", "=== ProfileScreen LaunchedEffect 开始 ===")
+        viewModel.refreshWalletDataImmediately()
+    }
     
     // 监听ViewModel状态变化
     val userName = viewModel.userName
     val userId = viewModel.userId
     val isLoading = viewModel.isLoading
     val isVip = viewModel.isVip
-    val balance = viewModel.balance
     val voiceCallEnabled = viewModel.voiceCallEnabled
     val videoCallEnabled = viewModel.videoCallEnabled
     val messageChargeEnabled = viewModel.messageChargeEnabled
+    
+    // 直接使用ViewModel的方法获取余额显示文本
     
     Box(
         modifier = modifier.fillMaxSize()
@@ -76,15 +99,31 @@ fun ProfileScreen(
                 .verticalScroll(scrollState)
         ) {
             // 主要内容区域
-                    MainContentArea(
-            onSettingClick = onSettingClick,
-            onVipClick = onVipClick,
-            onRechargeClick = onRechargeClick,
-            onWealthLevelClick = onWealthLevelClick,
-            onPropMallClick = onPropMallClick,
-            onMenuClick = onMenuClick,
-            viewModel = viewModel
-        )
+            MainContentArea(
+                onSettingClick = onSettingClick,
+                onVipClick = onVipClick,
+                onRechargeClick = onRechargeClick,
+                onWealthLevelClick = onWealthLevelClick,
+                onPropMallClick = onPropMallClick,
+                onMenuClick = onMenuClick,
+                viewModel = viewModel
+            )
+        }
+        
+        // 刷新状态指示器
+        if (isRefreshing) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .offset(y = 20.dp)
+                    .wrapContentSize()
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = Color(0xFF498AFE),
+                    strokeWidth = 2.dp
+                )
+            }
         }
     }
 }
@@ -230,11 +269,11 @@ private fun UserInfoSection(
         Box(
             modifier = Modifier.fillMaxWidth()
         ) {
-            // 刷新按钮 - 新增
+            // 刷新按钮 - 修复版
             IconButton(
                 onClick = {
-                    viewModel.refreshUserInfo()
-                    android.util.Log.d("ProfileScreen", "用户信息已刷新！")
+                    android.util.Log.d("ProfileScreen", "=== 刷新按钮被点击 ===")
+                    viewModel.refreshWalletDataImmediately()
                 },
                 modifier = Modifier
                     .size(30.dp, 30.dp)
@@ -695,7 +734,7 @@ private fun WalletSection(
     onRechargeClick: () -> Unit,
     viewModel: ProfileViewModel
 ) {
-    val balance = viewModel.balance
+    // 直接使用getBalanceDisplayText()方法
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -858,7 +897,7 @@ private fun FunctionSettingsSection(viewModel: ProfileViewModel) {
                 SettingSwitchRow(
                     title = "语音接听",
                     checked = voiceCallEnabled,
-                    onCheckedChange = { viewModel.toggleVoiceCall() },
+                    onCheckedChange = { /* TODO: 调用后端API */ },
                     trailingText = if (voiceCallEnabled) "免费" else "关闭"
                 )
 
@@ -867,7 +906,7 @@ private fun FunctionSettingsSection(viewModel: ProfileViewModel) {
                 SettingSwitchRow(
                     title = "视频接听",
                     checked = videoCallEnabled,
-                    onCheckedChange = { viewModel.toggleVideoCall() },
+                    onCheckedChange = { /* TODO: 调用后端API */ },
                     trailingText = if (videoCallEnabled) "免费" else "关闭"
                 )
 
@@ -876,7 +915,7 @@ private fun FunctionSettingsSection(viewModel: ProfileViewModel) {
                 SettingSwitchRow(
                     title = "私信收费",
                     checked = messageChargeEnabled,
-                    onCheckedChange = { viewModel.toggleMessageCharge() },
+                    onCheckedChange = { /* TODO: 调用后端API */ },
                     trailingText = if (messageChargeEnabled) "收费" else "免费"
                 )
             }

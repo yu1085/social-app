@@ -17,5 +17,5 @@ public interface IntimacyRelationshipRepository extends JpaRepository<IntimacyRe
     Optional<IntimacyRelationship> findByUser1IdAndUser2Id(@Param("user1Id") Long user1Id, @Param("user2Id") Long user2Id);
     
     @Query("SELECT ir FROM IntimacyRelationship ir WHERE ir.level = :level ORDER BY ir.intimacyScore DESC")
-    List<IntimacyRelationship> findByLevelOrderByIntimacyScoreDesc(@Param("level") IntimacyRelationship.IntimacyLevel level);
+    List<IntimacyRelationship> findByLevelOrderByIntimacyScoreDesc(@Param("level") String level);
 }

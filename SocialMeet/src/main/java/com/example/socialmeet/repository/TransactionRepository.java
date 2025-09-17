@@ -14,7 +14,7 @@ import java.util.List;
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     Page<Transaction> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
     
-    List<Transaction> findByUserIdAndTypeOrderByCreatedAtDesc(Long userId, Transaction.TransactionType type);
+    List<Transaction> findByUserIdAndTypeOrderByCreatedAtDesc(Long userId, String type);
     
     @Query("SELECT t FROM Transaction t WHERE t.userId = :userId AND t.createdAt BETWEEN :startDate AND :endDate ORDER BY t.createdAt DESC")
     List<Transaction> findByUserIdAndDateRange(@Param("userId") Long userId, 
@@ -22,5 +22,5 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                                              @Param("endDate") LocalDateTime endDate);
     
     @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.userId = :userId AND t.type = :type AND t.status = 'SUCCESS'")
-    Double sumAmountByUserIdAndType(@Param("userId") Long userId, @Param("type") Transaction.TransactionType type);
+    Double sumAmountByUserIdAndType(@Param("userId") Long userId, @Param("type") String type);
 }

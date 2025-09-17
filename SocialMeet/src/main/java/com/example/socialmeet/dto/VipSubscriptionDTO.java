@@ -12,7 +12,7 @@ public class VipSubscriptionDTO {
     private Integer vipLevel;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private VipSubscription.SubscriptionStatus status;
+    private String status;
     private BigDecimal amount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -89,11 +89,11 @@ public class VipSubscriptionDTO {
         this.endDate = endDate;
     }
     
-    public VipSubscription.SubscriptionStatus getStatus() {
+    public String getStatus() {
         return status;
     }
     
-    public void setStatus(VipSubscription.SubscriptionStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
     

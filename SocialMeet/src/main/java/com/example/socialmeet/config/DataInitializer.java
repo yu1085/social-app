@@ -86,20 +86,20 @@ public class DataInitializer implements CommandLineRunner {
     private void initializeGifts() {
         if (giftRepository.count() == 0) {
             // 爱情类礼物
-            Gift rose = new Gift("玫瑰花", "表达爱意的经典礼物", new BigDecimal("1.00"), Gift.GiftCategory.LOVE);
+            Gift rose = new Gift("玫瑰花", "表达爱意的经典礼物", new BigDecimal("1.00"), "LOVE");
             giftRepository.save(rose);
             
-            Gift chocolate = new Gift("巧克力", "甜蜜的象征", new BigDecimal("5.00"), Gift.GiftCategory.LOVE);
+            Gift chocolate = new Gift("巧克力", "甜蜜的象征", new BigDecimal("5.00"), "LOVE");
             giftRepository.save(chocolate);
             
-            Gift ring = new Gift("钻戒", "永恒的承诺", new BigDecimal("99.00"), Gift.GiftCategory.LOVE);
+            Gift ring = new Gift("钻戒", "永恒的承诺", new BigDecimal("99.00"), "LOVE");
             giftRepository.save(ring);
             
             // 奢华类礼物
-            Gift car = new Gift("跑车", "豪华座驾", new BigDecimal("999.00"), Gift.GiftCategory.LUXURY);
+            Gift car = new Gift("跑车", "豪华座驾", new BigDecimal("999.00"), "LUXURY");
             giftRepository.save(car);
             
-            Gift castle = new Gift("城堡", "梦幻家园", new BigDecimal("9999.00"), Gift.GiftCategory.LUXURY);
+            Gift castle = new Gift("城堡", "梦幻家园", new BigDecimal("9999.00"), "LUXURY");
             giftRepository.save(castle);
         }
     }
@@ -108,19 +108,19 @@ public class DataInitializer implements CommandLineRunner {
         if (couponRepository.count() == 0) {
             // 新用户优惠券
             Coupon newUserCoupon = new Coupon("新用户优惠券", "新用户专享", 
-                    Coupon.CouponType.DISCOUNT, new BigDecimal("10.00"), 30);
+                    "DISCOUNT", new BigDecimal("10.00"), 30);
             newUserCoupon.setMinAmount(new BigDecimal("50.00"));
             couponRepository.save(newUserCoupon);
             
             // 充值优惠券
             Coupon rechargeCoupon = new Coupon("充值优惠券", "充值满减", 
-                    Coupon.CouponType.CASH, new BigDecimal("20.00"), 7);
+                    "CASH", new BigDecimal("20.00"), 7);
             rechargeCoupon.setMinAmount(new BigDecimal("100.00"));
             couponRepository.save(rechargeCoupon);
             
             // VIP体验券
             Coupon vipCoupon = new Coupon("VIP体验券", "VIP功能体验", 
-                    Coupon.CouponType.VIP, BigDecimal.ZERO, 3);
+                    "VIP", BigDecimal.ZERO, 3);
             couponRepository.save(vipCoupon);
         }
     }

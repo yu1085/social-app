@@ -6,11 +6,20 @@ import android.view.View;
 import android.util.TypedValue;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.ImageView;
+import android.widget.FrameLayout;
 import android.content.Intent;
 import androidx.compose.ui.platform.ComposeView;
 import androidx.lifecycle.LifecycleCoroutineScope;
 import android.widget.Toast;
 import android.util.Log;
+import androidx.lifecycle.ViewModelProvider;
+import com.example.myapplication.viewmodel.UserViewModel;
+import com.example.myapplication.model.UserCard;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.Dispatchers;
+import kotlinx.coroutines.launch;
+import kotlinx.coroutines.withContext;
 
 public class MainActivity extends AppCompatActivity {
     
@@ -22,53 +31,49 @@ public class MainActivity extends AppCompatActivity {
     private ComposeView composeSquare, composeMessage, composeProfile;
     private TextView textActive, textHot, textNearby, textNew, textExclusive;
     
+    // 用户数据管理
+    private UserViewModel userViewModel;
+    private java.util.List<UserCard> userCards = new java.util.ArrayList<>();
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        // 应用启动完成
-        
-        Log.d("MainActivity", "onCreate 开始执行");
+        // 初始化用户ViewModel
+        initUserViewModel();
         
         // 初始化标签视图
         initTabViews();
-        Log.d("MainActivity", "initTabViews 完成");
         
         // 设置标签点击监听器
         setTabClickListeners();
-        Log.d("MainActivity", "setTabClickListeners 完成");
 
         // 底部导航点击
         initBottomNav();
-        Log.d("MainActivity", "initBottomNav 完成");
         
         // 筛选按钮点击
         initFilterButton();
-        Log.d("MainActivity", "initFilterButton 完成");
-        
-        // 测试筛选按钮是否被找到
-        testFilterButton();
         
         // 匹配按钮点击
         initMatchButtons();
-        Log.d("MainActivity", "initMatchButtons 完成");
 
         // 设置用户卡片点击事件
-        Log.d("MainActivity", "准备调用 setupUserCardClickListeners");
         setupUserCardClickListeners();
-        Log.d("MainActivity", "setupUserCardClickListeners 调用完成");
-
+        
+        // 加载动态用户数据
+        loadDynamicUserCards();
 
         // 初始化ProfileComposeHost
         if (composeProfile != null) {
             com.example.myapplication.compose.ProfileComposeHost.attach(composeProfile);
-            Log.d("MainActivity", "ProfileComposeHost 初始化完成");
         }
 
         // 初始状态：所有标签保持相同样式与尺寸
         resetAllTabs();
-        Log.d("MainActivity", "onCreate 执行完成");
+        
+        // 设置默认选中首页
+        updateBottomNavSelection("home");
     }
     
 
@@ -110,83 +115,60 @@ public class MainActivity extends AppCompatActivity {
 
     private void initBottomNav() {
         if (navHome != null) {
-            navHome.setOnClickListener(v -> showHome());
+            navHome.setOnClickListener(v -> {
+                showHome();
+                updateBottomNavSelection("home");
+            });
         }
         if (navSquare != null) {
-            navSquare.setOnClickListener(v -> showSquare());
+            navSquare.setOnClickListener(v -> {
+                showSquare();
+                updateBottomNavSelection("square");
+            });
         }
         if (navMessage != null) {
-            navMessage.setOnClickListener(v -> showMessage());
+            navMessage.setOnClickListener(v -> {
+                showMessage();
+                updateBottomNavSelection("message");
+            });
         }
         if (navProfile != null) {
-            navProfile.setOnClickListener(v -> showProfile());
+            navProfile.setOnClickListener(v -> {
+                showProfile();
+                updateBottomNavSelection("profile");
+            });
         }
     }
     
     private void initFilterButton() {
-        Log.d("MainActivity", "initFilterButton 开始执行");
         if (filterButton != null) {
-            Log.d("MainActivity", "filterButton 不为空，设置点击监听器");
-            filterButton.setOnClickListener(v -> {
-                Log.d("MainActivity", "筛选按钮被点击");
-                showFilterDialog();
-            });
-        } else {
-            Log.e("MainActivity", "filterButton 为空！");
+            filterButton.setOnClickListener(v -> showFilterDialog());
         }
-        Log.d("MainActivity", "initFilterButton 执行完成");
     }
     
-    private void testFilterButton() {
-        Log.d("MainActivity", "testFilterButton 开始执行");
-        View filterButton = findViewById(R.id.filter_button);
-        if (filterButton != null) {
-            Log.d("MainActivity", "筛选按钮找到，可见性: " + filterButton.getVisibility());
-            Log.d("MainActivity", "筛选按钮可点击: " + filterButton.isClickable());
-            Log.d("MainActivity", "筛选按钮可聚焦: " + filterButton.isFocusable());
-        } else {
-            Log.e("MainActivity", "筛选按钮未找到！");
-        }
-        Log.d("MainActivity", "testFilterButton 执行完成");
-    }
     
     private void showFilterDialog() {
-        Log.d("MainActivity", "showFilterDialog 开始执行");
-        
         // 跳转到筛选Activity
         Intent intent = new Intent(this, FilterActivity.class);
         startActivity(intent);
-        Log.d("MainActivity", "已启动筛选Activity");
     }
     
     private void initMatchButtons() {
-        Log.d("MainActivity", "initMatchButtons 开始执行");
-        
         // 视频速配按钮
         if (videoMatchButton != null) {
-            Log.d("MainActivity", "videoMatchButton 不为空，设置点击监听器");
             videoMatchButton.setOnClickListener(v -> {
-                Log.d("MainActivity", "视频速配按钮被点击");
                 Intent intent = new Intent(this, VideoMatchActivity.class);
                 startActivity(intent);
             });
-        } else {
-            Log.e("MainActivity", "videoMatchButton 为空！");
         }
         
         // 语音速配按钮
         if (voiceMatchButton != null) {
-            Log.d("MainActivity", "voiceMatchButton 不为空，设置点击监听器");
             voiceMatchButton.setOnClickListener(v -> {
-                Log.d("MainActivity", "语音速配按钮被点击");
                 Intent intent = new Intent(this, VoiceMatchActivity.class);
                 startActivity(intent);
             });
-        } else {
-            Log.e("MainActivity", "voiceMatchButton 为空！");
         }
-        
-        Log.d("MainActivity", "initMatchButtons 执行完成");
     }
 
     private void hideAllContent() {
@@ -231,15 +213,98 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showProfile() {
-        Log.d("MainActivity", "showProfile 开始执行");
         hideAllContent();
         if (composeProfile != null) {
-            Log.d("MainActivity", "composeProfile 不为空，设置可见");
             composeProfile.setVisibility(View.VISIBLE);
             // ProfileComposeHost.attach() 已经在onCreate中调用过了，这里不需要重复调用
-            Log.d("MainActivity", "showProfile 执行完成");
+        }
+    }
+    
+    /**
+     * 更新底部导航选中状态
+     */
+    private void updateBottomNavSelection(String selectedTab) {
+        // 重置所有按钮状态
+        resetBottomNavSelection();
+        
+        // 设置选中按钮状态
+        switch (selectedTab) {
+            case "home":
+                if (navHome != null) {
+                    setBottomNavSelected(navHome, true);
+                }
+                break;
+            case "square":
+                if (navSquare != null) {
+                    setBottomNavSelected(navSquare, true);
+                }
+                break;
+            case "message":
+                if (navMessage != null) {
+                    setBottomNavSelected(navMessage, true);
+                }
+                break;
+            case "profile":
+                if (navProfile != null) {
+                    setBottomNavSelected(navProfile, true);
+                }
+                break;
+        }
+    }
+    
+    /**
+     * 重置所有底部导航按钮状态
+     */
+    private void resetBottomNavSelection() {
+        if (navHome != null) setBottomNavSelected(navHome, false);
+        if (navSquare != null) setBottomNavSelected(navSquare, false);
+        if (navMessage != null) setBottomNavSelected(navMessage, false);
+        if (navProfile != null) setBottomNavSelected(navProfile, false);
+    }
+    
+    /**
+     * 设置底部导航按钮选中状态
+     */
+    private void setBottomNavSelected(LinearLayout navItem, boolean isSelected) {
+        if (navItem == null) return;
+        
+        // 获取按钮中的图标和文字
+        View firstChild = navItem.getChildAt(0);
+        TextView text = (TextView) navItem.getChildAt(1);
+        
+        ImageView icon = null;
+        
+        // 检查第一个子元素是ImageView还是FrameLayout
+        if (firstChild instanceof ImageView) {
+            // 首页、广场、我的：直接是ImageView
+            icon = (ImageView) firstChild;
+        } else if (firstChild instanceof FrameLayout) {
+            // 消息：FrameLayout包含ImageView
+            FrameLayout frameLayout = (FrameLayout) firstChild;
+            if (frameLayout.getChildCount() > 0) {
+                View frameChild = frameLayout.getChildAt(0);
+                if (frameChild instanceof ImageView) {
+                    icon = (ImageView) frameChild;
+                }
+            }
+        }
+        
+        if (isSelected) {
+            // 选中状态：深色图标和文字
+            if (icon != null) {
+                icon.setColorFilter(getResources().getColor(android.R.color.black));
+            }
+            if (text != null) {
+                text.setTextColor(getResources().getColor(android.R.color.black));
+            }
         } else {
-            Log.e("MainActivity", "composeProfile 为空！");
+            // 未选中状态：浅色图标和文字
+            if (icon != null) {
+                icon.setColorFilter(getResources().getColor(android.R.color.darker_gray));
+            }
+            if (text != null) {
+                text.setTextColor(getResources().getColor(android.R.color.darker_gray));
+            }
         }
     }
     
@@ -304,73 +369,285 @@ public class MainActivity extends AppCompatActivity {
     }
     
     private void setupUserCardClickListeners() {
-        try {
-            // 为首页的用户卡片设置点击事件
-            // 用户卡片1 - 不吃香菜
-            View userCard1 = findViewById(R.id.user_card_1);
-            if (userCard1 != null) {
-                userCard1.setOnClickListener(v -> {
-                    Intent intent = new Intent(MainActivity.this, UserDetailActivity.class);
-                    intent.putExtra("user_name", "不吃香菜");
-                    intent.putExtra("user_status", "空闲");
-                    intent.putExtra("user_age", "25岁");
-                    intent.putExtra("user_location", "北京");
-                    intent.putExtra("user_description", "我是一个活泼开朗的女孩，喜欢聊天和交朋友。希望能遇到有趣的人一起分享生活的美好。");
-                    intent.putExtra("user_avatar", R.drawable.rectangle_411_1);
-                    startActivity(intent);
-                });
-            }
-            
-            // 用户卡片2 - 你的菜
-            View userCard2 = findViewById(R.id.user_card_2);
-            if (userCard2 != null) {
-                userCard2.setOnClickListener(v -> {
-                    Intent intent = new Intent(MainActivity.this, UserDetailActivity.class);
-                    intent.putExtra("user_name", "你的菜");
-                    intent.putExtra("user_status", "忙碌");
-                    intent.putExtra("user_age", "23岁");
-                    intent.putExtra("user_location", "广州");
-                    intent.putExtra("user_description", "温柔可爱的女孩，喜欢听音乐和看电影。希望能找到志同道合的朋友。");
-                    intent.putExtra("user_avatar", R.drawable.rectangle_412_1);
-                    startActivity(intent);
-                });
-            }
-            
-            // 用户卡片3 - 小仙女
-            View userCard3 = findViewById(R.id.user_card_3);
-            if (userCard3 != null) {
-                userCard3.setOnClickListener(v -> {
-                    Intent intent = new Intent(MainActivity.this, UserDetailActivity.class);
-                    intent.putExtra("user_name", "小仙女");
-                    intent.putExtra("user_status", "在线");
-                    intent.putExtra("user_age", "26岁");
-                    intent.putExtra("user_location", "上海");
-                    intent.putExtra("user_description", "充满正能量的女孩，喜欢运动和旅行。希望能遇到有趣的人一起分享快乐。");
-                    intent.putExtra("user_avatar", R.drawable.rectangle_411_1);
-                    startActivity(intent);
-                });
-            }
-            
-            // 用户卡片4 - 甜心宝贝
-            View userCard4 = findViewById(R.id.user_card_4);
-            if (userCard4 != null) {
-                userCard4.setOnClickListener(v -> {
-                    Intent intent = new Intent(MainActivity.this, UserDetailActivity.class);
-                    intent.putExtra("user_name", "甜心宝贝");
-                    intent.putExtra("user_status", "离线");
-                    intent.putExtra("user_age", "28岁");
-                    intent.putExtra("user_location", "深圳");
-                    intent.putExtra("user_description", "成熟稳重的姐姐，善解人意，喜欢读书和品茶。希望能找到真诚的朋友。");
-                    intent.putExtra("user_avatar", R.drawable.rectangle_412_1);
-                    startActivity(intent);
-                });
-            }
-            
-            // 测试所有用户卡片是否被找到
-            // testUserCards(); // 删除这行，因为 testUserCards() 已经显示了结果
-        } catch (Exception e) {
-            Log.e("MainActivity", "setupUserCardClickListeners 执行失败", e);
+        // 为首页的用户卡片设置点击事件
+        // 用户卡片1
+        View userCard1 = findViewById(R.id.user_card_1);
+        if (userCard1 != null) {
+            userCard1.setOnClickListener(v -> {
+                if (userCards.size() > 0) {
+                    openUserDetail(userCards.get(0));
+                } else {
+                    // 使用默认数据作为后备
+                    openUserDetailWithDefaultData(1);
+                }
+            });
         }
+        
+        // 用户卡片2
+        View userCard2 = findViewById(R.id.user_card_2);
+        if (userCard2 != null) {
+            userCard2.setOnClickListener(v -> {
+                if (userCards.size() > 1) {
+                    openUserDetail(userCards.get(1));
+                } else {
+                    // 使用默认数据作为后备
+                    openUserDetailWithDefaultData(2);
+                }
+            });
+        }
+        
+        // 用户卡片3
+        View userCard3 = findViewById(R.id.user_card_3);
+        if (userCard3 != null) {
+            userCard3.setOnClickListener(v -> {
+                if (userCards.size() > 2) {
+                    openUserDetail(userCards.get(2));
+                } else {
+                    // 使用默认数据作为后备
+                    openUserDetailWithDefaultData(3);
+                }
+            });
+        }
+        
+        // 用户卡片4
+        View userCard4 = findViewById(R.id.user_card_4);
+        if (userCard4 != null) {
+            userCard4.setOnClickListener(v -> {
+                if (userCards.size() > 3) {
+                    openUserDetail(userCards.get(3));
+                } else {
+                    // 使用默认数据作为后备
+                    openUserDetailWithDefaultData(4);
+                }
+            });
+        }
+    }
+    
+    /**
+     * 打开用户详情页面（使用动态数据）
+     */
+    private void openUserDetail(UserCard userCard) {
+        Intent intent = new Intent(MainActivity.this, UserDetailActivity.class);
+        intent.putExtra("user_id", userCard.id);
+        intent.putExtra("user_name", userCard.getDisplayName());
+        intent.putExtra("user_status", userCard.getStatusText());
+        intent.putExtra("user_age", userCard.getAgeText());
+        intent.putExtra("user_location", userCard.location);
+        intent.putExtra("user_description", userCard.bio);
+        intent.putExtra("user_avatar", userCard.avatar);
+        intent.putExtra("call_price", userCard.callPrice);
+        intent.putExtra("message_price", userCard.messagePrice);
+        intent.putExtra("is_online", userCard.isOnline);
+        startActivity(intent);
+    }
+    
+    /**
+     * 打开用户详情页面（使用默认数据作为后备）
+     */
+    private void openUserDetailWithDefaultData(int cardIndex) {
+        Intent intent = new Intent(MainActivity.this, UserDetailActivity.class);
+        
+        switch (cardIndex) {
+            case 1:
+                intent.putExtra("user_name", "不吃香菜");
+                intent.putExtra("user_status", "空闲");
+                intent.putExtra("user_age", "25岁");
+                intent.putExtra("user_location", "北京");
+                intent.putExtra("user_description", "我是一个活泼开朗的女孩，喜欢聊天和交朋友。希望能遇到有趣的人一起分享生活的美好。");
+                intent.putExtra("user_avatar", R.drawable.rectangle_411_1);
+                break;
+            case 2:
+                intent.putExtra("user_name", "你的菜");
+                intent.putExtra("user_status", "忙碌");
+                intent.putExtra("user_age", "23岁");
+                intent.putExtra("user_location", "广州");
+                intent.putExtra("user_description", "温柔可爱的女孩，喜欢听音乐和看电影。希望能找到志同道合的朋友。");
+                intent.putExtra("user_avatar", R.drawable.rectangle_412_1);
+                break;
+            case 3:
+                intent.putExtra("user_name", "小仙女");
+                intent.putExtra("user_status", "在线");
+                intent.putExtra("user_age", "26岁");
+                intent.putExtra("user_location", "上海");
+                intent.putExtra("user_description", "充满正能量的女孩，喜欢运动和旅行。希望能遇到有趣的人一起分享快乐。");
+                intent.putExtra("user_avatar", R.drawable.rectangle_411_1);
+                break;
+            case 4:
+                intent.putExtra("user_name", "甜心宝贝");
+                intent.putExtra("user_status", "离线");
+                intent.putExtra("user_age", "28岁");
+                intent.putExtra("user_location", "深圳");
+                intent.putExtra("user_description", "成熟稳重的姐姐，善解人意，喜欢读书和品茶。希望能找到真诚的朋友。");
+                intent.putExtra("user_avatar", R.drawable.rectangle_412_1);
+                break;
+        }
+        
+        startActivity(intent);
+    }
+    
+    /**
+     * 初始化用户ViewModel
+     */
+    private void initUserViewModel() {
+        userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
+        
+        // 观察用户卡片数据变化
+        userViewModel.userCards.observe(this, cards -> {
+            if (cards != null) {
+                userCards = cards;
+                updateUserCardsUI();
+            }
+        });
+        
+        // 观察加载状态
+        userViewModel.isLoading.observe(this, isLoading -> {
+            if (isLoading) {
+                Log.d("MainActivity", "正在加载用户数据...");
+            } else {
+                Log.d("MainActivity", "用户数据加载完成");
+            }
+        });
+        
+        // 观察错误信息
+        userViewModel.errorMessage.observe(this, errorMessage -> {
+            if (errorMessage != null) {
+                Log.e("MainActivity", "用户数据加载错误: " + errorMessage);
+                Toast.makeText(this, "加载用户数据失败: " + errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    
+    /**
+     * 加载动态用户卡片数据
+     */
+    private void loadDynamicUserCards() {
+        Log.d("MainActivity", "开始加载动态用户卡片数据...");
+        userViewModel.loadUserCards();
+    }
+    
+    /**
+     * 更新用户卡片UI
+     */
+    private void updateUserCardsUI() {
+        if (userCards.isEmpty()) {
+            Log.d("MainActivity", "用户卡片数据为空，使用默认数据");
+            return;
+        }
+        
+        Log.d("MainActivity", "更新用户卡片UI，用户数量: " + userCards.size());
+        
+        // 更新前4个用户卡片
+        updateUserCard(1, userCards.size() > 0 ? userCards.get(0) : null);
+        updateUserCard(2, userCards.size() > 1 ? userCards.get(1) : null);
+        updateUserCard(3, userCards.size() > 2 ? userCards.get(2) : null);
+        updateUserCard(4, userCards.size() > 3 ? userCards.get(3) : null);
+    }
+    
+    /**
+     * 更新单个用户卡片
+     */
+    private void updateUserCard(int cardIndex, UserCard userCard) {
+        if (userCard == null) return;
+        
+        try {
+            // 获取卡片视图
+            View cardView = findViewById(getCardViewId(cardIndex));
+            if (cardView == null) return;
+            
+            // 更新用户名
+            TextView nameView = cardView.findViewById(getUserNameId(cardIndex));
+            if (nameView != null) {
+                nameView.setText(userCard.getDisplayName());
+            }
+            
+            // 更新状态
+            TextView statusView = cardView.findViewById(getUserStatusId(cardIndex));
+            if (statusView != null) {
+                statusView.setText(userCard.getStatusText());
+            }
+            
+            // 更新价格
+            TextView priceView = cardView.findViewById(getUserPriceId(cardIndex));
+            if (priceView != null) {
+                priceView.setText(userCard.getPriceText());
+            }
+            
+            // 更新位置
+            TextView locationView = cardView.findViewById(getUserLocationId(cardIndex));
+            if (locationView != null) {
+                locationView.setText(userCard.location);
+            }
+            
+            // 更新状态指示器颜色
+            View statusIndicator = cardView.findViewById(getUserStatusIndicatorId(cardIndex));
+            if (statusIndicator != null) {
+                int color = android.graphics.Color.parseColor(userCard.getStatusColor());
+                statusIndicator.setBackgroundColor(color);
+            }
+            
+            Log.d("MainActivity", "更新用户卡片 " + cardIndex + ": " + userCard.getDisplayName());
+            
+        } catch (Exception e) {
+            Log.e("MainActivity", "更新用户卡片失败: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * 获取卡片视图ID
+     */
+    private int getCardViewId(int cardIndex) {
+        switch (cardIndex) {
+            case 1: return R.id.user_card_1;
+            case 2: return R.id.user_card_2;
+            case 3: return R.id.user_card_3;
+            case 4: return R.id.user_card_4;
+            default: return 0;
+        }
+    }
+    
+    /**
+     * 获取用户名TextView ID
+     */
+    private int getUserNameId(int cardIndex) {
+        // 这里需要根据实际的布局文件来设置
+        // 由于布局文件中可能没有直接的ID，我们可能需要通过其他方式获取
+        return 0; // 暂时返回0，需要根据实际布局调整
+    }
+    
+    /**
+     * 获取用户状态TextView ID
+     */
+    private int getUserStatusId(int cardIndex) {
+        return 0; // 暂时返回0，需要根据实际布局调整
+    }
+    
+    /**
+     * 获取用户价格TextView ID
+     */
+    private int getUserPriceId(int cardIndex) {
+        return 0; // 暂时返回0，需要根据实际布局调整
+    }
+    
+    /**
+     * 获取用户位置TextView ID
+     */
+    private int getUserLocationId(int cardIndex) {
+        return 0; // 暂时返回0，需要根据实际布局调整
+    }
+    
+    /**
+     * 获取用户状态指示器View ID
+     */
+    private int getUserStatusIndicatorId(int cardIndex) {
+        return 0; // 暂时返回0，需要根据实际布局调整
+    }
+    
+    /**
+     * 刷新用户数据
+     */
+    public void refreshUserData() {
+        Log.d("MainActivity", "刷新用户数据");
+        userViewModel.refreshUserCards();
     }
     
 }

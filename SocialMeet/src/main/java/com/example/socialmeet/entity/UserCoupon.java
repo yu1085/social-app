@@ -16,9 +16,8 @@ public class UserCoupon {
     @Column(name = "coupon_id", nullable = false)
     private Long couponId;
     
-    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private CouponStatus status = CouponStatus.UNUSED;
+    private String status = "UNUSED";
     
     @Column(name = "used_at")
     private LocalDateTime usedAt;
@@ -41,14 +40,7 @@ public class UserCoupon {
         this.userId = userId;
         this.couponId = couponId;
         this.expiresAt = expiresAt;
-    }
-    
-    // Enums
-    public enum CouponStatus {
-        UNUSED, USED, EXPIRED
-    }
-    
-    // Getters and Setters
+    }    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -73,11 +65,11 @@ public class UserCoupon {
         this.couponId = couponId;
     }
     
-    public CouponStatus getStatus() {
+    public String getStatus() {
         return status;
     }
     
-    public void setStatus(CouponStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
     
@@ -111,11 +103,11 @@ public class UserCoupon {
     }
     
     public boolean isUsable() {
-        return status == CouponStatus.UNUSED && !isExpired();
+        return status.equals("UNUSED") && !isExpired();
     }
     
     public void use() {
-        this.status = CouponStatus.USED;
+        this.status = "USED";
         this.usedAt = LocalDateTime.now();
     }
 }

@@ -17,11 +17,10 @@ public class Coupon {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
     
-    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
-    private CouponType type;
+    private String type;
     
-    @Column(name = "value", precision = 10, scale = 2, nullable = false)
+    @Column(name = "coupon_value", precision = 10, scale = 2, nullable = false)
     private BigDecimal value;
     
     @Column(name = "min_amount", precision = 10, scale = 2)
@@ -56,7 +55,7 @@ public class Coupon {
     // Constructors
     public Coupon() {}
     
-    public Coupon(String name, String description, CouponType type, BigDecimal value, Integer validDays) {
+    public Coupon(String name, String description, String type, BigDecimal value, Integer validDays) {
         this.name = name;
         this.description = description;
         this.type = type;
@@ -64,10 +63,6 @@ public class Coupon {
         this.validDays = validDays;
     }
     
-    // Enums
-    public enum CouponType {
-        DISCOUNT, CASH, VIP
-    }
     
     // Getters and Setters
     public Long getId() {
@@ -94,11 +89,11 @@ public class Coupon {
         this.description = description;
     }
     
-    public CouponType getType() {
+    public String getType() {
         return type;
     }
     
-    public void setType(CouponType type) {
+    public void setType(String type) {
         this.type = type;
     }
     

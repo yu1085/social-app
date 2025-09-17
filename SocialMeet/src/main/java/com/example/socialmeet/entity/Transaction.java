@@ -14,9 +14,8 @@ public class Transaction {
     @Column(name = "user_id", nullable = false)
     private Long userId;
     
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
-    private TransactionType type;
+    @Column(name = "type")
+    private String type;
     
     @Column(name = "amount", precision = 10, scale = 2, nullable = false)
     private BigDecimal amount;
@@ -27,9 +26,8 @@ public class Transaction {
     @Column(name = "description", length = 255)
     private String description;
     
-    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private TransactionStatus status = TransactionStatus.SUCCESS;
+    private String status = "SUCCESS";
     
     @Column(name = "related_id")
     private Long relatedId;
@@ -45,21 +43,12 @@ public class Transaction {
     // Constructors
     public Transaction() {}
     
-    public Transaction(Long userId, TransactionType type, BigDecimal amount, BigDecimal balanceAfter, String description) {
+    public Transaction(Long userId, String type, BigDecimal amount, BigDecimal balanceAfter, String description) {
         this.userId = userId;
         this.type = type;
         this.amount = amount;
         this.balanceAfter = balanceAfter;
         this.description = description;
-    }
-    
-    // Enums
-    public enum TransactionType {
-        RECHARGE, WITHDRAW, GIFT, VIP, CONSUME, EARN, REFUND
-    }
-    
-    public enum TransactionStatus {
-        PENDING, SUCCESS, FAILED, CANCELLED
     }
     
     // Getters and Setters
@@ -79,11 +68,11 @@ public class Transaction {
         this.userId = userId;
     }
     
-    public TransactionType getType() {
+    public String getType() {
         return type;
     }
     
-    public void setType(TransactionType type) {
+    public void setType(String type) {
         this.type = type;
     }
     
@@ -111,11 +100,11 @@ public class Transaction {
         this.description = description;
     }
     
-    public TransactionStatus getStatus() {
+    public String getStatus() {
         return status;
     }
     
-    public void setStatus(TransactionStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
     

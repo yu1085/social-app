@@ -17,20 +17,17 @@ public class PaymentOrder {
     @Column(name = "order_no", nullable = false, unique = true, length = 64)
     private String orderNo;
     
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
-    private OrderType type;
+    @Column(name = "type")
+    private String type;
     
     @Column(name = "amount", precision = 10, scale = 2, nullable = false)
     private BigDecimal amount;
     
-    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private OrderStatus status = OrderStatus.PENDING;
+    private String status = "PENDING";
     
-    @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method")
-    private PaymentMethod paymentMethod;
+    @Column(name = "paymentMethod")
+    private String paymentMethod;
     
     @Column(name = "payment_no", length = 100)
     private String paymentNo;
@@ -61,20 +58,11 @@ public class PaymentOrder {
     // Constructors
     public PaymentOrder() {}
     
-    public PaymentOrder(Long userId, OrderType type, BigDecimal amount, PaymentMethod paymentMethod) {
+    public PaymentOrder(Long userId, String type, BigDecimal amount, String paymentMethod) {
         this.userId = userId;
         this.type = type;
         this.amount = amount;
         this.paymentMethod = paymentMethod;
-    }
-    
-    // Enums
-    public enum OrderType {
-        RECHARGE, VIP, GIFT
-    }
-    
-    public enum OrderStatus {
-        PENDING, SUCCESS, FAILED, CANCELLED
     }
     
     public enum PaymentMethod {
@@ -106,11 +94,11 @@ public class PaymentOrder {
         this.orderNo = orderNo;
     }
     
-    public OrderType getType() {
+    public String getType() {
         return type;
     }
     
-    public void setType(OrderType type) {
+    public void setType(String type) {
         this.type = type;
     }
     
@@ -122,19 +110,19 @@ public class PaymentOrder {
         this.amount = amount;
     }
     
-    public OrderStatus getStatus() {
+    public String getStatus() {
         return status;
     }
     
-    public void setStatus(OrderStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
     
-    public PaymentMethod getPaymentMethod() {
+    public String getPaymentMethod() {
         return paymentMethod;
     }
     
-    public void setPaymentMethod(PaymentMethod paymentMethod) {
+    public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
     
@@ -176,10 +164,10 @@ public class PaymentOrder {
     }
     
     public boolean isSuccess() {
-        return status == OrderStatus.SUCCESS;
+        return status == "SUCCESS";
     }
     
     public boolean isPending() {
-        return status == OrderStatus.PENDING;
+        return status == "PENDING";
     }
 }

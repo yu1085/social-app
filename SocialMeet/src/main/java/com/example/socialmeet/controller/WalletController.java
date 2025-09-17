@@ -102,7 +102,7 @@ public class WalletController {
             String jwt = token.replace("Bearer ", "");
             Long userId = jwtUtil.getUserIdFromToken(jwt);
             
-            Transaction.TransactionType transactionType = Transaction.TransactionType.valueOf(type.toUpperCase());
+            String transactionType = String.valueOf(type.toUpperCase());
             List<Transaction> transactions = transactionRepository.findByUserIdAndTypeOrderByCreatedAtDesc(userId, transactionType);
             
             List<TransactionDTO> transactionDTOs = transactions.stream()
@@ -112,6 +112,43 @@ public class WalletController {
             return ResponseEntity.ok(ApiResponse.success(transactionDTOs));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error("获取交易记录失败: " + e.getMessage()));
+        }
+    }
+    
+    // 管理员API：直接通过用户ID操作钱包
+    @GetMapping("/admin/balance/{userId}")
+    public ResponseEntity<ApiResponse<WalletDTO>> getBalanceByUserId(@PathVariable Long userId) {
+        try {
+            WalletDTO wallet = walletService.getWalletByUserId(userId);
+            if (wallet == null) {
+                wallet = walletService.createWallet(userId);
+            }
+            
+            return ResponseEntity.ok(ApiResponse.success(wallet));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("获取钱包余额失败: " + e.getMessage()));
+        }
+    }
+    
+    @PostMapping("/admin/recharge/{userId}")
+    public ResponseEntity<ApiResponse<String>> rechargeByUserId(@PathVariable Long userId,
+                                                               @RequestParam BigDecimal amount,
+                                                               @RequestParam(required = false) String description) {
+        try {
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("充值金额必须大于0"));
+            }
+            
+            String desc = description != null ? description : "管理员充值";
+            boolean success = walletService.recharge(userId, amount, desc);
+            
+            if (success) {
+                return ResponseEntity.ok(ApiResponse.success("充值成功"));
+            } else {
+                return ResponseEntity.badRequest().body(ApiResponse.error("充值失败"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("充值失败: " + e.getMessage()));
         }
     }
 }
