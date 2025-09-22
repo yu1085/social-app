@@ -29,4 +29,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     @Query("SELECT u FROM User u WHERE u.location LIKE %:location% AND u.isActive = true")
     List<User> findByLocationContaining(@Param("location") String location);
+    
+    @Query("SELECT u FROM User u WHERE u.gender = :gender AND u.isActive = true ORDER BY u.createdAt DESC")
+    List<User> findByGenderAndIsActiveTrue(@Param("gender") String gender);
+    
+    @Query("SELECT u FROM User u WHERE u.gender = :gender AND u.isOnline = :isOnline AND u.isActive = true")
+    List<User> findByGenderAndIsOnline(@Param("gender") String gender, @Param("isOnline") Boolean isOnline);
+    
+    @Query("SELECT u FROM User u WHERE u.gender = :gender AND u.isOnline = :isOnline AND u.status = :status AND u.isActive = true")
+    List<User> findByGenderAndIsOnlineAndStatus(@Param("gender") String gender, @Param("isOnline") Boolean isOnline, @Param("status") String status);
 }

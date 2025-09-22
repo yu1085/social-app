@@ -1,0 +1,112 @@
+groups:
+  - name: socialmeet-alerts
+    rules:
+      # 高错误率告警
+      - alert: HighErrorRate
+        expr: rate(http_server_requests_seconds_count{status=~"5.."}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "高错误率告警"
+          description: "应用错误率超过10%，当前值: {{ $value }}"
+
+      # 高响应时间告警
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[5m])) > 1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "高响应时间告警"
+          description: "95%响应时间超过1秒，当前值: {{ $value }}s"
+
+      # 内存使用率告警
+      - alert: HighMemoryUsage
+        expr: (jvm_memory_used_bytes / jvm_memory_max_bytes) > 0.8
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "高内存使用率告警"
+          description: "JVM内存使用率超过80%，当前值: {{ $value }}%"
+
+      # 数据库连接数告警
+      - alert: HighDatabaseConnections
+        expr: hikaricp_connections_active > 40
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "高数据库连接数告警"
+          description: "数据库连接数超过40，当前值: {{ $value }}"
+
+      # 缓存命中率低告警
+      - alert: LowCacheHitRate
+        expr: (cache_hits_total / (cache_hits_total + cache_misses_total)) < 0.7
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "缓存命中率低告警"
+          description: "缓存命中率低于70%，当前值: {{ $value }}%"
+
+      # 应用不可用告警
+      - alert: ApplicationDown
+        expr: up{job="socialmeet-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "应用不可用告警"
+          description: "SocialMeet应用不可用"
+
+      # 数据库不可用告警
+      - alert: DatabaseDown
+        expr: up{job="mysql"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "数据库不可用告警"
+          description: "MySQL数据库不可用"
+
+      # Redis不可用告警
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis不可用告警"
+          description: "Redis缓存不可用"
+
+      # 磁盘空间不足告警
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "磁盘空间不足告警"
+          description: "磁盘可用空间低于10%，当前值: {{ $value }}%"
+
+      # CPU使用率高告警
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "高CPU使用率告警"
+          description: "CPU使用率超过80%，当前值: {{ $value }}%"
+
+      # 网络连接数高告警
+      - alert: HighNetworkConnections
+        expr: node_netstat_Tcp_CurrEstab > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "高网络连接数告警"
+          description: "网络连接数超过1000，当前值: {{ $value }}"

@@ -25,6 +25,7 @@ import com.example.myapplication.MyGuardActivity
 import com.example.myapplication.MyGiftsActivity
 import com.example.myapplication.MyCustomerServiceActivity
 import com.example.myapplication.MyWalletActivity
+import com.example.myapplication.ProfileDetailActivity
 import com.example.myapplication.ui.screens.ProfileScreen
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.viewmodel.ProfileViewModel
@@ -51,6 +52,12 @@ object ProfileComposeHost {
                     
                     ProfileScreen(
                         profileViewModel = viewModel,
+                        onUserInfoClick = {
+                            // 跳转到个人资料详情页面
+                            val context = target.context
+                            val intent = Intent(context, ProfileDetailActivity::class.java)
+                            context.startActivity(intent)
+                        },
                         onSettingClick = {
                             // 跳转到设置页面
                             val context = target.context

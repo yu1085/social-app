@@ -1,0 +1,29 @@
+# 支付宝API配置
+app:
+  alipay:
+    # 应用信息（从支付宝开放平台获取）
+    app-id: 2021005195696348
+    # 应用私钥（从支付宝开放平台获取）
+    private-key: |
+      MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...
+    # 支付宝公钥（从支付宝开放平台获取）
+    public-key: |
+      MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...
+    # 支付宝网关地址
+    gateway-url: https://openapi.alipay.com/gateway.do
+    # 签名算法
+    sign-type: RSA2
+    # 字符编码
+    charset: UTF-8
+    # 数据格式
+    format: json
+    # API版本
+    version: 1.0
+    # 超时时间（毫秒）
+    timeout: 30000
+
+# 日志配置
+logging:
+  level:
+    com.alipay: DEBUG
+    com.example.socialmeet.service.IdCardVerifyService: DEBUG

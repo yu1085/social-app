@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/wallet")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class WalletController {
     
     @Autowired

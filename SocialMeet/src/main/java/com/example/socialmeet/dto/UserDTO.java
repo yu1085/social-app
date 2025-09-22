@@ -2,9 +2,11 @@ package com.example.socialmeet.dto;
 
 import com.example.socialmeet.entity.User;
 import lombok.Data;
-
 import java.time.LocalDateTime;
 
+/**
+ * 用户数据传输对象
+ */
 @Data
 public class UserDTO {
     
@@ -18,208 +20,104 @@ public class UserDTO {
     private LocalDateTime birthDate;
     private String bio;
     private String location;
+    private Integer age;
+    private Boolean isOnline;
+    private String status;
+    private LocalDateTime lastSeen;
+    private Integer callPrice;
+    private Integer messagePrice;
+    private Boolean videoCallEnabled;
+    private Boolean voiceCallEnabled;
+    private Boolean messageChargeEnabled;
+    private String city;
+    private String hometown;
+    private Integer beautyScore;
+    private Double reviewScore;
+    private Integer followerCount;
+    private Integer likeCount;
     private Double latitude;
     private Double longitude;
-    private Integer age;
     private Integer height;
     private Integer weight;
     private String education;
     private String income;
-    private Boolean isOnline;
-    private LocalDateTime lastSeen;
     private Boolean isVerified;
+    private Boolean isActive;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    
+    // 新增的社交应用字段
+    private String realName;
+    private String zodiacSign;
+    private String occupation;
+    private String relationshipStatus;
+    private String residenceStatus;
+    private Boolean houseOwnership;
+    private Boolean carOwnership;
+    private String hobbies;
+    private String languages;
+    private String bloodType;
+    private Boolean smoking;
+    private Boolean drinking;
+    private String tags;
+    private LocalDateTime lastLoginAt;
+    
+    // 构造函数
+    public UserDTO() {}
     
     public UserDTO(User user) {
-        this.id = user.getId();
-        this.username = user.getUsername();
-        this.nickname = user.getNickname();
-        this.phone = user.getPhone();
-        this.email = user.getEmail();
-        this.avatarUrl = user.getAvatarUrl();
-        this.gender = user.getGender();
-        this.birthDate = user.getBirthDate();
-        this.bio = user.getBio();
-        this.location = user.getLocation();
-        this.latitude = user.getLatitude();
-        this.longitude = user.getLongitude();
-        this.age = user.getAge();
-        this.height = user.getHeight();
-        this.weight = user.getWeight();
-        this.education = user.getEducation();
-        this.income = user.getIncome();
-        this.isOnline = user.getIsOnline();
-        this.lastSeen = user.getLastSeen();
-        this.isVerified = user.getIsVerified();
-        this.createdAt = user.getCreatedAt();
-    }
-    
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
-    
-    public void setId(Long id) {
-        this.id = id;
-    }
-    
-    public String getUsername() {
-        return username;
-    }
-    
-    public void setUsername(String username) {
-        this.username = username;
-    }
-    
-    public String getNickname() {
-        return nickname;
-    }
-    
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
-    
-    public String getPhone() {
-        return phone;
-    }
-    
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-    
-    public String getEmail() {
-        return email;
-    }
-    
-    public void setEmail(String email) {
-        this.email = email;
-    }
-    
-    public String getAvatarUrl() {
-        return avatarUrl;
-    }
-    
-    public void setAvatarUrl(String avatarUrl) {
-        this.avatarUrl = avatarUrl;
-    }
-    
-    public String getGender() {
-        return gender;
-    }
-    
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
-    
-    public LocalDateTime getBirthDate() {
-        return birthDate;
-    }
-    
-    public void setBirthDate(LocalDateTime birthDate) {
-        this.birthDate = birthDate;
-    }
-    
-    public String getBio() {
-        return bio;
-    }
-    
-    public void setBio(String bio) {
-        this.bio = bio;
-    }
-    
-    public String getLocation() {
-        return location;
-    }
-    
-    public void setLocation(String location) {
-        this.location = location;
-    }
-    
-    public Double getLatitude() {
-        return latitude;
-    }
-    
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
-    
-    public Double getLongitude() {
-        return longitude;
-    }
-    
-    public void setLongitude(Double longitude) {
-        this.longitude = longitude;
-    }
-    
-    public Integer getAge() {
-        return age;
-    }
-    
-    public void setAge(Integer age) {
-        this.age = age;
-    }
-    
-    public Integer getHeight() {
-        return height;
-    }
-    
-    public void setHeight(Integer height) {
-        this.height = height;
-    }
-    
-    public Integer getWeight() {
-        return weight;
-    }
-    
-    public void setWeight(Integer weight) {
-        this.weight = weight;
-    }
-    
-    public String getEducation() {
-        return education;
-    }
-    
-    public void setEducation(String education) {
-        this.education = education;
-    }
-    
-    public String getIncome() {
-        return income;
-    }
-    
-    public void setIncome(String income) {
-        this.income = income;
-    }
-    
-    public Boolean getIsOnline() {
-        return isOnline;
-    }
-    
-    public void setIsOnline(Boolean isOnline) {
-        this.isOnline = isOnline;
-    }
-    
-    public LocalDateTime getLastSeen() {
-        return lastSeen;
-    }
-    
-    public void setLastSeen(LocalDateTime lastSeen) {
-        this.lastSeen = lastSeen;
-    }
-    
-    public Boolean getIsVerified() {
-        return isVerified;
-    }
-    
-    public void setIsVerified(Boolean isVerified) {
-        this.isVerified = isVerified;
-    }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+        if (user != null) {
+            this.id = user.getId();
+            this.username = user.getUsername();
+            this.nickname = user.getNickname();
+            this.phone = user.getPhone();
+            this.email = user.getEmail();
+            this.avatarUrl = user.getAvatarUrl();
+            this.gender = user.getGender();
+            this.birthDate = user.getBirthDate();
+            this.bio = user.getBio();
+            this.location = user.getLocation();
+            this.age = user.getAge();
+            this.isOnline = user.getIsOnline();
+            this.status = user.getStatus();
+            this.lastSeen = user.getLastSeen();
+            this.callPrice = user.getCallPrice();
+            this.messagePrice = user.getMessagePrice();
+            this.videoCallEnabled = user.getVideoCallEnabled();
+            this.voiceCallEnabled = user.getVoiceCallEnabled();
+            this.messageChargeEnabled = user.getMessageChargeEnabled();
+            this.city = user.getCity();
+            this.hometown = user.getHometown();
+            this.beautyScore = user.getBeautyScore();
+            this.reviewScore = user.getReviewScore();
+            this.followerCount = user.getFollowerCount();
+            this.likeCount = user.getLikeCount();
+            this.latitude = user.getLatitude();
+            this.longitude = user.getLongitude();
+            this.height = user.getHeight();
+            this.weight = user.getWeight();
+            this.education = user.getEducation();
+            this.income = user.getIncome();
+            this.isVerified = user.getIsVerified();
+            this.isActive = user.getIsActive();
+            this.createdAt = user.getCreatedAt();
+            this.updatedAt = user.getUpdatedAt();
+            
+            // 新增字段
+            this.realName = user.getRealName();
+            this.zodiacSign = user.getZodiacSign();
+            this.occupation = user.getOccupation();
+            this.relationshipStatus = user.getRelationshipStatus();
+            this.residenceStatus = user.getResidenceStatus();
+            this.houseOwnership = user.getHouseOwnership();
+            this.carOwnership = user.getCarOwnership();
+            this.hobbies = user.getHobbies();
+            this.languages = user.getLanguages();
+            this.bloodType = user.getBloodType();
+            this.smoking = user.getSmoking();
+            this.drinking = user.getDrinking();
+            this.tags = user.getTags();
+            this.lastLoginAt = user.getLastLoginAt();
+        }
     }
 }

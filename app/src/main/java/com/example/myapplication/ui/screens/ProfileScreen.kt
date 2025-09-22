@@ -56,6 +56,7 @@ fun ProfileScreen(
     onWealthLevelClick: () -> Unit = {},
     onPropMallClick: () -> Unit = {},
     onMenuClick: (String) -> Unit = {},
+    onUserInfoClick: () -> Unit = {},
     profileViewModel: ProfileViewModel? = null
 ) {
     val scrollState = rememberScrollState()
@@ -106,6 +107,7 @@ fun ProfileScreen(
                 onWealthLevelClick = onWealthLevelClick,
                 onPropMallClick = onPropMallClick,
                 onMenuClick = onMenuClick,
+                onUserInfoClick = onUserInfoClick,
                 viewModel = viewModel
             )
         }
@@ -190,6 +192,7 @@ private fun MainContentArea(
     onWealthLevelClick: () -> Unit,
     onPropMallClick: () -> Unit,
     onMenuClick: (String) -> Unit,
+    onUserInfoClick: () -> Unit = {},
     viewModel: ProfileViewModel
 ) {
     Column(
@@ -203,6 +206,7 @@ private fun MainContentArea(
             // 用户信息区域 - 置顶显示
             UserInfoSection(
                 onSettingClick = onSettingClick,
+                onUserInfoClick = onUserInfoClick,
                 viewModel = viewModel
             )
             
@@ -252,6 +256,7 @@ private fun MainContentArea(
 @Composable
 private fun UserInfoSection(
     onSettingClick: () -> Unit,
+    onUserInfoClick: () -> Unit = {},
     viewModel: ProfileViewModel
 ) {
     // 直接使用viewModel的属性
@@ -263,7 +268,9 @@ private fun UserInfoSection(
         android.util.Log.d("ProfileScreen", "UserInfoSection - userName: $userName, userId: $userId")
     }
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onUserInfoClick() }
     ) {
         // 第一行：设置按钮和刷新按钮
         Box(

@@ -1,0 +1,6 @@
+include ":demo" 
+ include ':libs:umeng-asm'
+ include ':libs:umeng-common'
+include ':libs:umeng-asm'
+
+include ':libs:umeng-common'

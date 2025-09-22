@@ -72,4 +72,24 @@ public class ApiResponse<T> {
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
     }
+    
+    /**
+     * 检查响应是否成功
+     */
+    public boolean isSuccess() {
+        return Boolean.TRUE.equals(this.success);
+    }
+    
+    /**
+     * 设置路径信息
+     */
+    private String path;
+    
+    public String getPath() {
+        return path;
+    }
+    
+    public void setPath(String path) {
+        this.path = path;
+    }
 }

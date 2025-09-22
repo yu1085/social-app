@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/guard")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class GuardController {
     
     @Autowired

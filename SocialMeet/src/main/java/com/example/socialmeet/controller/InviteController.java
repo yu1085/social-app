@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users/invite")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class InviteController {
 
     @Autowired

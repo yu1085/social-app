@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/coupons")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class CouponController {
     
     @Autowired

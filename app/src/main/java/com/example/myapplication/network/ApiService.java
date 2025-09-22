@@ -8,6 +8,8 @@ import com.example.myapplication.dto.PostDTO;
 import com.example.myapplication.dto.MessageDTO;
 import com.example.myapplication.dto.WalletDTO;
 import com.example.myapplication.dto.TransactionDTO;
+import com.example.myapplication.dto.UserPhotoDTO;
+import com.example.myapplication.dto.UploadPhotoResponse;
 
 import java.util.List;
 import retrofit2.Call;
@@ -15,10 +17,13 @@ import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
+import retrofit2.http.Part;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
+import okhttp3.MultipartBody;
 
 public interface ApiService {
     
@@ -106,41 +111,6 @@ public interface ApiService {
     
     @GET("wallet/transactions")
     Call<ApiResponse<List<TransactionDTO>>> getWalletTransactions(@Header("Authorization") String authHeader);
-    
-    // 用户相关
-    @GET("users/home-cards")
-    Call<ApiResponse<List<com.example.myapplication.model.UserCard>>> getHomeUserCards(@Query("page") int page, @Query("size") int size);
-    
-    @GET("users/{id}/detail")
-    Call<ApiResponse<com.example.myapplication.model.UserCard>> getUserDetail(@Path("id") long userId);
-    
-    @GET("users/search")
-    Call<ApiResponse<List<com.example.myapplication.model.UserCard>>> searchUsers(
-        @Query("keyword") String keyword,
-        @Query("location") String location,
-        @Query("gender") String gender,
-        @Query("page") int page,
-        @Query("size") int size
-    );
-    
-    // 通话相关
-    @POST("call/initiate")
-    Call<ApiResponse<Object>> initiateCall(@Header("Authorization") String authHeader, @Body Object callRequest);
-    
-    @POST("call/accept")
-    Call<ApiResponse<Object>> acceptCall(@Header("Authorization") String authHeader, @Body Object acceptRequest);
-    
-    @POST("call/reject")
-    Call<ApiResponse<Object>> rejectCall(@Header("Authorization") String authHeader, @Body Object rejectRequest);
-    
-    @POST("call/end")
-    Call<ApiResponse<Object>> endCall(@Header("Authorization") String authHeader, @Body Object endRequest);
-    
-    @GET("call/status/{callSessionId}")
-    Call<ApiResponse<Object>> getCallStatus(@Header("Authorization") String authHeader, @Path("callSessionId") String callSessionId);
-    
-    @GET("call/history")
-    Call<ApiResponse<Object>> getCallHistory(@Header("Authorization") String authHeader, @Query("page") int page, @Query("size") int size);
     
     // 充值请求类
     class RechargeRequest {
@@ -241,4 +211,55 @@ public interface ApiService {
     
     @GET("shop/search")
     Call<ApiResponse<List<Object>>> searchShopItems(@Query("keyword") String keyword);
+    
+    // 相册相关接口
+    @GET("users/{id}/photos")
+    Call<ApiResponse<List<UserPhotoDTO>>> getUserPhotos(@Path("id") Long userId, @Header("Authorization") String authHeader);
+    
+    @Multipart
+    @POST("users/{id}/photos")
+    Call<ApiResponse<UploadPhotoResponse>> uploadPhoto(
+            @Path("id") Long userId,
+            @Part MultipartBody.Part photo,
+            @Query("isAvatar") boolean isAvatar,
+            @Header("Authorization") String authHeader
+    );
+    
+    @DELETE("users/{id}/photos/{photoId}")
+    Call<ApiResponse<String>> deletePhoto(
+            @Path("id") Long userId,
+            @Path("photoId") Long photoId,
+            @Header("Authorization") String authHeader
+    );
+    
+    @PUT("users/{id}/photos/{photoId}/avatar")
+    Call<ApiResponse<String>> setAsAvatar(
+            @Path("id") Long userId,
+            @Path("photoId") Long photoId,
+            @Header("Authorization") String authHeader
+    );
+    
+    // 身份证二要素核验相关接口
+    
+    @POST("auth/id-card/verify")
+    Call<ApiResponse<Object>> verifyIdCard(
+            @Header("Authorization") String authHeader,
+            @Body java.util.Map<String, String> request
+    );
+    
+    @POST("auth/id-card/submit")
+    Call<ApiResponse<Object>> submitIdCardVerification(
+            @Header("Authorization") String authHeader,
+            @Body java.util.Map<String, String> request
+    );
+    
+    @GET("auth/id-card/status")
+    Call<ApiResponse<Object>> getVerificationStatus(
+            @Header("Authorization") String authHeader
+    );
+    
+    @GET("auth/id-card/result")
+    Call<ApiResponse<Object>> getVerificationResult(
+            @Header("Authorization") String authHeader
+    );
 }

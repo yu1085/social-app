@@ -1,0 +1,55 @@
+# 支付宝API真实配置
+app:
+  alipay:
+    # 应用ID（从支付宝开放平台获取）
+    app-id: 2021005195696348
+    # 应用私钥（PKCS8格式）
+    private-key: |
+      MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDqB+lFYhZb4HYq
+      ZbFuJnssWHtIWpq7eiMHtgEjMfUx7GsCVjewS+ERFvZArsBIapBS3xld5YyHgGB6
+      hpNGyOHYHypDL5Eco+hpa6GgkX6HX3QwHj30sVjljNQ956BzuwfWbVxQe7kgDXwe
+      dvVRM7eA3o7yiEtYqXWZiPyAQgAdwBHvus/ff1+E/LnSDgfUKm0186WxvNdTZxzb
+      tXyerMXSQ85bPc7G6ECldqWwa6d24g+Ao+wRwi0oSTcti4X8xjWAbkcq9UW/HAJC
+      RDYQZlFLQcjOStyqMQ/qSOtu+ZIUHA1trVi1l9ujHA2Hl0zl99yjG2WDru0k2MVB
+      vkD7ekC9AgMBAAECggEABYflVUHxrv8u27v72v4RfXqj2JG87r7+spvJtW1kqDw4
+      SohYwukFgH657Xe+d0JUIdlAQ2NS6brjd3x/C4u2Jqzp4JzwVtca0tmmgAx1izkl
+      c6OrVCvteBNWysBoHtll4IVEyr7PIQ5LMiRz52o2T9cyqqcE8itNv7ComFa2+Pz5
+      qCm2PKFvT6t7YAuW1OkgJE5eu5Px6ziWa+JKhgCxKACEPMujEgqrfA7BnaxP1TkD
+      s3f5+6cEn2nzQO0NjEQifR2n5Vu6/Pk6PjcQn6hSL1VQGksK0l7Z//K5hhqJ33RF
+      UpRYBcOlv6oFDbtj6lVyBF93HZn1bbqYqoNbO412MQKBgQDxcn5KoZGZoU6mfHd7
+      itADRyyCVean1amPMRe7wGvswOyapSTnmeL8mNu2tzN69nBmvf2kDmBhBp2dXFqo
+      TaX0hNPNow7/A5XXORebTLD/ZHUopODWEg/fWRRXAZFA909YwE0rJVNY1JbnHdFE
+      B2wRjsUz14ZjTiBU5lhCFKNMVQKBgQD4IvwMTm3S7f1Lhud5xknnc3H7ZU+ryT9V
+      joKURm4qPvxrqf9ANTCmIuEDc/vJ2RcDOsFeXE44fNA2JI3tFedMX6j2fAh8/sJ9
+      OEjsL58WZpfT0tXpKQdtNH+Dka1o/1rjbDnCfuJwdq52iP6JukLmPm6vjdf79w6n
+      GoUjlSgKyQKBgQDwv0wEGHQ4rqngwazVp8Tf7+EGmKaj5Rzr5XSXxjcW3AtP66kP
+      sdauLbCu0J9pVT8ggwLcyWT6egFA/ex7cukuFh+nJJZ4WtfWwVuzg1XdYgqcG0MA
+      0QO4nXb1hl+SWsZoZV7Mzav8oAVTr9yQq6HrI+OoXJfofucoIIISacel/QKBgQCS
+      FU6cFCRV9OSVbXOjXpit2Wp2XZu8//r4bLD1iE1dM725yNhMPcRJWulr9gF7QQJq
+      VVH4MpGeceTGq1ifBrEoZnz7t+PrarSnsdZErniTYIzsGQj0fsIviaO0mrQjx4oD
+      r/iFR9wZ59UoVdi8ztqJ4KGbWv+YCEgpGtTdMPfk+QKBgEtBsLIn6nB9Z3kxszEp
+      dNOUCBZVduIrSrprpwxv8KZeScZGj7YK6hBNVQ4WqGfsQu/LDzmxdNmJmLzikIjc
+      5e8qbKbPro22s7/rVudTqcuIhzZimElea+jxuIgIpFmT4k1KwL7JxvEtcNG/cfvJ
+      pR0dSZbITFu4rfL6Id5BpFy5
+    # 支付宝公钥（从开放平台获取）
+    public-key: |
+      MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgxU8Ld4qgs08Uvqn/EpO6KQ4n1TwRnxDjpEjBjuwp3RmJxvytX0tkaE+/B7Wt2m5tzlNJjEfxKLAvFrsIX8IC8/gTVW7c0vMCHlUW0YEAPlhnuMMXVQIDKKJqUQ/wUAeWy4Isss2gSJGMgsqKz+Mi8ITK2d803ReKESN0pDnJCWS0m7dl2oOi3yNQNW+5Km5la8wv7v0qWvbMChgtj5Y2PcGYQC9x9XBzrTm6eKIJP667MzxbDc7dtxBV+NXcDY8e+xSdNdc9z7i4WCoet00N9zbn7E8cfU4Qb0joHh8kXIMmUnBWQ2oyxc/Wzcr/WOMTs9mzBOn93HLLAilC3KxyQIDAQAB
+    # 支付宝网关地址
+    gateway-url: https://openapi.alipay.com/gateway.do
+    # 签名算法
+    sign-type: RSA2
+    # 字符编码
+    charset: UTF-8
+    # 数据格式
+    format: json
+    # API版本
+    version: 1.0
+    # 超时时间（毫秒）
+    timeout: 30000
+
+# 日志配置
+logging:
+  level:
+    com.alipay: DEBUG
+    com.example.socialmeet.service.IdCardVerifyService: DEBUG
+    com.example.socialmeet.service.AlipayApiService: DEBUG

@@ -68,4 +68,14 @@ public interface CallSessionRepository extends JpaRepository<CallSession, String
      */
     @Query("SELECT COALESCE(SUM(cs.totalCost), 0) FROM CallSession cs WHERE cs.callerId = :userId AND cs.status = 'ENDED'")
     java.math.BigDecimal sumCallCostByUserId(@Param("userId") Long userId);
+    
+    /**
+     * 根据接收方ID和状态查找通话会话
+     */
+    List<CallSession> findByReceiverIdAndStatusOrderByCreatedAtDesc(Long receiverId, String status);
+    
+    /**
+     * 根据接收方ID和多个状态查找通话会话
+     */
+    List<CallSession> findByReceiverIdAndStatusInOrderByCreatedAtDesc(Long receiverId, List<String> statuses);
 }

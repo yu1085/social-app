@@ -1,29 +1,45 @@
 package com.example.socialmeet.service;
 
+import com.example.socialmeet.entity.PhoneVerification;
+import com.example.socialmeet.repository.PhoneVerificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class VerificationCodeService {
     
     @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    private PhoneVerificationRepository phoneVerificationRepository;
     
-    private static final String CODE_PREFIX = "verification_code:";
+    @Autowired
+    private AliyunSmsService aliyunSmsService;
+    
     private static final int CODE_LENGTH = 6;
     private static final int EXPIRE_MINUTES = 5;
     
+    @Transactional
     public String generateAndStoreCode(String phone) {
         // 生成6位数字验证码
         String code = generateCode();
         
-        // 存储到Redis，5分钟过期
-        String key = CODE_PREFIX + phone;
-        redisTemplate.opsForValue().set(key, code, EXPIRE_MINUTES, TimeUnit.MINUTES);
+        // 先删除该手机号的旧验证码
+        phoneVerificationRepository.deleteByPhoneNumber(phone);
+        
+        // 创建新的验证码记录
+        PhoneVerification verification = new PhoneVerification();
+        verification.setPhoneNumber(phone);
+        verification.setVerificationCode(code);
+        verification.setExpiresAt(LocalDateTime.now().plusMinutes(EXPIRE_MINUTES));
+        verification.setStatus("PENDING");
+        verification.setCreatedAt(LocalDateTime.now());
+        
+        // 保存到数据库
+        phoneVerificationRepository.save(verification);
         
         // 打印到控制台（测试环境）
         System.out.println("=== 验证码发送 ===");
@@ -34,25 +50,36 @@ public class VerificationCodeService {
         return code;
     }
     
+    @Transactional
     public boolean verifyCode(String phone, String code) {
-        String key = CODE_PREFIX + phone;
-        String storedCode = redisTemplate.opsForValue().get(key);
+        // 查找有效的验证码（包括PENDING和VERIFIED状态，允许重复使用）
+        List<PhoneVerification> verifications = phoneVerificationRepository
+                .findByPhoneNumberAndVerificationCode(phone, code);
         
-        if (storedCode == null) {
-            System.out.println("验证码不存在或已过期: " + phone);
+        if (verifications.isEmpty()) {
+            System.out.println("验证码不存在: " + phone);
             return false;
         }
         
-        boolean isValid = storedCode.equals(code);
-        if (isValid) {
-            // 验证成功后删除验证码
-            redisTemplate.delete(key);
-            System.out.println("验证码验证成功: " + phone);
-        } else {
-            System.out.println("验证码错误: " + phone + ", 输入: " + code + ", 正确: " + storedCode);
+        // 检查是否过期
+        PhoneVerification verification = verifications.get(0);
+        if (verification.getExpiresAt().isBefore(LocalDateTime.now())) {
+            System.out.println("验证码已过期: " + phone);
+            // 更新状态为过期
+            verification.setStatus("EXPIRED");
+            phoneVerificationRepository.save(verification);
+            return false;
         }
         
-        return isValid;
+        // 验证成功，如果状态不是VERIFIED则更新状态
+        if (!"VERIFIED".equals(verification.getStatus())) {
+            verification.setStatus("VERIFIED");
+            verification.setVerifiedAt(LocalDateTime.now());
+            phoneVerificationRepository.save(verification);
+        }
+        
+        System.out.println("验证码验证成功: " + phone);
+        return true;
     }
     
     private String generateCode() {

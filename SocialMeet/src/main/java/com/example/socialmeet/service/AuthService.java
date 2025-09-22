@@ -3,7 +3,9 @@ package com.example.socialmeet.service;
 import com.example.socialmeet.dto.LoginResponse;
 import com.example.socialmeet.dto.UserDTO;
 import com.example.socialmeet.entity.User;
+import com.example.socialmeet.entity.CallSettings;
 import com.example.socialmeet.repository.UserRepository;
+import com.example.socialmeet.repository.CallSettingsRepository;
 import com.example.socialmeet.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,12 +25,15 @@ public class AuthService {
     @Autowired
     private JwtUtil jwtUtil;
     
+    @Autowired
+    private CallSettingsRepository callSettingsRepository;
+    
     public String sendVerificationCode(String phone) {
         // 生成并存储验证码
         return verificationCodeService.generateAndStoreCode(phone);
     }
     
-    public LoginResponse loginWithVerificationCode(String phone, String code) {
+    public LoginResponse loginWithVerificationCode(String phone, String code, String gender) {
         // 验证验证码
         if (!verificationCodeService.verifyCode(phone, code)) {
             throw new RuntimeException("验证码错误或已过期");
@@ -36,10 +41,11 @@ public class AuthService {
         
         // 查找或创建用户
         User user = userRepository.findByPhone(phone)
-                .orElseGet(() -> createUserFromPhone(phone));
+                .orElseGet(() -> createUserFromPhone(phone, gender));
         
         // 更新用户在线状态
         user.setIsOnline(true);
+        user.setStatus("ONLINE"); // 设置为空闲状态
         user.setLastSeen(LocalDateTime.now());
         userRepository.save(user);
         
@@ -49,16 +55,17 @@ public class AuthService {
         return new LoginResponse(token, new UserDTO(user));
     }
     
-    private User createUserFromPhone(String phone) {
+    private User createUserFromPhone(String phone, String gender) {
         User user = new User();
         Long userId = generateUserId(); // 生成用户ID
         user.setId(userId);
         user.setPhone(phone);
         user.setUsername("user_" + phone);
         user.setNickname(generateRandomNickname());
-        user.setGender("MALE"); // 默认男性
+        user.setGender(gender != null ? gender : "MALE"); // 使用传递的性别，默认为男性
         user.setIsActive(true);
         user.setIsOnline(true);
+        user.setStatus("ONLINE"); // 设置为空闲状态
         user.setLastSeen(LocalDateTime.now());
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
@@ -66,14 +73,21 @@ public class AuthService {
         // 自动生成基本信息
         generateBasicInfo(user);
         
+        // 保存用户
+        User savedUser = userRepository.save(user);
+        
+        // 为新用户创建默认通话设置（100/分钟）
+        createDefaultCallSettings(savedUser.getId());
+        
         System.out.println("=== 创建新用户 ===");
         System.out.println("手机号: " + phone);
         System.out.println("用户ID: " + userId);
         System.out.println("昵称: " + user.getNickname());
         System.out.println("位置: " + user.getLocation());
         System.out.println("年龄: " + user.getAge());
+        System.out.println("已创建默认通话设置: 100/分钟");
         
-        return userRepository.save(user);
+        return savedUser;
     }
     
     /**
@@ -81,10 +95,29 @@ public class AuthService {
      * 格式：8位数字，范围：10000000-99999999
      */
     private Long generateUserId() {
-        // 特殊处理：为测试目的，强制生成用户ID 86945008
-        Long testUserId = 86945008L;
-        System.out.println("=== 强制生成测试用户ID: 86945008 ===");
-        return testUserId;
+        Random random = new Random();
+        Long userId;
+        int attempts = 0;
+        int maxAttempts = 100; // 防止无限循环
+        
+        do {
+            // 生成8位数字ID，范围：10000000-99999999
+            userId = 10000000L + random.nextLong() % 90000000L;
+            if (userId < 0) {
+                userId = Math.abs(userId);
+            }
+            attempts++;
+        } while (userRepository.existsById(userId) && attempts < maxAttempts);
+        
+        if (attempts >= maxAttempts) {
+            // 如果尝试次数过多，使用时间戳作为ID
+            userId = System.currentTimeMillis() % 100000000L;
+            System.out.println("=== 使用时间戳生成用户ID: " + userId + " ===");
+        } else {
+            System.out.println("=== 生成新用户ID: " + userId + " ===");
+        }
+        
+        return userId;
     }
     
     /**
@@ -230,5 +263,19 @@ public class AuthService {
         String noun = nouns[random.nextInt(nouns.length)];
         
         return adjective + noun + numbers;
+    }
+    
+    /**
+     * 为新用户创建默认通话设置
+     */
+    private void createDefaultCallSettings(Long userId) {
+        try {
+            CallSettings callSettings = new CallSettings(userId);
+            // 默认设置已经在实体类中定义：100/分钟，开启视频和语音接听
+            callSettingsRepository.save(callSettings);
+            System.out.println("=== 为用户 " + userId + " 创建默认通话设置成功 ===");
+        } catch (Exception e) {
+            System.err.println("=== 创建默认通话设置失败: " + e.getMessage() + " ===");
+        }
     }
 }

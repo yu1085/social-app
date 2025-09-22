@@ -1,0 +1,58 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    signingConfigs {
+        debug {
+            storeFile file('./sign/debug/debug.keystore')
+            storePassword 'android'
+            keyAlias 'fusionauth'
+            keyPassword 'android'
+        }
+        release {
+            storeFile file('./sign/debug/debug.keystore')
+            storePassword 'android'
+            keyAlias 'fusionauth'
+            keyPassword 'android'
+        }
+    }
+    compileSdk 33
+
+    defaultConfig {
+        applicationId "com.alicom.fusion.auth.demo"
+        minSdkVersion 21
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0"
+        buildConfigField "String", "NETURL", '"https://dypns.aliyuncs.com"'
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+
+    implementation fileTree(dir: "libs", include: ["*.aar"])
+    implementation 'androidx.appcompat:appcompat:1.3.1'
+    implementation 'com.google.android.material:material:1.2.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.4.0"
+    implementation project(path: ':libs:umeng-asm')
+    implementation project(path: ':libs:umeng-common')
+}

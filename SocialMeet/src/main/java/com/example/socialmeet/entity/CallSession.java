@@ -42,6 +42,12 @@ public class CallSession {
     @Column(name = "receiver_balance", precision = 10, scale = 2)
     private BigDecimal receiverBalance; // 接收方余额
     
+    @Column(name = "max_duration")
+    private Integer maxDuration; // 最大可通话时间（秒）
+    
+    @Column(name = "charged_amount", precision = 10, scale = 2)
+    private BigDecimal chargedAmount; // 实际扣费金额（元）
+    
     @Column(name = "is_online")
     private Boolean isOnline; // 接收方是否在线
     
@@ -152,6 +158,26 @@ public class CallSession {
     
     public void setReceiverBalance(Double receiverBalance) {
         this.receiverBalance = BigDecimal.valueOf(receiverBalance);
+    }
+    
+    public Integer getMaxDuration() {
+        return maxDuration;
+    }
+    
+    public void setMaxDuration(Integer maxDuration) {
+        this.maxDuration = maxDuration;
+    }
+    
+    public BigDecimal getChargedAmount() {
+        return chargedAmount;
+    }
+    
+    public void setChargedAmount(BigDecimal chargedAmount) {
+        this.chargedAmount = chargedAmount;
+    }
+    
+    public void setChargedAmount(Double chargedAmount) {
+        this.chargedAmount = BigDecimal.valueOf(chargedAmount);
     }
     
     public Boolean getIsOnline() {

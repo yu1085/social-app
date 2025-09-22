@@ -1,11 +1,17 @@
 package com.example.myapplication.network
 
+import com.example.myapplication.auth.AuthManager
 import com.example.myapplication.dto.ApiResponse
 import com.example.myapplication.dto.WalletDTO
-import com.example.myapplication.model.UserCard
+import com.example.myapplication.dto.UserPhotoDTO
+import com.example.myapplication.dto.UploadPhotoResponse
 import retrofit2.Response
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.MultipartBody
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
 
 object NetworkService {
     
@@ -32,13 +38,17 @@ object NetworkService {
         }
     }
     
+    // 相册相关方法
+    
     /**
-     * 获取首页用户卡片列表
+     * 获取用户相册照片列表
      */
-    suspend fun getHomeUserCards(page: Int = 0, size: Int = 10): Response<ApiResponse<List<UserCard>>> {
+    suspend fun getUserPhotos(userId: Long, context: android.content.Context): Response<ApiResponse<List<UserPhotoDTO>>> {
         return withContext(Dispatchers.IO) {
             try {
-                val call = NetworkConfig.getApiService().getHomeUserCards(page, size)
+                val authManager = AuthManager.getInstance(context)
+                val authHeader = "Bearer ${authManager.getToken()}"
+                val call = NetworkConfig.getApiService().getUserPhotos(userId, authHeader)
                 call.execute()
             } catch (e: Exception) {
                 throw e
@@ -47,12 +57,16 @@ object NetworkService {
     }
     
     /**
-     * 获取用户详情
+     * 上传照片到相册
      */
-    suspend fun getUserDetail(userId: Long): Response<ApiResponse<UserCard>> {
+    suspend fun uploadPhoto(userId: Long, photoFile: File, context: android.content.Context, isAvatar: Boolean = false): Response<ApiResponse<UploadPhotoResponse>> {
         return withContext(Dispatchers.IO) {
             try {
-                val call = NetworkConfig.getApiService().getUserDetail(userId)
+                val authManager = AuthManager.getInstance(context)
+                val authHeader = "Bearer ${authManager.getToken()}"
+                val requestFile = photoFile.asRequestBody("image/*".toMediaType())
+                val photoPart = MultipartBody.Part.createFormData("photo", photoFile.name, requestFile)
+                val call = NetworkConfig.getApiService().uploadPhoto(userId, photoPart, isAvatar, authHeader)
                 call.execute()
             } catch (e: Exception) {
                 throw e
@@ -61,12 +75,14 @@ object NetworkService {
     }
     
     /**
-     * 搜索用户
+     * 删除照片
      */
-    suspend fun searchUsers(keyword: String? = null, location: String? = null, gender: String? = null, page: Int = 0, size: Int = 20): Response<ApiResponse<List<UserCard>>> {
+    suspend fun deletePhoto(userId: Long, photoId: Long, context: android.content.Context): Response<ApiResponse<String>> {
         return withContext(Dispatchers.IO) {
             try {
-                val call = NetworkConfig.getApiService().searchUsers(keyword, location, gender, page, size)
+                val authManager = AuthManager.getInstance(context)
+                val authHeader = "Bearer ${authManager.getToken()}"
+                val call = NetworkConfig.getApiService().deletePhoto(userId, photoId, authHeader)
                 call.execute()
             } catch (e: Exception) {
                 throw e
@@ -75,13 +91,14 @@ object NetworkService {
     }
     
     /**
-     * 发起通话
+     * 设置照片为头像
      */
-    suspend fun initiateCall(token: String, receiverId: Long): Response<ApiResponse<Any>> {
+    suspend fun setAsAvatar(userId: Long, photoId: Long, context: android.content.Context): Response<ApiResponse<String>> {
         return withContext(Dispatchers.IO) {
             try {
-                val request = mapOf("receiverId" to receiverId)
-                val call = NetworkConfig.getApiService().initiateCall("Bearer $token", request)
+                val authManager = AuthManager.getInstance(context)
+                val authHeader = "Bearer ${authManager.getToken()}"
+                val call = NetworkConfig.getApiService().setAsAvatar(userId, photoId, authHeader)
                 call.execute()
             } catch (e: Exception) {
                 throw e
@@ -89,75 +106,126 @@ object NetworkService {
         }
     }
     
+    // 身份证二要素核验相关方法
+    
     /**
-     * 接受通话
+     * 提交身份证二要素核验
      */
-    suspend fun acceptCall(token: String, callSessionId: String): Response<ApiResponse<Any>> {
+    suspend fun submitIdCardVerification(certName: String, certNo: String, context: android.content.Context): Map<String, Any> {
         return withContext(Dispatchers.IO) {
             try {
-                val request = mapOf("callSessionId" to callSessionId)
-                val call = NetworkConfig.getApiService().acceptCall("Bearer $token", request)
-                call.execute()
+                val authManager = AuthManager.getInstance(context)
+                val authHeader = "Bearer ${authManager.getToken()}"
+                val request = mapOf(
+                    "certName" to certName,
+                    "certNo" to certNo
+                )
+                val call = NetworkConfig.getApiService().submitIdCardVerification(authHeader, request)
+                val response = call.execute()
+                
+                if (response.isSuccessful) {
+                    val apiResponse = response.body()
+                    if (apiResponse?.isSuccess() == true) {
+                        mapOf(
+                            "success" to true,
+                            "message" to apiResponse.message,
+                            "verificationResult" to apiResponse.data
+                        )
+                    } else {
+                        mapOf(
+                            "success" to false,
+                            "message" to (apiResponse?.message ?: "认证失败")
+                        )
+                    }
+                } else {
+                    mapOf(
+                        "success" to false,
+                        "message" to "网络请求失败: ${response.code()}"
+                    )
+                }
             } catch (e: Exception) {
-                throw e
+                mapOf(
+                    "success" to false,
+                    "message" to "网络错误: ${e.message}"
+                )
             }
         }
     }
     
     /**
-     * 拒绝通话
+     * 获取实名认证状态
      */
-    suspend fun rejectCall(token: String, callSessionId: String): Response<ApiResponse<Any>> {
+    suspend fun getVerificationStatus(context: android.content.Context): Map<String, Any> {
         return withContext(Dispatchers.IO) {
             try {
-                val request = mapOf("callSessionId" to callSessionId)
-                val call = NetworkConfig.getApiService().rejectCall("Bearer $token", request)
-                call.execute()
+                val authManager = AuthManager.getInstance(context)
+                val authHeader = "Bearer ${authManager.getToken()}"
+                val call = NetworkConfig.getApiService().getVerificationStatus(authHeader)
+                val response = call.execute()
+                
+                if (response.isSuccessful) {
+                    val apiResponse = response.body()
+                    if (apiResponse?.isSuccess() == true) {
+                        mapOf(
+                            "success" to true,
+                            "data" to apiResponse.data
+                        )
+                    } else {
+                        mapOf(
+                            "success" to false,
+                            "message" to (apiResponse?.message ?: "查询失败")
+                        )
+                    }
+                } else {
+                    mapOf(
+                        "success" to false,
+                        "message" to "网络请求失败: ${response.code()}"
+                    )
+                }
             } catch (e: Exception) {
-                throw e
+                mapOf(
+                    "success" to false,
+                    "message" to "网络错误: ${e.message}"
+                )
             }
         }
     }
     
     /**
-     * 结束通话
+     * 查询认证结果
      */
-    suspend fun endCall(token: String, callSessionId: String, reason: String = "NORMAL"): Response<ApiResponse<Any>> {
+    suspend fun getVerificationResult(context: android.content.Context): Map<String, Any> {
         return withContext(Dispatchers.IO) {
             try {
-                val request = mapOf("callSessionId" to callSessionId, "reason" to reason)
-                val call = NetworkConfig.getApiService().endCall("Bearer $token", request)
-                call.execute()
+                val authManager = AuthManager.getInstance(context)
+                val authHeader = "Bearer ${authManager.getToken()}"
+                val call = NetworkConfig.getApiService().getVerificationResult(authHeader)
+                val response = call.execute()
+                
+                if (response.isSuccessful) {
+                    val apiResponse = response.body()
+                    if (apiResponse?.isSuccess() == true) {
+                        mapOf(
+                            "success" to true,
+                            "data" to apiResponse.data
+                        )
+                    } else {
+                        mapOf(
+                            "success" to false,
+                            "message" to (apiResponse?.message ?: "查询失败")
+                        )
+                    }
+                } else {
+                    mapOf(
+                        "success" to false,
+                        "message" to "网络请求失败: ${response.code()}"
+                    )
+                }
             } catch (e: Exception) {
-                throw e
-            }
-        }
-    }
-    
-    /**
-     * 获取通话状态
-     */
-    suspend fun getCallStatus(token: String, callSessionId: String): Response<ApiResponse<Any>> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val call = NetworkConfig.getApiService().getCallStatus("Bearer $token", callSessionId)
-                call.execute()
-            } catch (e: Exception) {
-                throw e
-            }
-        }
-    }
-    
-    /**
-     * 获取通话历史
-     */
-    suspend fun getCallHistory(token: String, page: Int = 0, size: Int = 20): Response<ApiResponse<Any>> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val call = NetworkConfig.getApiService().getCallHistory("Bearer $token", page, size)
-                call.execute()
-            } catch (e: Exception) {
-                throw e
+                mapOf(
+                    "success" to false,
+                    "message" to "网络错误: ${e.message}"
+                )
             }
         }
     }

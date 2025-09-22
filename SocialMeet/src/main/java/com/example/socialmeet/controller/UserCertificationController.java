@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users/certification")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class UserCertificationController {
 
     @Autowired

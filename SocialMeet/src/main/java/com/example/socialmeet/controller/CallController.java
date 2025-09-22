@@ -11,7 +11,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/call")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class CallController {
     
     @Autowired
@@ -206,6 +206,120 @@ public class CallController {
             System.out.println("获取通话历史异常: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.badRequest().body(ApiResponse.error("获取通话历史失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 实时计费 - 每分钟扣费
+     */
+    @PostMapping("/billing/minute")
+    public ResponseEntity<ApiResponse<Object>> processMinuteBilling(
+            @RequestHeader("Authorization") String token,
+            @RequestBody Map<String, Object> request) {
+        try {
+            String jwt = token.replace("Bearer ", "");
+            Long userId = jwtUtil.getUserIdFromToken(jwt);
+            String callSessionId = request.get("callSessionId").toString();
+            
+            System.out.println("=== 实时计费请求 ===");
+            System.out.println("用户ID: " + userId);
+            System.out.println("通话会话ID: " + callSessionId);
+            
+            Object result = callService.processMinuteBilling(callSessionId, userId);
+            
+            if (result != null) {
+                return ResponseEntity.ok(ApiResponse.success(result));
+            } else {
+                return ResponseEntity.badRequest().body(ApiResponse.error("实时计费失败"));
+            }
+        } catch (Exception e) {
+            System.out.println("实时计费异常: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(ApiResponse.error("实时计费失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 检查余额是否足够继续通话
+     */
+    @PostMapping("/check-balance")
+    public ResponseEntity<ApiResponse<Object>> checkBalanceForCall(
+            @RequestHeader("Authorization") String token,
+            @RequestBody Map<String, Object> request) {
+        try {
+            String jwt = token.replace("Bearer ", "");
+            Long userId = jwtUtil.getUserIdFromToken(jwt);
+            String callSessionId = request.get("callSessionId").toString();
+            
+            System.out.println("=== 检查余额请求 ===");
+            System.out.println("用户ID: " + userId);
+            System.out.println("通话会话ID: " + callSessionId);
+            
+            Object result = callService.checkBalanceForCall(callSessionId, userId);
+            
+            if (result != null) {
+                return ResponseEntity.ok(ApiResponse.success(result));
+            } else {
+                return ResponseEntity.badRequest().body(ApiResponse.error("检查余额失败"));
+            }
+        } catch (Exception e) {
+            System.out.println("检查余额异常: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(ApiResponse.error("检查余额失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 获取通话费率信息
+     */
+    @GetMapping("/rate-info")
+    public ResponseEntity<ApiResponse<Object>> getCallRateInfo(
+            @RequestHeader("Authorization") String token) {
+        try {
+            String jwt = token.replace("Bearer ", "");
+            Long userId = jwtUtil.getUserIdFromToken(jwt);
+            
+            System.out.println("=== 获取通话费率信息 ===");
+            System.out.println("用户ID: " + userId);
+            
+            Object result = callService.getCallRateInfo(userId);
+            
+            if (result != null) {
+                return ResponseEntity.ok(ApiResponse.success(result));
+            } else {
+                return ResponseEntity.badRequest().body(ApiResponse.error("获取费率信息失败"));
+            }
+        } catch (Exception e) {
+            System.out.println("获取费率信息异常: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(ApiResponse.error("获取费率信息失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 检查来电
+     */
+    @GetMapping("/incoming")
+    public ResponseEntity<ApiResponse<Object>> checkIncomingCalls(
+            @RequestHeader("Authorization") String token) {
+        try {
+            String jwt = token.replace("Bearer ", "");
+            Long userId = jwtUtil.getUserIdFromToken(jwt);
+            
+            System.out.println("=== 检查来电 ===");
+            System.out.println("用户ID: " + userId);
+            
+            Object result = callService.checkIncomingCalls(userId);
+            
+            if (result != null) {
+                return ResponseEntity.ok(ApiResponse.success(result));
+            } else {
+                return ResponseEntity.ok(ApiResponse.success(null)); // 没有来电
+            }
+        } catch (Exception e) {
+            System.out.println("检查来电异常: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(ApiResponse.error("检查来电失败: " + e.getMessage()));
         }
     }
     

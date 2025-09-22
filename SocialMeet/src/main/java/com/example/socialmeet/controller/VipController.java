@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/vip")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class VipController {
     
     @Autowired

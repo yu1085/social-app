@@ -18,7 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/gifts")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class GiftController {
     
     @Autowired

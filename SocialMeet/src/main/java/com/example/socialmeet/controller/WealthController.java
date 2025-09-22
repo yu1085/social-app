@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/wealth")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class WealthController {
     
     @Autowired

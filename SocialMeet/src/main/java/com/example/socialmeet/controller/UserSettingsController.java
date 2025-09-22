@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users/settings")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class UserSettingsController {
 
     @Autowired
@@ -74,19 +74,6 @@ public class UserSettingsController {
         }
     }
 
-    // 获取来电设置
-    @GetMapping("/call")
-    public ResponseEntity<ApiResponse<UserSettingsDTO>> getCallSettings(@RequestHeader("Authorization") String authHeader) {
-        return getUserSettings(authHeader);
-    }
-
-    // 更新来电设置
-    @PutMapping("/call")
-    public ResponseEntity<ApiResponse<UserSettingsDTO>> updateCallSettings(
-            @RequestHeader("Authorization") String authHeader,
-            @RequestBody UserSettingsDTO settingsDTO) {
-        return updateUserSettings(authHeader, settingsDTO);
-    }
 
     private UserSettingsDTO convertToDTO(UserSettings settings) {
         UserSettingsDTO dto = new UserSettingsDTO();

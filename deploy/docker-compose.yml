@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # MySQL数据库
+  mysql:
+    image: mysql:8.0
+    container_name: socialmeet_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-SocialMeet2024!}
+      MYSQL_DATABASE: socialmeet
+      MYSQL_USER: socialmeet
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-SocialMeet2024!}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - socialmeet_network
+
+  # Redis缓存
+  redis:
+    image: redis:7-alpine
+    container_name: socialmeet_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - socialmeet_network
+
+  # Spring Boot后端服务
+  backend:
+    build:
+      context: ../SocialMeet
+      dockerfile: Dockerfile
+    container_name: socialmeet_backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/socialmeet?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: socialmeet
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-SocialMeet2024!}
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
+      JPUSH_APP_KEY: ${JPUSH_APP_KEY:-ff90a2867fcf541a3f3e8ed4}
+      JPUSH_MASTER_SECRET: ${JPUSH_MASTER_SECRET:-your-jpush-master-secret}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - redis
+    volumes:
+      - ./logs/backend:/app/logs
+      - ./uploads:/app/uploads
+    networks:
+      - socialmeet_network
+
+  # Nginx反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: socialmeet_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./ssl:/etc/nginx/ssl
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - backend
+    networks:
+      - socialmeet_network
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  socialmeet_network:
+    driver: bridge

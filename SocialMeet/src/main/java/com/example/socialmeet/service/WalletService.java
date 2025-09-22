@@ -34,14 +34,31 @@ public class WalletService {
     }
     
     public WalletDTO createWallet(Long userId) {
-        if (walletRepository.existsByUserId(userId)) {
-            return getWalletByUserId(userId);
+        // 先检查是否已存在
+        Optional<Wallet> existingWallet = walletRepository.findByUserId(userId);
+        if (existingWallet.isPresent()) {
+            Wallet wallet = existingWallet.get();
+            return new WalletDTO(wallet.getId(), wallet.getUserId(), wallet.getBalance(), 
+                               wallet.getFrozenAmount(), wallet.getCurrency());
         }
         
-        Wallet wallet = new Wallet(userId);
-        wallet = walletRepository.save(wallet);
-        return new WalletDTO(wallet.getId(), wallet.getUserId(), wallet.getBalance(), 
-                           wallet.getFrozenAmount(), wallet.getCurrency());
+        try {
+            // 尝试创建新钱包
+            Wallet wallet = new Wallet(userId);
+            wallet = walletRepository.save(wallet);
+            return new WalletDTO(wallet.getId(), wallet.getUserId(), wallet.getBalance(), 
+                               wallet.getFrozenAmount(), wallet.getCurrency());
+        } catch (Exception e) {
+            // 如果创建失败（可能是并发创建），再次尝试获取
+            System.err.println("创建钱包失败，尝试获取现有钱包: " + e.getMessage());
+            Optional<Wallet> walletOpt = walletRepository.findByUserId(userId);
+            if (walletOpt.isPresent()) {
+                Wallet wallet = walletOpt.get();
+                return new WalletDTO(wallet.getId(), wallet.getUserId(), wallet.getBalance(), 
+                                   wallet.getFrozenAmount(), wallet.getCurrency());
+            }
+            throw new RuntimeException("创建钱包失败: " + e.getMessage());
+        }
     }
     
     public boolean recharge(Long userId, BigDecimal amount, String description) {

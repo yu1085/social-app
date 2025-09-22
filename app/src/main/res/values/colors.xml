@@ -41,6 +41,10 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     
+    <!-- 兼容性颜色定义 -->
+    <color name="background_color">@color/background</color>
+    <color name="primary_color">@color/primary</color>
+    
     <!-- 灰色系列 -->
     <color name="gray_100">#F8F9FA</color>
     <color name="gray_300">#DEE2E6</color>
