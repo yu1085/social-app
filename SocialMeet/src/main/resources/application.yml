@@ -1,8 +1,8 @@
 # 主配置文件
 spring:
   profiles:
-    active: alipay-real  # 默认使用alipay-real配置
-    include: payment  # 包含支付配置
+    active: default  # 默认使用default配置
+    # include: payment  # 暂时禁用支付配置
   
   # 数据库配置
   datasource:

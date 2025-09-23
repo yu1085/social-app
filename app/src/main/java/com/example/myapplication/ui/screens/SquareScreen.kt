@@ -23,6 +23,8 @@ import com.example.myapplication.R
 import com.example.myapplication.ui.components.*
 import com.example.myapplication.viewmodel.SquareTab
 import com.example.myapplication.viewmodel.SquareViewModel
+import com.example.myapplication.viewmodel.EnhancedSquareViewModel
+import com.example.myapplication.dto.EnhancedPostDTO
 
 /**
  * 广场界面
@@ -32,7 +34,7 @@ fun SquareScreen(
     onUserClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val viewModel: SquareViewModel = viewModel()
+    val viewModel: EnhancedSquareViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsState()
     val selectedTab by viewModel.selectedTab.collectAsState()
     
@@ -51,14 +53,14 @@ fun SquareScreen(
         // 动态列表
         if (uiState.isLoading) {
             LoadingIndicator()
-        } else if (uiState.dynamics.isEmpty()) {
+        } else if (uiState.posts.isEmpty()) {
             EmptyState()
         } else {
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
-                items(uiState.dynamics) { dynamic ->
+                items(uiState.posts) { post ->
                     // 添加虚线分隔线
                     Box(
                         modifier = Modifier
@@ -71,11 +73,29 @@ fun SquareScreen(
                             )
                     )
                     
-                    DynamicCard(
-                        dynamic = dynamic,
-                        onLikeClick = { viewModel.likeDynamic(it) },
-                        onUserClick = onUserClick
+                    EnhancedDynamicCard(
+                        post = post,
+                        onLikeClick = { viewModel.toggleLikePost(it) },
+                        onUserClick = { onUserClick(it.toString()) },
+                        onCommentClick = { /* TODO: 实现评论功能 */ }
                     )
+                }
+                
+                // 加载更多
+                if (uiState.hasMoreData) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -2,8 +2,10 @@ package com.example.socialmeet.controller;
 
 import com.example.socialmeet.dto.ApiResponse;
 import com.example.socialmeet.dto.PostDTO;
+import com.example.socialmeet.dto.EnhancedPostDTO;
 import com.example.socialmeet.entity.Post;
 import com.example.socialmeet.repository.PostRepository;
+import com.example.socialmeet.service.EnhancedPostService;
 import com.example.socialmeet.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -25,6 +27,9 @@ public class PostController {
     
     @Autowired
     private JwtUtil jwtUtil;
+    
+    @Autowired
+    private EnhancedPostService enhancedPostService;
     
     @GetMapping
     public ResponseEntity<ApiResponse<List<PostDTO>>> getPosts(
@@ -173,6 +178,105 @@ public class PostController {
             return ResponseEntity.ok(ApiResponse.success(convertToDTO(post)));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error("取消点赞失败: " + e.getMessage()));
+        }
+    }
+    
+    // ==================== 增强接口 ====================
+    
+    /**
+     * 获取增强的动态列表
+     */
+    @GetMapping("/enhanced")
+    public ResponseEntity<ApiResponse<Page<EnhancedPostDTO>>> getEnhancedPosts(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestParam(defaultValue = "nearby") String filter,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            String jwt = authHeader.replace("Bearer ", "");
+            Long userId = jwtUtil.getUserIdFromToken(jwt);
+            
+            Page<EnhancedPostDTO> posts = enhancedPostService.getEnhancedPosts(userId, filter, sortBy, page, size);
+            return ResponseEntity.ok(ApiResponse.success(posts));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("获取动态列表失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 点赞/取消点赞动态
+     */
+    @PostMapping("/{id}/toggle-like")
+    public ResponseEntity<ApiResponse<EnhancedPostDTO>> toggleLikePost(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long id) {
+        try {
+            String jwt = authHeader.replace("Bearer ", "");
+            Long userId = jwtUtil.getUserIdFromToken(jwt);
+            
+            EnhancedPostDTO post = enhancedPostService.likePost(id, userId);
+            return ResponseEntity.ok(ApiResponse.success(post));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("操作失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 添加评论
+     */
+    @PostMapping("/{id}/comments")
+    public ResponseEntity<ApiResponse<EnhancedPostDTO>> addComment(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long id,
+            @RequestParam String content,
+            @RequestParam(required = false) Long parentId) {
+        try {
+            String jwt = authHeader.replace("Bearer ", "");
+            Long userId = jwtUtil.getUserIdFromToken(jwt);
+            
+            EnhancedPostDTO post = enhancedPostService.addComment(id, userId, content, parentId);
+            return ResponseEntity.ok(ApiResponse.success(post));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("添加评论失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 获取动态评论
+     */
+    @GetMapping("/{id}/comments")
+    public ResponseEntity<ApiResponse<List<EnhancedPostDTO.CommentDTO>>> getPostComments(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        try {
+            String jwt = authHeader.replace("Bearer ", "");
+            Long userId = jwtUtil.getUserIdFromToken(jwt);
+            
+            List<EnhancedPostDTO.CommentDTO> comments = enhancedPostService.getPostComments(id, userId, page, size);
+            return ResponseEntity.ok(ApiResponse.success(comments));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("获取评论失败: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 删除评论
+     */
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<ApiResponse<String>> deleteComment(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long commentId) {
+        try {
+            String jwt = authHeader.replace("Bearer ", "");
+            Long userId = jwtUtil.getUserIdFromToken(jwt);
+            
+            enhancedPostService.deleteComment(commentId, userId);
+            return ResponseEntity.ok(ApiResponse.success("删除评论成功"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("删除评论失败: " + e.getMessage()));
         }
     }
     
