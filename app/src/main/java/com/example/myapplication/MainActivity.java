@@ -191,6 +191,12 @@ public class MainActivity extends AppCompatActivity {
         if (videoMatchButton != null) {
             videoMatchButton.setOnClickListener(v -> {
                 Intent intent = new Intent(this, VideoMatchActivity.class);
+                // 传递视频速配相关参数 - 与UI中的价格区间匹配
+                intent.putExtra("match_type", "VIDEO");
+                intent.putExtra("min_price", 100.0);  // 活跃女生最低价格
+                intent.putExtra("max_price", 500.0);  // 高颜女生最高价格
+                intent.putExtra("default_price", 275.0); // 人气女生中点价格
+                intent.putExtra("online_count", 13264); // 在线人数
                 startActivity(intent);
             });
         }
@@ -199,6 +205,12 @@ public class MainActivity extends AppCompatActivity {
         if (voiceMatchButton != null) {
             voiceMatchButton.setOnClickListener(v -> {
                 Intent intent = new Intent(this, VoiceMatchActivity.class);
+                // 传递语音速配相关参数 - 与UI中的价格区间匹配
+                intent.putExtra("match_type", "VOICE");
+                intent.putExtra("min_price", 50.0);   // 活跃女生最低价格
+                intent.putExtra("max_price", 200.0);  // 高颜女生最高价格
+                intent.putExtra("default_price", 125.0); // 人气女生中点价格
+                intent.putExtra("online_count", 1153);  // 在线人数
                 startActivity(intent);
             });
         }

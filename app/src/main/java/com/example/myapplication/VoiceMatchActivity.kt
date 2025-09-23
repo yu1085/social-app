@@ -12,6 +12,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,10 +28,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 class VoiceMatchActivity : ComponentActivity() {
+    
+    // 价格区间参数
+    private var minPrice: Double = 20.0
+    private var maxPrice: Double = 200.0
+    private var defaultPrice: Double = 50.0
+    private var onlineCount: Int = 1153
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // 获取传递的参数
+        minPrice = intent.getDoubleExtra("min_price", 20.0)
+        maxPrice = intent.getDoubleExtra("max_price", 200.0)
+        defaultPrice = intent.getDoubleExtra("default_price", 50.0)
+        onlineCount = intent.getIntExtra("online_count", 1153)
+        
         setContent {
             VoiceMatchScreen(
+                minPrice = minPrice,
+                maxPrice = maxPrice,
+                defaultPrice = defaultPrice,
+                onlineCount = onlineCount,
                 onBackClick = { finish() },
                 onRechargeClick = {
                     // 跳转到充值页面
@@ -38,12 +59,12 @@ class VoiceMatchActivity : ComponentActivity() {
                         android.widget.Toast.LENGTH_SHORT
                     ).show()
                 },
-                onMatchClick = {
-                    // 开始匹配
+                onMatchClick = { selectedPrice ->
+                    // 开始匹配，传递选择的价格
                     android.widget.Toast.makeText(
                         this,
-                        "开始语音匹配",
-                        android.widget.Toast.LENGTH_SHORT
+                        "开始语音匹配，价格区间: $selectedPrice 元/分钟",
+                        android.widget.Toast.LENGTH_LONG
                     ).show()
                 }
             )
@@ -53,9 +74,13 @@ class VoiceMatchActivity : ComponentActivity() {
 
 @Composable
 fun VoiceMatchScreen(
+    minPrice: Double = 20.0,
+    maxPrice: Double = 200.0,
+    defaultPrice: Double = 50.0,
+    onlineCount: Int = 1153,
     onBackClick: () -> Unit,
     onRechargeClick: () -> Unit,
-    onMatchClick: () -> Unit
+    onMatchClick: (Double) -> Unit
 ) {
     var selectedOption by remember { mutableStateOf(1) } // 默认选择人气女生
     
@@ -113,13 +138,23 @@ fun VoiceMatchScreen(
                 onOptionSelect = { selectedOption = it }
             )
             
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // 价格区间选择
+            VoicePriceRangeSelector(
+                minPrice = minPrice,
+                maxPrice = maxPrice,
+                defaultPrice = defaultPrice,
+                onPriceChange = { /* 价格变化处理 */ }
+            )
+            
             Spacer(modifier = Modifier.weight(1f))
             
             // 立即匹配按钮
             VoiceMatchButton(
                 icon = Icons.Default.Phone,
                 text = "立即匹配",
-                onClick = onMatchClick
+                onClick = { onMatchClick(defaultPrice) }
             )
         }
     }
@@ -445,5 +480,150 @@ fun VoiceMatchButton(
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
+    }
+}
+
+@Composable
+fun VoicePriceRangeSelector(
+    minPrice: Double,
+    maxPrice: Double,
+    defaultPrice: Double,
+    onPriceChange: (Double) -> Unit
+) {
+    var selectedOption by remember { mutableStateOf(1) } // 默认选择人气女生
+    
+    // 定义语音匹配价格区间选项
+    val priceOptions = listOf(
+        Triple("活跃女生", "(真人认证)", "50-100/分钟"),
+        Triple("人气女生", "(真人认证 不尬聊)", "100-150/分钟"),
+        Triple("高颜女生", "(真人认证 颜值爆表)", "150-200/分钟")
+    )
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            // 提示文字
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Lightbulb,
+                    contentDescription = null,
+                    tint = Color(0xFFFFA726),
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "勾选越多匹配越快",
+                    fontSize = 14.sp,
+                    color = Color(0xFF666666)
+                )
+            }
+            
+            // 价格区间选项
+            priceOptions.forEachIndexed { index, (title, subtitle, priceRange) ->
+                VoicePriceOptionItem(
+                    title = title,
+                    subtitle = subtitle,
+                    priceRange = priceRange,
+                    isSelected = selectedOption == index,
+                    onClick = {
+                        selectedOption = index
+                        // 计算选择的价格区间中点
+                        val priceMid = when (index) {
+                            0 -> 75.0  // 50-100的中点
+                            1 -> 125.0 // 100-150的中点
+                            2 -> 175.0 // 150-200的中点
+                            else -> defaultPrice
+                        }
+                        onPriceChange(priceMid)
+                    }
+                )
+                
+                if (index < priceOptions.size - 1) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun VoicePriceOptionItem(
+    title: String,
+    subtitle: String,
+    priceRange: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // 选择圆圈
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .clip(CircleShape)
+                .background(if (isSelected) Color(0xFF4CAF50) else Color(0xFFE0E0E0)),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.width(12.dp))
+        
+        // 文字内容
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black
+            )
+            Text(
+                text = subtitle,
+                fontSize = 12.sp,
+                color = Color(0xFF666666)
+            )
+        }
+        
+        // 价格区间
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.MonetizationOn,
+                contentDescription = null,
+                tint = Color(0xFFFFD700),
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = priceRange,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF2196F3)
+            )
+        }
     }
 }

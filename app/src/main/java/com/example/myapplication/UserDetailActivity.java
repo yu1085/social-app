@@ -17,6 +17,14 @@ import android.widget.Toast;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.util.Log;
+import android.os.AsyncTask;
+import com.example.myapplication.service.CallService;
+import com.example.myapplication.service.CallPrices;
+import com.example.myapplication.service.CallPricesResult;
+import com.example.myapplication.service.CallInitiateResult;
+import com.example.myapplication.service.CallSession;
+import com.example.myapplication.auth.AuthManager;
 
 public class UserDetailActivity extends AppCompatActivity {
     
@@ -29,6 +37,7 @@ public class UserDetailActivity extends AppCompatActivity {
     private TextView tvUserLocation;
     private TextView tvUserDescription;
     private LinearLayout llVideoButton;
+    private LinearLayout llVoiceButton;
     private LinearLayout llMessageButton;
     private LinearLayout llLikeButton;
     private LinearLayout llCopyIdButton;
@@ -37,6 +46,13 @@ public class UserDetailActivity extends AppCompatActivity {
     private LinearLayout llGiftsSection; // Added for gifts section
     private LinearLayout llGiftHeart, llGiftRose, llGiftCake; // Added for individual gift items
     private LinearLayout llGuardianSection; // Added for guardian section
+    
+    // 通话相关
+    private CallService callService;
+    private AuthManager authManager;
+    private String userToken;
+    private Long receiverUserId; // 接收方用户ID
+    private CallPrices currentCallPrices; // 当前通话价格信息
     
     // 用户图片资源数组
     private int[] userImages = {
@@ -58,10 +74,27 @@ public class UserDetailActivity extends AppCompatActivity {
         String userDescription = getIntent().getStringExtra("user_description");
         int userAvatarResId = getIntent().getIntExtra("user_avatar", R.drawable.rectangle_411_1);
         
+        // 初始化通话相关服务
+        initCallServices();
+        
         initViews();
         setupViewPager();
         populateUserData(userName, userStatus, userAge, userLocation, userDescription, userAvatarResId);
         setupClickListeners();
+        
+        // 加载用户通话价格信息
+        loadUserCallPrices();
+    }
+    
+    private void initCallServices() {
+        callService = CallService.Companion.getInstance();
+        authManager = AuthManager.getInstance(this);
+        userToken = authManager.getToken();
+        
+        // 模拟接收方用户ID（实际应该从Intent传递）
+        receiverUserId = 2L; // 这里应该从Intent获取真实的用户ID
+        
+        Log.d("UserDetailActivity", "初始化通话服务，Token: " + (userToken != null ? "已获取" : "未获取"));
     }
     
     private void initViews() {
@@ -76,6 +109,7 @@ public class UserDetailActivity extends AppCompatActivity {
         tvUserLocation = findViewById(R.id.tv_user_location);
         tvUserDescription = findViewById(R.id.tv_user_description);
         llVideoButton = findViewById(R.id.ll_video_button);
+        llVoiceButton = findViewById(R.id.ll_voice_button);
         llMessageButton = findViewById(R.id.ll_message_button);
         llLikeButton = findViewById(R.id.ll_like_button);
         llCopyIdButton = findViewById(R.id.ll_copy_id_button);
@@ -135,8 +169,43 @@ public class UserDetailActivity extends AppCompatActivity {
     
     private void setupClickListeners() {
         llVideoButton.setOnClickListener(v -> {
-            Toast.makeText(this, "发起视频通话", Toast.LENGTH_SHORT).show();
-            // TODO: 实现视频通话功能
+            if (userToken == null) {
+                Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            if (currentCallPrices == null) {
+                Toast.makeText(this, "正在加载价格信息，请稍候...", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            if (!currentCallPrices.getVideoCallEnabled()) {
+                Toast.makeText(this, "对方未开启视频通话功能", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            // 发起视频通话
+            initiateVideoCall();
+        });
+        
+        llVoiceButton.setOnClickListener(v -> {
+            if (userToken == null) {
+                Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            if (currentCallPrices == null) {
+                Toast.makeText(this, "正在加载价格信息，请稍候...", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            if (!currentCallPrices.getVoiceCallEnabled()) {
+                Toast.makeText(this, "对方未开启语音通话功能", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            // 发起语音通话
+            initiateVoiceCall();
         });
         
         llMessageButton.setOnClickListener(v -> {
@@ -304,6 +373,177 @@ public class UserDetailActivity extends AppCompatActivity {
         android.content.Intent intent = new android.content.Intent(this, GuardianActivity.class);
         startActivity(intent);
     }
- 
+    
+    /**
+     * 加载用户通话价格信息
+     */
+    private void loadUserCallPrices() {
+        if (userToken == null) {
+            Log.w("UserDetailActivity", "用户未登录，无法获取通话价格");
+            return;
+        }
+        
+        // 模拟获取通话价格数据
+        new AsyncTask<Void, Void, CallPrices>() {
+            @Override
+            protected CallPrices doInBackground(Void... voids) {
+                try {
+                    // 模拟网络延迟
+                    Thread.sleep(1000);
+                    
+                    // 返回模拟的通话价格数据
+                    return new CallPrices(
+                        300.0,  // videoCallPrice
+                        150.0,  // voiceCallPrice
+                        1.0,    // messagePrice
+                        true,   // videoCallEnabled
+                        true,   // voiceCallEnabled
+                        true    // messageChargeEnabled
+                    );
+                } catch (Exception e) {
+                    Log.e("UserDetailActivity", "获取通话价格异常", e);
+                    return null;
+                }
+            }
+            
+            @Override
+            protected void onPostExecute(CallPrices result) {
+                if (result != null) {
+                    currentCallPrices = result;
+                    Log.d("UserDetailActivity", "通话价格获取成功: " + result.toString());
+                    updateVideoButtonPrice();
+                } else {
+                    Log.e("UserDetailActivity", "获取通话价格失败");
+                    Toast.makeText(UserDetailActivity.this, "获取通话价格失败", Toast.LENGTH_LONG).show();
+                }
+            }
+        }.execute();
+    }
+    
+    /**
+     * 更新视频和语音按钮价格显示
+     */
+    private void updateVideoButtonPrice() {
+        if (currentCallPrices != null) {
+            runOnUiThread(() -> {
+                // 更新视频按钮价格显示
+                updateButtonPrice(llVideoButton, "视频", currentCallPrices.getVideoCallPrice());
+                
+                // 更新语音按钮价格显示
+                updateButtonPrice(llVoiceButton, "语音", currentCallPrices.getVoiceCallPrice());
+                
+                // 显示价格信息
+                Toast.makeText(this, 
+                    "视频通话: " + currentCallPrices.getVideoCallPrice() + "元/分钟\n" +
+                    "语音通话: " + currentCallPrices.getVoiceCallPrice() + "元/分钟", 
+                    Toast.LENGTH_LONG).show();
+            });
+        }
+    }
+    
+    /**
+     * 更新按钮价格显示
+     */
+    private void updateButtonPrice(LinearLayout button, String type, double price) {
+        if (button != null) {
+            // 查找按钮内的价格TextView并更新
+            // 这里需要根据实际布局结构来查找价格TextView
+            // 暂时通过Toast显示，实际项目中需要找到具体的TextView并更新
+            Log.d("UserDetailActivity", type + "通话价格: " + price + "元/分钟");
+        }
+    }
+    
+    /**
+     * 发起视频通话
+     */
+    private void initiateVideoCall() {
+        if (receiverUserId == null) {
+            Toast.makeText(this, "用户信息错误", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // 模拟发起视频通话
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected void onPreExecute() {
+                Toast.makeText(UserDetailActivity.this, "正在发起视频通话...", Toast.LENGTH_SHORT).show();
+            }
+            
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    // 模拟网络延迟
+                    Thread.sleep(2000);
+                    
+                    // 模拟通话发起成功
+                    return true;
+                } catch (Exception e) {
+                    Log.e("UserDetailActivity", "发起视频通话异常", e);
+                    return false;
+                }
+            }
+            
+            @Override
+            protected void onPostExecute(Boolean success) {
+                if (success) {
+                    Log.d("UserDetailActivity", "视频通话发起成功");
+                    Toast.makeText(UserDetailActivity.this, "视频通话已发起，等待对方接听...", Toast.LENGTH_LONG).show();
+                    
+                    // TODO: 这里可以跳转到通话界面或显示通话状态
+                    // 例如：跳转到VideoCallActivity
+                } else {
+                    Log.e("UserDetailActivity", "发起视频通话失败");
+                    Toast.makeText(UserDetailActivity.this, "发起通话失败，请稍后重试", Toast.LENGTH_LONG).show();
+                }
+            }
+        }.execute();
+    }
+    
+    /**
+     * 发起语音通话
+     */
+    private void initiateVoiceCall() {
+        if (receiverUserId == null) {
+            Toast.makeText(this, "用户信息错误", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // 模拟发起语音通话
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected void onPreExecute() {
+                Toast.makeText(UserDetailActivity.this, "正在发起语音通话...", Toast.LENGTH_SHORT).show();
+            }
+            
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    // 模拟网络延迟
+                    Thread.sleep(2000);
+                    
+                    // 模拟通话发起成功
+                    return true;
+                } catch (Exception e) {
+                    Log.e("UserDetailActivity", "发起语音通话异常", e);
+                    return false;
+                }
+            }
+            
+            @Override
+            protected void onPostExecute(Boolean success) {
+                if (success) {
+                    Log.d("UserDetailActivity", "语音通话发起成功");
+                    Toast.makeText(UserDetailActivity.this, "语音通话已发起，等待对方接听...", Toast.LENGTH_LONG).show();
+                    
+                    // TODO: 这里可以跳转到通话界面或显示通话状态
+                    // 例如：跳转到VoiceCallActivity
+                } else {
+                    Log.e("UserDetailActivity", "发起语音通话失败");
+                    Toast.makeText(UserDetailActivity.this, "发起通话失败，请稍后重试", Toast.LENGTH_LONG).show();
+                }
+            }
+        }.execute();
+    }
+
   
- }
+}
