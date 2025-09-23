@@ -1,0 +1,123 @@
+{
+  "test_time": "2025-09-23T21:06:29.030610",
+  "summary": {
+    "total_tests": 8,
+    "passed": 6,
+    "failed": 2,
+    "success_rate": "75.0%"
+  },
+  "error_analysis": {
+    "401_errors": [
+      {
+        "timestamp": "2025-09-23T21:06:28.924785",
+        "endpoint": "/api/admin/database/fix/test",
+        "method": "POST",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401,\"message\":\"Full authentication is required to access this resource\"}",
+        "headers": null,
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T21:06:29.030610",
+        "endpoint": "/api/test/alipay/connection",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401,\"message\":\"Full authentication is required to access this resource\"}",
+        "headers": null,
+        "error": null
+      }
+    ],
+    "500_errors": [],
+    "other_errors": []
+  },
+  "test_results": [
+    {
+      "timestamp": "2025-09-23T21:06:28.885599",
+      "endpoint": "/api/health",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "response": "{\"database\":\"UP\",\"resources\":{\"usedMemory\":205578960,\"totalMemory\":356515840,\"availableProcessors\":16,\"memoryUsagePercent\":4.836097043549773,\"maxMemory\":4250927104,\"freeMemory\":150936880},\"redis\":\"UP\",\"status\":\"UP\",\"timestamp\":1758632788884}",
+      "headers": null,
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T21:06:28.916519",
+      "endpoint": "/swagger-ui.html",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "response": "<!-- HTML for static distribution bundle build -->\n<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\">\n    <title>Swagger UI</title>\n    <link rel=\"stylesheet\" type=\"text/css\" href=\"./swagger-ui.css\" />\n    <link rel=\"stylesheet\" type=\"text/css\" href=\"index.css\" />\n    <link rel=\"icon\" type=\"image/png\" href=\"./favicon-32x32.png\" sizes=\"32x32\" />\n    <link rel=\"icon\" type=\"image/png\" href=\"./favicon-16x16.png\" sizes=\"16x16\" />\n  </head>\n\n  <body>\n    <div id=\"swagger-ui\"></div>\n ",
+      "headers": null,
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T21:06:28.924785",
+      "endpoint": "/api/admin/database/fix/test",
+      "method": "POST",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401,\"message\":\"Full authentication is required to access this resource\"}",
+      "headers": null,
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T21:06:28.948021",
+      "endpoint": "/api/auth/send-code",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "response": "{\"success\":true,\"message\":\"验证码发送成功\",\"data\":\"076273\",\"timestamp\":\"2025-09-23T21:06:28.945558\",\"path\":null}",
+      "headers": null,
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T21:06:28.982278",
+      "endpoint": "/api/auth/login-with-code",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "response": "{\"success\":true,\"message\":\"操作成功\",\"data\":{\"token\":\"eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODYzMjc4OCwiZXhwIjoxNzU4NzE5MTg4fQ.x7XI6ReMA-yF9bEiN3QS7t84Wdqt_aZIoV8ztkTclsdx5c-a1vI-GC0jePUgeCgQ9ASzgVh6uvfY_hd7FU5h6A\",\"user\":{\"id\":1001,\"username\":\"user_1001\",\"nickname\":\"不吃香菜\",\"phone\":\"13800138001\",\"email\":\"user1001@example.com\",\"avatarUrl\":\"https://picsum.photos/200/200?random=1\",\"gender\":\"FEMALE\",\"birthDate\":\"19",
+      "headers": null,
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T21:06:28.994997",
+      "endpoint": "/api/users/profile",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "response": "{\"success\":true,\"message\":\"操作成功\",\"data\":{\"id\":1001,\"username\":\"user_1001\",\"nickname\":\"不吃香菜\",\"phone\":\"13800138001\",\"email\":\"user1001@example.com\",\"avatarUrl\":\"https://picsum.photos/200/200?random=1\",\"gender\":\"FEMALE\",\"birthDate\":\"1999-05-15T00:00:00\",\"bio\":\"我是一个活泼开朗的女孩，喜欢聊天和交朋友。希望能遇到有趣的人一起分享生活的美好。\",\"location\":\"北京\",\"age\":25,\"isOnline\":true,\"status\":\"ONLINE\",\"lastSeen\":\"2025-09-23T21:06:28.966219\",\"callPrice\":null,\"messagePrice\":null,\"videoCallEnabled\":null,\"voiceCallEnabled\":null,\"messageChargeEna",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODYzMjc4OCwiZXhwIjoxNzU4NzE5MTg4fQ.x7XI6ReMA-yF9bEiN3QS7t84Wdqt_aZIoV8ztkTclsdx5c-a1vI-GC0jePUgeCgQ9ASzgVh6uvfY_hd7FU5h6A",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T21:06:29.026635",
+      "endpoint": "/api/users/profile/1001",
+      "method": "PUT",
+      "status_code": 200,
+      "success": true,
+      "response": "{\"success\":true,\"message\":\"操作成功\",\"data\":{\"id\":1001,\"username\":\"user_1001\",\"nickname\":\"测试用户_1758632788\",\"phone\":\"13800138001\",\"email\":\"user1001@example.com\",\"avatarUrl\":\"https://picsum.photos/200/200?random=1\",\"gender\":\"FEMALE\",\"birthDate\":\"1999-05-15T00:00:00\",\"bio\":\"这是更新后的个人简介\",\"location\":\"上海市\",\"age\":25,\"isOnline\":true,\"status\":\"ONLINE\",\"lastSeen\":\"2025-09-23T21:06:28.966219\",\"callPrice\":null,\"messagePrice\":null,\"videoCallEnabled\":null,\"voiceCallEnabled\":null,\"messageChargeEnabled\":null,\"city\":",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODYzMjc4OCwiZXhwIjoxNzU4NzE5MTg4fQ.x7XI6ReMA-yF9bEiN3QS7t84Wdqt_aZIoV8ztkTclsdx5c-a1vI-GC0jePUgeCgQ9ASzgVh6uvfY_hd7FU5h6A",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T21:06:29.030610",
+      "endpoint": "/api/test/alipay/connection",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401,\"message\":\"Full authentication is required to access this resource\"}",
+      "headers": null,
+      "error": null
+    }
+  ]
+}

@@ -69,6 +69,13 @@ dependencies {
     // 支付宝SDK
     implementation("com.alipay.sdk:alipay-sdk-java:4.38.10.ALL")
     
+    // 微信支付SDK
+    implementation("com.github.wechatpay-apiv3:wechatpay-apache-httpclient:0.4.9")
+    
+    // 加密和签名工具
+    implementation("org.bouncycastle:bcprov-jdk15on:1.70")
+    implementation("commons-codec:commons-codec:1.15")
+    
     // JSON处理
     implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("com.fasterxml.jackson.core:jackson-core")

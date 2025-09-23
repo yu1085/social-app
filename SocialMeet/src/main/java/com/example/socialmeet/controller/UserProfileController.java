@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -24,13 +25,104 @@ public class UserProfileController {
     private JwtUtil jwtUtil;
     
     /**
-     * 更新用户完整资料
+     * 测试JWT token验证
      */
-    @PutMapping("/{id}")
+    @GetMapping("/test-token")
+    public ResponseEntity<Map<String, Object>> testToken(@RequestHeader("Authorization") String authHeader) {
+        Map<String, Object> result = new HashMap<>();
+        
+        System.out.println("=== 测试Token接口被调用 ===");
+        System.out.println("Authorization Header: " + authHeader);
+        
+        try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                System.err.println("Authorization header缺失或格式错误");
+                result.put("success", false);
+                result.put("error", "Authorization header missing or invalid");
+                return ResponseEntity.status(401).body(result);
+            }
+            
+            String token = authHeader.substring(7);
+            System.out.println("提取的Token: " + token);
+            System.out.println("Token长度: " + token.length());
+            System.out.println("Token包含点号数量: " + (token.split("\\.").length - 1));
+            
+            result.put("token", token);
+            result.put("tokenLength", token.length());
+            
+            // 验证token
+            System.out.println("开始验证Token...");
+            boolean isValid = jwtUtil.validateToken(token);
+            System.out.println("Token验证结果: " + isValid);
+            result.put("isValid", isValid);
+            
+            if (isValid) {
+                try {
+                    Long userId = jwtUtil.getUserIdFromToken(token);
+                    String username = jwtUtil.getUsernameFromToken(token);
+                    result.put("userId", userId);
+                    result.put("username", username);
+                    result.put("success", true);
+                } catch (Exception e) {
+                    result.put("success", false);
+                    result.put("error", "Failed to parse token claims: " + e.getMessage());
+                }
+            } else {
+                result.put("success", false);
+                result.put("error", "Token is invalid or expired");
+            }
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("error", "Exception: " + e.getMessage());
+            return ResponseEntity.status(500).body(result);
+        }
+    }
+    
+    /**
+     * 更新用户完整资料
+     * 支持多种路径: PUT /api/users/profile/{id}, PUT /api/users/profile
+     */
+    @PutMapping(value = {"/{id}", ""})
     public ResponseEntity<ApiResponse<UserDTO>> updateUserProfile(
-            @PathVariable Long id,
+            @PathVariable(required = false) Long id,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestBody Map<String, Object> profileData) {
         try {
+            System.out.println("=== 更新用户资料接口被调用 ===");
+            System.out.println("路径ID: " + id);
+            System.out.println("Authorization: " + authHeader);
+            System.out.println("请求数据: " + profileData);
+            
+            // 验证JWT token
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                System.err.println("Authorization header缺失或格式错误");
+                return ResponseEntity.status(401).body(ApiResponse.error("未授权访问"));
+            }
+            
+            String token = authHeader.substring(7);
+            if (!jwtUtil.validateToken(token)) {
+                System.err.println("Token验证失败");
+                return ResponseEntity.status(401).body(ApiResponse.error("Token无效或已过期"));
+            }
+            
+            // 从token中获取用户信息
+            Long tokenUserId = jwtUtil.getUserIdFromToken(token);
+            System.out.println("Token中的用户ID: " + tokenUserId);
+            
+            // 如果没有提供ID，使用token中的用户ID
+            if (id == null) {
+                id = tokenUserId;
+            }
+            
+            // 验证用户ID是否匹配（只有用户本人可以修改自己的资料）
+            if (!tokenUserId.equals(id)) {
+                System.err.println("用户ID不匹配: token=" + tokenUserId + ", path=" + id);
+                return ResponseEntity.status(403).body(ApiResponse.error("无权限访问此用户资源"));
+            }
+            
             User user = userRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("用户不存在"));
             
@@ -164,11 +256,22 @@ public class UserProfileController {
                 user.setAvatarUrl((String) profileData.get("avatarUrl"));
             }
             
+            // 设置更新时间
+            user.setUpdatedAt(LocalDateTime.now());
+            
             User savedUser = userRepository.save(user);
+            System.out.println("用户资料更新成功: ID=" + savedUser.getId());
+            
             return ResponseEntity.ok(ApiResponse.success(new UserDTO(savedUser)));
             
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
+            System.err.println("更新用户资料失败 - 运行时异常: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(ApiResponse.error("更新用户资料失败: " + e.getMessage()));
+        } catch (Exception e) {
+            System.err.println("更新用户资料失败 - 未知异常: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(ApiResponse.error("服务器内部错误: " + e.getMessage()));
         }
     }
     
@@ -177,15 +280,28 @@ public class UserProfileController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<UserDTO>> getProfile(@RequestHeader("Authorization") String token) {
+        System.out.println("=== 获取用户资料接口被调用 ===");
+        System.out.println("Authorization Header: " + token);
+        
         try {
             String jwt = token.replace("Bearer ", "");
-            Long userId = jwtUtil.getUserIdFromToken(jwt);
+            System.out.println("提取的JWT: " + jwt);
+            System.out.println("JWT长度: " + jwt.length());
+            System.out.println("JWT包含点号数量: " + (jwt.split("\\.").length - 1));
             
+            System.out.println("开始从JWT中提取用户ID...");
+            Long userId = jwtUtil.getUserIdFromToken(jwt);
+            System.out.println("提取到的用户ID: " + userId);
+            
+            System.out.println("开始查询用户信息...");
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new RuntimeException("用户不存在"));
+            System.out.println("找到用户: " + user.getUsername());
             
             return ResponseEntity.ok(ApiResponse.success(new UserDTO(user)));
         } catch (Exception e) {
+            System.err.println("获取用户资料失败: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(ApiResponse.error("获取用户信息失败: " + e.getMessage()));
         }
     }

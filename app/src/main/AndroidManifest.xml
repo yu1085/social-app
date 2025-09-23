@@ -167,6 +167,14 @@
                 android:screenOrientation="portrait"
                 android:label="财富等级" />
                 
+        <!-- 财富等级规则说明页面 -->
+        <activity
+                android:name=".WealthRulesActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="规则说明" />
+                
         <!-- 道具商城页面 -->
         <activity
                 android:name=".PropMallActivity"
@@ -174,6 +182,14 @@
                 android:theme="@style/Theme.MyApplication"
                 android:screenOrientation="portrait"
                 android:label="道具商城" />
+                
+        <!-- 道具购买页面 -->
+        <activity
+                android:name=".PropPurchaseActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="道具购买" />
                 
         <!-- 邀请好友页面 -->
         <activity
@@ -251,18 +267,22 @@
         <activity
                 android:name=".MyWalletActivity"
                 android:exported="false"
-                android:theme="@style/Theme.MyApplication"
-                android:screenOrientation="portrait"
-                android:label="我的钱包" />
+                android:theme="@style/Theme.MyApplication" />
                 
+        <activity
+                android:name=".RechargeActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication" />
                 
-        <!-- 钱包明细页面 -->
         <activity
                 android:name=".WalletDetailsActivity"
                 android:exported="false"
                 android:theme="@style/Theme.MyApplication"
                 android:screenOrientation="portrait"
-                android:label="明细" />
+                android:label="我的钱包" />
+                
+        
+        <!-- 钱包明细页面（已在上方声明：.WalletDetailsActivity） -->
                 
         <!-- 如何赚聊币页面 -->
         <activity
@@ -440,14 +460,6 @@
                 android:screenOrientation="portrait"
                 android:label="语音速配" />
                 
-        <!-- 财富等级规则说明页面 -->
-        <activity
-                android:name=".WealthRulesActivity"
-                android:exported="false"
-                android:theme="@style/Theme.MyApplication"
-                android:screenOrientation="portrait"
-                android:label="规则说明" />
-                
         <!-- 我的道具页面 -->
         <activity
                 android:name=".MyPropsActivity"
@@ -587,7 +599,7 @@
         <!-- 真人认证页面 -->
         <activity
                 android:name=".RealPersonAuthActivity"
-                android:exported="false"
+                android:exported="true"
                 android:theme="@style/Theme.MyApplication"
                 android:screenOrientation="portrait"
                 android:label="真人认证" />

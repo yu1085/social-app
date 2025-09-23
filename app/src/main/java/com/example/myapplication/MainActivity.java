@@ -69,6 +69,13 @@ public class MainActivity extends AppCompatActivity {
     private void initializeApp() {
         setContentView(R.layout.activity_main);
         
+        // 启用GPU渲染优化
+        try {
+            com.example.myapplication.util.GPURenderingOptimizer.INSTANCE.optimizeActivityRendering(this);
+        } catch (Exception e) {
+            android.util.Log.e("MainActivity", "GPU渲染优化失败", e);
+        }
+        
         // 初始化标签视图
         initTabViews();
         

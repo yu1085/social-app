@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.viewmodel.AlbumViewModel
+import com.example.myapplication.auth.AuthManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 /**
@@ -54,6 +55,18 @@ class ProfileDetailActivity : ComponentActivity() {
                     onEditAlbumClick = {
                         val intent = Intent(this, EditAlbumActivity::class.java)
                         startActivity(intent)
+                    },
+                    onRealPersonAuthClick = {
+                        val intent = Intent(this, RealPersonAuthActivity::class.java)
+                        startActivity(intent)
+                    },
+                    onIdCardVerifyClick = {
+                        val intent = Intent(this, IdCardVerifyActivity::class.java)
+                        startActivity(intent)
+                    },
+                    onPhoneAuthClick = {
+                        val intent = Intent(this, PhoneIdentityAuthActivity::class.java)
+                        startActivity(intent)
                     }
                 )
             }
@@ -71,15 +84,26 @@ fun ProfileDetailScreen(
     onMenuClick: () -> Unit = {},
     onEditProfileClick: () -> Unit = {},
     onPublishDynamicClick: () -> Unit = {},
-    onEditAlbumClick: () -> Unit = {}
+    onEditAlbumClick: () -> Unit = {},
+    onRealPersonAuthClick: () -> Unit = {},
+    onIdCardVerifyClick: () -> Unit = {},
+    onPhoneAuthClick: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     val albumViewModel = remember { AlbumViewModel(context) }
+    val authManager = remember { AuthManager.getInstance(context) }
+    
+    // 获取用户信息
+    val userId = authManager.getUserId()
+    val userToken = authManager.getToken()
+    val isLoggedIn = authManager.isLoggedIn()
     
     // 加载相册数据
     LaunchedEffect(Unit) {
-        albumViewModel.loadUserPhotos()
+        if (isLoggedIn) {
+            albumViewModel.loadUserPhotos()
+        }
     }
     
     Column(
@@ -109,13 +133,17 @@ fun ProfileDetailScreen(
             UserStatusSection()
             
             // 用户名/ID
-            UserNameSection()
+            UserNameSection(userId = userId)
             
             // 用户属性标签
             UserAttributesSection()
             
             // 身份认证区域
-            IdentityVerificationSection()
+            IdentityVerificationSection(
+                onRealPersonAuthClick = onRealPersonAuthClick,
+                onIdCardVerifyClick = onIdCardVerifyClick,
+                onPhoneAuthClick = onPhoneAuthClick
+            )
             
             // 动态日常区域
             DynamicDailySection(
@@ -295,9 +323,17 @@ private fun UserStatusSection() {
 }
 
 @Composable
-private fun UserNameSection() {
+private fun UserNameSection(
+    userId: Long = -1L
+) {
+    val displayName = if (userId != -1L) {
+        "用户 $userId"
+    } else {
+        "相约未来605" // 默认显示
+    }
+    
     Text(
-        text = "相约未来605",
+        text = displayName,
         fontSize = 24.sp,
         fontWeight = FontWeight.Bold,
         color = Color.Black,
@@ -371,7 +407,11 @@ private fun AttributeTag(
 }
 
 @Composable
-private fun IdentityVerificationSection() {
+private fun IdentityVerificationSection(
+    onRealPersonAuthClick: () -> Unit = {},
+    onIdCardVerifyClick: () -> Unit = {},
+    onPhoneAuthClick: () -> Unit = {}
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -393,26 +433,21 @@ private fun IdentityVerificationSection() {
                 title = "真人认证",
                 icon = R.drawable.ic_person,
                 isVerified = true,
-                onItemClick = {
-                    // 启动真人认证页面
-                    // TODO: 实现页面跳转
-                }
+                onItemClick = onRealPersonAuthClick
             )
             
             VerificationItem(
                 title = "实名认证",
                 icon = R.drawable.ic_verified_user,
-                isVerified = true
+                isVerified = true,
+                onItemClick = onIdCardVerifyClick
             )
             
             VerificationItem(
                 title = "手机认证",
                 icon = R.drawable.ic_phone,
                 isVerified = true,
-                onItemClick = {
-                    // 这里需要在实际的Composable函数中调用
-                    // 暂时注释掉，避免编译错误
-                }
+                onItemClick = onPhoneAuthClick
             )
         }
     }

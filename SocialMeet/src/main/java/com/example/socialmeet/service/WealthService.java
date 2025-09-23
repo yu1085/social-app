@@ -20,7 +20,7 @@ public class WealthService {
     private WealthLevelRepository wealthLevelRepository;
     
     public List<WealthLevelDTO> getAllWealthLevels() {
-        List<WealthLevel> levels = wealthLevelRepository.findByIsActiveTrueOrderByLevelAsc();
+        List<WealthLevel> levels = wealthLevelRepository.findAll();
         return levels.stream().map(WealthLevelDTO::new).collect(Collectors.toList());
     }
     
@@ -33,30 +33,34 @@ public class WealthService {
     }
     
     public WealthLevelDTO getWealthLevelByContribution(BigDecimal contribution) {
-        Optional<WealthLevel> levelOpt = wealthLevelRepository.findMatchingWealthLevel(contribution);
-        if (levelOpt.isPresent()) {
-            return new WealthLevelDTO(levelOpt.get());
+        // 根据财富值查找匹配的等级
+        List<WealthLevel> levels = wealthLevelRepository.findByWealthValueGreaterThanEqual(contribution.intValue());
+        if (!levels.isEmpty()) {
+            return new WealthLevelDTO(levels.get(0));
         }
         return null;
     }
     
     public List<WealthLevelDTO> getHigherWealthLevels(Integer currentLevel) {
-        List<WealthLevel> levels = wealthLevelRepository.findHigherWealthLevels(currentLevel);
+        // 查找财富值大于当前等级的用户
+        List<WealthLevel> levels = wealthLevelRepository.findByWealthValueGreaterThanEqual(currentLevel);
         return levels.stream().map(WealthLevelDTO::new).collect(Collectors.toList());
     }
     
     public Integer getUserWealthLevel(BigDecimal totalContribution) {
-        Optional<WealthLevel> levelOpt = wealthLevelRepository.findMatchingWealthLevel(totalContribution);
-        if (levelOpt.isPresent()) {
-            return levelOpt.get().getLevel();
+        // 根据财富值获取等级
+        List<WealthLevel> levels = wealthLevelRepository.findByWealthValueGreaterThanEqual(totalContribution.intValue());
+        if (!levels.isEmpty()) {
+            return levels.get(0).getWealthValue();
         }
         return 1; // 默认青铜等级
     }
     
     public String getUserWealthLevelName(BigDecimal totalContribution) {
-        Optional<WealthLevel> levelOpt = wealthLevelRepository.findMatchingWealthLevel(totalContribution);
-        if (levelOpt.isPresent()) {
-            return levelOpt.get().getName();
+        // 根据财富值获取等级名称
+        List<WealthLevel> levels = wealthLevelRepository.findByWealthValueGreaterThanEqual(totalContribution.intValue());
+        if (!levels.isEmpty()) {
+            return levels.get(0).getLevelName();
         }
         return "青铜"; // 默认等级名称
     }

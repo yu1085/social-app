@@ -15,7 +15,7 @@ public class VipLevel {
     private String name;
     
     @Column(name = "level", nullable = false, unique = true)
-    private Integer level;
+    private Integer level = 0;
     
     @Column(name = "price", precision = 10, scale = 2, nullable = false)
     private BigDecimal price;

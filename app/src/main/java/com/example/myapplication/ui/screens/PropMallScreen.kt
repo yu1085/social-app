@@ -21,6 +21,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.myapplication.model.*
+import com.example.myapplication.viewmodel.LuckyNumberViewModel
+import com.example.myapplication.viewmodel.LuckyNumberUiState
 
 /**
  * 道具商城页面
@@ -30,167 +34,158 @@ fun PropMallScreen(
     onBackClick: () -> Unit,
     onMyPropsClick: () -> Unit = {},
     onItemClick: (PropItem) -> Unit = {},
+    token: String? = null,
     modifier: Modifier = Modifier
 ) {
     var selectedCategory by remember { mutableStateOf(0) } // 0=靓号, 1=进场特效, 2=首饰
+    val luckyNumberViewModel: LuckyNumberViewModel = viewModel()
+    val luckyNumberUiState by luckyNumberViewModel.uiState.collectAsState()
+    
+    // 加载靓号数据
+    LaunchedEffect(selectedCategory) {
+        if (selectedCategory == 0) { // 靓号分类
+            luckyNumberViewModel.loadLuckyNumbers()
+        }
+    }
     
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(Color(0xFFF5F5F5))
     ) {
         // 顶部导航栏
-        TopNavigationBar(
-            onBackClick = onBackClick,
-            onMyPropsClick = onMyPropsClick
+        TopAppBar(
+            title = { Text("道具商城") },
+            navigationIcon = {
+                IconButton(onClick = onBackClick) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "返回")
+                }
+            },
+            actions = {
+                IconButton(onClick = onMyPropsClick) {
+                    Icon(Icons.Default.ShoppingBag, contentDescription = "我的道具")
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.White,
+                titleContentColor = Color.Black,
+                navigationIconContentColor = Color.Black,
+                actionIconContentColor = Color.Black
+            )
         )
         
         // 分类标签
-        CategoryTabs(
-            selectedCategory = selectedCategory,
-            onCategorySelected = { selectedCategory = it }
-        )
-        
-        // 商品网格
-        PropItemsGrid(
-            category = selectedCategory,
-            onItemClick = onItemClick
-        )
-    }
-}
-
-/**
- * 顶部导航栏
- */
-@Composable
-private fun TopNavigationBar(
-    onBackClick: () -> Unit,
-    onMyPropsClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFFF5F5F5))
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onBackClick) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "返回",
-                tint = Color.Black
-            )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            listOf("靓号", "进场特效", "首饰").forEachIndexed { index, category ->
+                FilterChip(
+                    onClick = { selectedCategory = index },
+                    label = { Text(category) },
+                    selected = selectedCategory == index,
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Color(0xFF1677FF),
+                        selectedLabelColor = Color.White,
+                        containerColor = Color(0xFFF0F0F0),
+                        labelColor = Color.Black
+                    )
+                )
+            }
         }
         
-        Text(
-            text = "道具商城",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            modifier = Modifier.weight(1f),
-            textAlign = TextAlign.Center
-        )
-        
-        Text(
-            text = "我的道具",
-            fontSize = 14.sp,
-            color = Color(0xFF1677FF),
-            modifier = Modifier.clickable { onMyPropsClick() }
-        )
-    }
-}
-
-/**
- * 分类标签
- */
-@Composable
-private fun CategoryTabs(
-    selectedCategory: Int,
-    onCategorySelected: (Int) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFFF5F5F5))
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        val categories = listOf("靓号", "进场特效", "首饰")
-        
-        categories.forEachIndexed { index, category ->
-            CategoryTab(
-                text = category,
-                isSelected = selectedCategory == index,
-                onClick = { onCategorySelected(index) },
-                modifier = Modifier.weight(1f)
+        // 内容区域
+        when (selectedCategory) {
+            0 -> LuckyNumberGrid(
+                uiState = luckyNumberUiState,
+                onItemClick = onItemClick,
+                onPurchaseClick = { luckyNumber ->
+                    // 直接跳转到购买页面
+                    onItemClick(PropItem(luckyNumber.number, luckyNumber.price.toString(), luckyNumber = luckyNumber))
+                }
             )
+            1 -> ComingSoonContent("进场特效")
+            2 -> ComingSoonContent("首饰")
         }
     }
 }
 
 /**
- * 分类标签项
+ * 靓号网格
  */
 @Composable
-private fun CategoryTab(
-    text: String,
-    isSelected: Boolean,
+private fun LuckyNumberGrid(
+    uiState: LuckyNumberUiState,
+    onItemClick: (PropItem) -> Unit,
+    onPurchaseClick: (LuckyNumber) -> Unit
+) {
+    when {
+        uiState.isLoading -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+        uiState.error != null -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Error,
+                        contentDescription = "错误",
+                        modifier = Modifier.size(48.dp),
+                        tint = Color.Red
+                    )
+                    Text(
+                        text = uiState.error,
+                        color = Color.Red,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+        else -> {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(uiState.luckyNumbers) { luckyNumber ->
+                    LuckyNumberCard(
+                        luckyNumber = luckyNumber,
+                        onClick = { 
+                            // 直接跳转到购买页面，传递完整的LuckyNumber对象
+                            onItemClick(PropItem(luckyNumber.number, luckyNumber.price.toString(), luckyNumber = luckyNumber))
+                        },
+                        onPurchaseClick = { onPurchaseClick(luckyNumber) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 靓号卡片
+ */
+@Composable
+private fun LuckyNumberCard(
+    luckyNumber: LuckyNumber,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .background(
-                if (isSelected) Color(0xFFE0E0E0) else Color.Transparent,
-                RoundedCornerShape(8.dp)
-            )
-            .clickable { onClick() }
-            .padding(vertical = 8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            fontSize = 14.sp,
-            color = if (isSelected) Color.Black else Color(0xFF666666),
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-        )
-    }
-}
-
-/**
- * 商品网格
- */
-@Composable
-private fun PropItemsGrid(
-    category: Int,
-    onItemClick: (PropItem) -> Unit
-) {
-    val items = getPropItemsByCategory(category)
-    
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(items) { item ->
-            PropItemCard(
-                item = item,
-                onClick = { onItemClick(item) }
-            )
-        }
-    }
-}
-
-/**
- * 商品卡片
- */
-@Composable
-private fun PropItemCard(
-    item: PropItem,
-    onClick: () -> Unit
+    onPurchaseClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -199,149 +194,127 @@ private fun PropItemCard(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        Column {
-            // 商品展示区域
+        Column(
+            modifier = Modifier.padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // 靓号图标
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-                    .background(Color(0xFF2D2D2D))
-            ) {
-                // 限量标签
-                if (item.isLimited) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .background(
-                                Color(0xFF666666),
-                                RoundedCornerShape(bottomStart = 4.dp)
-                            )
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = "限量",
-                            fontSize = 10.sp,
-                            color = Color.White
-                        )
-                    }
-                }
-                
-                // 商品图标和ID
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // 商品图标
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(
-                                Color(0xFFFFD700),
-                                RoundedCornerShape(8.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "靓",
-                            fontSize = 16.sp,
-                            color = Color(0xFF1A1A2E),
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                    
-                    // 商品ID
-                    Text(
-                        text = item.id,
-                        fontSize = 14.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-            
-            // 价格区域
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(12.dp),
+                    .size(60.dp)
+                    .background(
+                        Color(android.graphics.Color.parseColor(luckyNumber.tier.iconColor)),
+                        RoundedCornerShape(12.dp)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = item.price,
-                        fontSize = 16.sp,
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold
-                    )
-                    
-                    // 金币图标
-                    Icon(
-                        imageVector = Icons.Default.MonetizationOn,
-                        contentDescription = "金币",
-                        modifier = Modifier.size(16.dp),
-                        tint = Color(0xFFFFD700)
-                    )
-                }
+                Text(
+                    text = luckyNumber.icon,
+                    fontSize = 24.sp,
+                    color = Color(0xFF1A1A2E),
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // 靓号信息
+            Text(
+                text = luckyNumber.number,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                textAlign = TextAlign.Center
+            )
+            
+            Text(
+                text = luckyNumber.tier.displayName,
+                fontSize = 12.sp,
+                color = Color.Gray,
+                textAlign = TextAlign.Center
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // 价格信息
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = luckyNumber.price.toString(),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFFF6B6B)
+                )
+                Icon(
+                    imageVector = Icons.Default.MonetizationOn,
+                    contentDescription = "金币",
+                    modifier = Modifier.size(16.dp),
+                    tint = Color(0xFFFFD700)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // 购买按钮
+            Button(
+                onClick = onPurchaseClick,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1677FF)),
+                shape = RoundedCornerShape(6.dp)
+            ) {
+                Text(
+                    text = "购买",
+                    fontSize = 14.sp,
+                    color = Color.White
+                )
             }
         }
     }
 }
 
 /**
- * 道具商品数据类
+ * 即将上线内容
+ */
+@Composable
+private fun ComingSoonContent(category: String) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Icon(
+                Icons.Default.Construction,
+                contentDescription = "建设中",
+                modifier = Modifier.size(64.dp),
+                tint = Color.Gray
+            )
+            Text(
+                text = "$category 即将上线",
+                fontSize = 18.sp,
+                color = Color.Gray,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = "敬请期待",
+                fontSize = 14.sp,
+                color = Color.Gray,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+/**
+ * 道具项数据类
  */
 data class PropItem(
     val id: String,
     val price: String,
-    val isLimited: Boolean = true
+    val isLimited: Boolean = true,
+    val luckyNumber: LuckyNumber? = null
 )
-
-/**
- * 根据分类获取商品列表
- */
-private fun getPropItemsByCategory(category: Int): List<PropItem> {
-    return when (category) {
-        0 -> { // 靓号
-            listOf(
-                PropItem("10000005", "88800"),
-                PropItem("12345678", "128000"),
-                PropItem("10000010", "88800"),
-                PropItem("10000011", "58800"),
-                PropItem("10000012", "58800"),
-                PropItem("10000013", "58800"),
-                PropItem("10000014", "58800"),
-                PropItem("10000015", "58800"),
-                PropItem("10000016", "58800"),
-                PropItem("10000017", "58800")
-            )
-        }
-        1 -> { // 进场特效
-            listOf(
-                PropItem("EFFECT001", "50000"),
-                PropItem("EFFECT002", "75000"),
-                PropItem("EFFECT003", "60000"),
-                PropItem("EFFECT004", "45000"),
-                PropItem("EFFECT005", "55000"),
-                PropItem("EFFECT006", "65000")
-            )
-        }
-        2 -> { // 首饰
-            listOf(
-                PropItem("JEWEL001", "30000"),
-                PropItem("JEWEL002", "45000"),
-                PropItem("JEWEL003", "35000"),
-                PropItem("JEWEL004", "40000"),
-                PropItem("JEWEL005", "25000"),
-                PropItem("JEWEL006", "50000")
-            )
-        }
-        else -> emptyList()
-    }
-}

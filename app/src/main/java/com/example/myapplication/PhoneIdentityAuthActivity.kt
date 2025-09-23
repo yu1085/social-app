@@ -30,8 +30,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.example.myapplication.auth.AuthManager
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 // 阿里云融合认证SDK导入（支持三大运营商一键登录）
 import com.alicom.fusion.auth.AlicomFusionAuthCallBack
 import com.alicom.fusion.auth.AlicomFusionAuthUICallBack
@@ -48,13 +51,35 @@ import com.mobile.auth.gatewayauth.CustomInterface
 import com.mobile.auth.gatewayauth.ui.AbstractPnsViewDelegate
 
 class PhoneIdentityAuthActivity : ComponentActivity() {
+    private lateinit var authManager: AuthManager
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // 初始化认证管理器
+        authManager = AuthManager.getInstance(this)
+        
         setContent {
             MyApplicationTheme {
                 PhoneIdentityAuthScreen(
                     onClose = { finish() },
                     onAuthSuccess = { 
+                        // 检查用户是否已登录
+                        if (!authManager.isLoggedIn()) {
+                            Toast.makeText(this, "请先登录后再进行认证", Toast.LENGTH_LONG).show()
+                            return@PhoneIdentityAuthScreen
+                        }
+                        
+                        // 获取用户ID和token
+                        val userId = authManager.getUserId()
+                        val token = authManager.getToken()
+                        
+                        if (userId == -1L || token == null) {
+                            Toast.makeText(this, "认证信息无效，请重新登录", Toast.LENGTH_LONG).show()
+                            return@PhoneIdentityAuthScreen
+                        }
+                        
+                        android.util.Log.d("PhoneAuth", "用户ID: $userId, 手机身份认证成功")
                         Toast.makeText(this, "手机身份认证成功", Toast.LENGTH_SHORT).show()
                         finish()
                     }
@@ -71,11 +96,46 @@ fun PhoneIdentityAuthScreen(
     viewModel: PhoneAuthViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val authManager = remember { AuthManager.getInstance(context) }
     var showDialog by remember { mutableStateOf(true) }
     var phoneNumber by remember { mutableStateOf("198****2076") }
     var isOtherPhone by remember { mutableStateOf(false) }
     var inputPhone by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
+    
+    // 执行手机认证的函数
+    fun performPhoneAuth() {
+        // 检查用户是否已登录
+        if (!authManager.isLoggedIn()) {
+            Toast.makeText(context, "请先登录后再进行认证", Toast.LENGTH_LONG).show()
+            return
+        }
+        
+        // 获取用户ID和token
+        val userId = authManager.getUserId()
+        val token = authManager.getToken()
+        
+        if (userId == -1L || token == null) {
+            Toast.makeText(context, "认证信息无效，请重新登录", Toast.LENGTH_LONG).show()
+            return
+        }
+        
+        isLoading = true
+        // 执行手机认证
+        viewModel.performPhoneAuth(
+            phone = if (isOtherPhone) inputPhone else phoneNumber,
+            userId = userId,
+            token = token,
+            onSuccess = {
+                isLoading = false
+                onAuthSuccess()
+            },
+            onError = { error ->
+                isLoading = false
+                Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
 
     if (showDialog) {
         Dialog(
@@ -91,21 +151,7 @@ fun PhoneIdentityAuthScreen(
                 isLoading = isLoading,
                 onPhoneChange = { inputPhone = it },
                 onToggleOtherPhone = { isOtherPhone = !isOtherPhone },
-                onAuthClick = {
-                    isLoading = true
-                    // 模拟认证过程
-                    viewModel.performPhoneAuth(
-                        phone = if (isOtherPhone) inputPhone else phoneNumber,
-                        onSuccess = {
-                            isLoading = false
-                            onAuthSuccess()
-                        },
-                        onError = { error ->
-                            isLoading = false
-                            Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-                        }
-                    )
-                },
+                onAuthClick = { performPhoneAuth() },
                 onClose = onClose,
                 onTermsClick = {
                     // 打开服务条款页面
@@ -285,6 +331,8 @@ class PhoneAuthViewModel : ViewModel() {
     
     fun performPhoneAuth(
         phone: String,
+        userId: Long,
+        token: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
@@ -297,7 +345,7 @@ class PhoneAuthViewModel : ViewModel() {
                 }
                 
                 // 使用阿里云融合认证SDK进行真实认证
-                performRealAliyunAuth(phone, onSuccess, onError)
+                performRealAliyunAuth(phone, userId, token, onSuccess, onError)
                 
             } catch (e: Exception) {
                 onError("认证失败，请重试")
@@ -310,6 +358,8 @@ class PhoneAuthViewModel : ViewModel() {
      */
     private fun performRealAliyunAuth(
         phone: String,
+        userId: Long,
+        token: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
@@ -382,10 +432,88 @@ class PhoneAuthViewModel : ViewModel() {
         alicomFusionBusiness.startSceneWithTemplateId(context, "100001", uiCallBack)
         */
         
-        // 临时模拟实现（真实SDK集成后删除）
+        // 调用后端手机认证API
         viewModelScope.launch {
-            delay(2000)
-            onSuccess()
+            try {
+                val result = callPhoneAuthAPI(phone, userId, token)
+                if (result.success) {
+                    onSuccess()
+                } else {
+                    onError(result.message)
+                }
+            } catch (e: Exception) {
+                onError("认证失败: ${e.message}")
+            }
+        }
+    }
+    
+    /**
+     * 调用后端手机认证API
+     */
+    private suspend fun callPhoneAuthAPI(phone: String, userId: Long, token: String): PhoneAuthAPIResult = withContext(Dispatchers.IO) {
+        try {
+            android.util.Log.d("PhoneAuth", "调用后端手机认证API: $phone, 用户ID: $userId, token: ${token.take(10)}...")
+            
+            // 构建请求数据 - 适配阿里云API格式
+            val requestData = mapOf(
+                "phoneNumber" to phone,
+                "accessToken" to token  // 使用JWT token作为accessToken
+            )
+            
+            // 发送HTTP请求到后端 - 使用正确的API端点
+            val url = java.net.URL("http://10.0.2.2:8080/api/aliyun/phone-auth/verify-phone")
+            val connection = url.openConnection() as java.net.HttpURLConnection
+            
+            connection.requestMethod = "POST"
+            connection.setRequestProperty("Content-Type", "application/json")
+            connection.setRequestProperty("Accept", "application/json")
+            connection.setRequestProperty("Authorization", "Bearer $token")
+            connection.doOutput = true
+            
+            // 发送请求
+            val outputStream = connection.outputStream
+            val writer = java.io.OutputStreamWriter(outputStream)
+            writer.write(org.json.JSONObject(requestData).toString())
+            writer.flush()
+            writer.close()
+            
+            // 读取响应
+            val responseCode = connection.responseCode
+            val response = java.io.BufferedReader(connection.inputStream.reader()).use { it.readText() }
+            
+            android.util.Log.d("PhoneAuth", "手机认证API响应: $response")
+            
+            val jsonResponse = org.json.JSONObject(response)
+            val success = jsonResponse.optBoolean("success", false)
+            val message = jsonResponse.optString("message", "")
+            val phoneNumber = jsonResponse.optString("phoneNumber", phone)
+            val authToken = jsonResponse.optString("authToken", "")
+            
+            if (success) {
+                // 阿里云API成功时，认为验证通过
+                PhoneAuthAPIResult(
+                    success = true,
+                    verified = true,
+                    message = message,
+                    operator = "阿里云认证"
+                )
+            } else {
+                PhoneAuthAPIResult(
+                    success = false,
+                    verified = false,
+                    message = message.ifEmpty { "认证失败" },
+                    operator = ""
+                )
+            }
+            
+        } catch (e: Exception) {
+            android.util.Log.e("PhoneAuth", "手机认证API调用失败", e)
+            PhoneAuthAPIResult(
+                success = false,
+                verified = false,
+                message = "网络错误: ${e.message}",
+                operator = ""
+            )
         }
     }
     
@@ -421,3 +549,13 @@ class PhoneAuthViewModel : ViewModel() {
         return phone.matches(Regex("^1[3-9]\\d{9}$"))
     }
 }
+
+/**
+ * 手机认证API结果
+ */
+data class PhoneAuthAPIResult(
+    val success: Boolean,
+    val verified: Boolean,
+    val message: String,
+    val operator: String
+)

@@ -1,115 +1,88 @@
 package com.example.socialmeet.dto;
 
 import com.example.socialmeet.entity.WealthLevel;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+
+import java.util.List;
 
 public class WealthLevelDTO {
     private Long id;
-    private String name;
-    private Integer level;
-    private BigDecimal minContribution;
-    private BigDecimal maxContribution;
-    private String benefits;
-    private String iconUrl;
-    private Boolean isActive;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Long userId;
+    private Integer wealthValue;
+    private String levelName;
+    private String levelIcon;
+    private String levelColor;
+    private Integer minWealthValue;
+    private Integer maxWealthValue;
+    private Double progressPercentage;
+    private Integer nextLevelRequirement;
+    private String nextLevelName;
+    private String nextLevelIcon;
+    private String nextLevelColor;
+    private List<WealthLevel.PrivilegeType> privileges;
+    private Long userRank;
     
-    // Constructors
     public WealthLevelDTO() {}
     
     public WealthLevelDTO(WealthLevel wealthLevel) {
         this.id = wealthLevel.getId();
-        this.name = wealthLevel.getName();
-        this.level = wealthLevel.getLevel();
-        this.minContribution = wealthLevel.getMinContribution();
-        this.maxContribution = wealthLevel.getMaxContribution();
-        this.benefits = wealthLevel.getBenefits();
-        this.iconUrl = wealthLevel.getIconUrl();
-        this.isActive = wealthLevel.getIsActive();
-        this.createdAt = wealthLevel.getCreatedAt();
-        this.updatedAt = wealthLevel.getUpdatedAt();
+        this.userId = wealthLevel.getUserId();
+        this.wealthValue = wealthLevel.getWealthValue();
+        this.levelName = wealthLevel.getLevelName();
+        this.levelIcon = wealthLevel.getLevelIcon();
+        this.levelColor = wealthLevel.getLevelColor();
+        this.minWealthValue = wealthLevel.getMinWealthValue();
+        this.maxWealthValue = wealthLevel.getMaxWealthValue();
+        // 进度和下一等级信息需要在服务层计算，这里先设为null
+        this.progressPercentage = null;
+        this.nextLevelRequirement = null;
+        this.nextLevelName = null;
+        this.nextLevelIcon = null;
+        this.nextLevelColor = null;
     }
     
     // Getters and Setters
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
     
-    public String getName() {
-        return name;
-    }
+    public Integer getWealthValue() { return wealthValue; }
+    public void setWealthValue(Integer wealthValue) { this.wealthValue = wealthValue; }
     
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getLevelName() { return levelName; }
+    public void setLevelName(String levelName) { this.levelName = levelName; }
     
-    public Integer getLevel() {
-        return level;
-    }
+    public String getLevelIcon() { return levelIcon; }
+    public void setLevelIcon(String levelIcon) { this.levelIcon = levelIcon; }
     
-    public void setLevel(Integer level) {
-        this.level = level;
-    }
+    public String getLevelColor() { return levelColor; }
+    public void setLevelColor(String levelColor) { this.levelColor = levelColor; }
     
-    public BigDecimal getMinContribution() {
-        return minContribution;
-    }
+    public Integer getMinWealthValue() { return minWealthValue; }
+    public void setMinWealthValue(Integer minWealthValue) { this.minWealthValue = minWealthValue; }
     
-    public void setMinContribution(BigDecimal minContribution) {
-        this.minContribution = minContribution;
-    }
+    public Integer getMaxWealthValue() { return maxWealthValue; }
+    public void setMaxWealthValue(Integer maxWealthValue) { this.maxWealthValue = maxWealthValue; }
     
-    public BigDecimal getMaxContribution() {
-        return maxContribution;
-    }
+    public Double getProgressPercentage() { return progressPercentage; }
+    public void setProgressPercentage(Double progressPercentage) { this.progressPercentage = progressPercentage; }
     
-    public void setMaxContribution(BigDecimal maxContribution) {
-        this.maxContribution = maxContribution;
-    }
+    public Integer getNextLevelRequirement() { return nextLevelRequirement; }
+    public void setNextLevelRequirement(Integer nextLevelRequirement) { this.nextLevelRequirement = nextLevelRequirement; }
     
-    public String getBenefits() {
-        return benefits;
-    }
+    public String getNextLevelName() { return nextLevelName; }
+    public void setNextLevelName(String nextLevelName) { this.nextLevelName = nextLevelName; }
     
-    public void setBenefits(String benefits) {
-        this.benefits = benefits;
-    }
+    public String getNextLevelIcon() { return nextLevelIcon; }
+    public void setNextLevelIcon(String nextLevelIcon) { this.nextLevelIcon = nextLevelIcon; }
     
-    public String getIconUrl() {
-        return iconUrl;
-    }
+    public String getNextLevelColor() { return nextLevelColor; }
+    public void setNextLevelColor(String nextLevelColor) { this.nextLevelColor = nextLevelColor; }
     
-    public void setIconUrl(String iconUrl) {
-        this.iconUrl = iconUrl;
-    }
+    public List<WealthLevel.PrivilegeType> getPrivileges() { return privileges; }
+    public void setPrivileges(List<WealthLevel.PrivilegeType> privileges) { this.privileges = privileges; }
     
-    public Boolean getIsActive() {
-        return isActive;
-    }
-    
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive;
-    }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-    
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-    
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+    public Long getUserRank() { return userRank; }
+    public void setUserRank(Long userRank) { this.userRank = userRank; }
 }

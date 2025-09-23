@@ -104,6 +104,7 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
     
+    
     // 支付宝SDK依赖 - 暂时注释掉，因为无法从Maven仓库下载
     // implementation("com.alipay.sdk:alipay-sdk-android:15.8.11")
     // implementation("com.alipay.sdk:alipay-sdk-java:4.38.10.ALL")

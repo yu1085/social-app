@@ -5,6 +5,7 @@ app:
     app-id: 2021005195696348
     # 应用私钥（PKCS8格式）
     private-key: |
+      -----BEGIN PRIVATE KEY-----
       MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDqB+lFYhZb4HYq
       ZbFuJnssWHtIWpq7eiMHtgEjMfUx7GsCVjewS+ERFvZArsBIapBS3xld5YyHgGB6
       hpNGyOHYHypDL5Eco+hpa6GgkX6HX3QwHj30sVjljNQ956BzuwfWbVxQe7kgDXwe
@@ -31,6 +32,7 @@ app:
       dNOUCBZVduIrSrprpwxv8KZeScZGj7YK6hBNVQ4WqGfsQu/LDzmxdNmJmLzikIjc
       5e8qbKbPro22s7/rVudTqcuIhzZimElea+jxuIgIpFmT4k1KwL7JxvEtcNG/cfvJ
       pR0dSZbITFu4rfL6Id5BpFy5
+      -----END PRIVATE KEY-----
     # 支付宝公钥（从开放平台获取）
     public-key: |
       MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgxU8Ld4qgs08Uvqn/EpO6KQ4n1TwRnxDjpEjBjuwp3RmJxvytX0tkaE+/B7Wt2m5tzlNJjEfxKLAvFrsIX8IC8/gTVW7c0vMCHlUW0YEAPlhnuMMXVQIDKKJqUQ/wUAeWy4Isss2gSJGMgsqKz+Mi8ITK2d803ReKESN0pDnJCWS0m7dl2oOi3yNQNW+5Km5la8wv7v0qWvbMChgtj5Y2PcGYQC9x9XBzrTm6eKIJP667MzxbDc7dtxBV+NXcDY8e+xSdNdc9z7i4WCoet00N9zbn7E8cfU4Qb0joHh8kXIMmUnBWQ2oyxc/Wzcr/WOMTs9mzBOn93HLLAilC3KxyQIDAQAB

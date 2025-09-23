@@ -1,6 +1,6 @@
 package com.example.socialmeet.service;
 
-// 暂时注释阿里云SMS SDK导入，使用模拟实现
+// 暂时注释阿里云SMS SDK导入，使用模拟实现  
 // import com.aliyun.dysmsapi20170525.Client;
 // import com.aliyun.dysmsapi20170525.models.SendSmsRequest;
 // import com.aliyun.dysmsapi20170525.models.SendSmsResponse;

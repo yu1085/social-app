@@ -1,87 +1,205 @@
-package com.example.myapplication.ui.screens
+﻿package com.example.myapplication.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.myapplication.ui.components.WealthLevelCard
+import com.example.myapplication.ui.components.PrivilegeList
+import com.example.myapplication.ui.components.WealthLevelRules
+import com.example.myapplication.viewmodel.WealthLevelViewModel
+import com.example.myapplication.model.WealthLevelData
+import com.example.myapplication.model.PrivilegeType
+import kotlin.random.Random
 
 /**
- * 财富等级页面
+ * 财富等级主页面
+ * 显示用户当前等级、特权等信息
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WealthLevelScreen(
     onBackClick: () -> Unit,
     onRulesClick: () -> Unit = {},
-    onPromotionMallClick: () -> Unit = {},
+    token: String? = null,
     modifier: Modifier = Modifier
 ) {
-    val scrollState = rememberScrollState()
+    val viewModel: WealthLevelViewModel = viewModel()
+    val uiState by viewModel.uiState.collectAsState()
+    
+    // 加载数据
+    LaunchedEffect(token) {
+        token?.let { 
+            viewModel.loadWealthLevel(it)
+        }
+    }
     
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(
-                Brush.verticalGradient(
+                Brush.radialGradient(
                     colors = listOf(
                         Color(0xFF1A1A2E),
                         Color(0xFF16213E),
-                        Color(0xFF0F3460)
-                    )
+                        Color(0xFF0F0F23),
+                        Color(0xFF000000)
+                    ),
+                    radius = 1200f
                 )
             )
+            .drawWithContent {
+                drawContent()
+                // 绘制动态星空背景
+                val starCount = 80
+                repeat(starCount) {
+                    val x = Random.nextFloat() * size.width
+                    val y = Random.nextFloat() * size.height
+                    val alpha = Random.nextFloat() * 0.9f + 0.1f
+                    val starSize = Random.nextFloat() * 3f + 0.5f
+                    
+                    // 绘制星星
+                    drawCircle(
+                        color = Color.White.copy(alpha = alpha),
+                        radius = starSize,
+                        center = Offset(x, y)
+                    )
+                    
+                    // 添加星星闪烁效果
+                    if (Random.nextFloat() > 0.7f) {
+                        drawCircle(
+                            color = Color(0xFFFFD700).copy(alpha = alpha * 0.6f),
+                            radius = starSize * 1.5f,
+                            center = Offset(x, y)
+                        )
+                    }
+                }
+            }
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
+            modifier = Modifier.fillMaxSize()
         ) {
-            // 顶部导航栏
-            TopNavigationBar(
+            // 自定义顶部导航栏
+            CustomTopBar(
                 onBackClick = onBackClick,
                 onRulesClick = onRulesClick
             )
             
-            // 等级进度指示器
-            LevelProgressIndicator()
-            
-            // 当前等级信息卡片
-            CurrentLevelCard()
-            
-            // 权益展示区域
-            PrivilegesSection()
-            
-            Spacer(modifier = Modifier.height(20.dp))
+            if (uiState.isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = Color(0xFFFFD700),
+                        strokeWidth = 3.dp
+                    )
+                }
+            } else if (uiState.error != null) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Text(
+                            text = "加载失败: ${uiState.error}",
+                            color = Color.Red,
+                            fontSize = 16.sp
+                        )
+                        
+                        Button(
+                            onClick = { 
+                                token?.let { viewModel.refresh(it) }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFFD700)
+                            )
+                        ) {
+                            Text("重试", color = Color.Black)
+                        }
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp)
+                ) {
+                    // 等级进度条
+                    item {
+                        LevelProgressBar(
+                            currentLevel = uiState.wealthLevel?.levelName ?: "普通",
+                            currentWealth = uiState.wealthLevel?.wealthValue ?: 0
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                    
+                    // 当前等级卡片
+                    uiState.wealthLevel?.let { level: WealthLevelData ->
+                        item {
+                            PremiumLevelCard(
+                                levelName = level.levelName,
+                                levelIcon = level.levelIcon,
+                                levelColor = level.levelColor,
+                                wealthValue = level.wealthValue,
+                                progressPercentage = level.progressPercentage,
+                                nextLevelName = level.nextLevelName,
+                                nextLevelRequirement = level.nextLevelRequirement
+                            )
+                            Spacer(modifier = Modifier.height(24.dp))
+                        }
+                    }
+                    
+                    // 特权区域
+                    if (uiState.privileges.isNotEmpty()) {
+                        item {
+                            PremiumPrivilegeSection(privileges = uiState.privileges)
+                            Spacer(modifier = Modifier.height(24.dp))
+                        }
+                    }
+                    
+                    // 促销商城按钮
+                    item {
+                        PremiumPromotionMallButton()
+                    }
+                }
+            }
         }
-        
-        // 右侧促销商城按钮
-        PromotionMallButton(
-            onPromotionMallClick = onPromotionMallClick,
-            modifier = Modifier.align(Alignment.CenterEnd)
-        )
     }
 }
 
 /**
- * 顶部导航栏
+ * 自定义顶部导航栏
  */
 @Composable
-private fun TopNavigationBar(
+private fun CustomTopBar(
     onBackClick: () -> Unit,
     onRulesClick: () -> Unit
 ) {
@@ -89,470 +207,539 @@ private fun TopNavigationBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = onBackClick) {
+        // 返回按钮
+        IconButton(
+            onClick = onBackClick,
+            modifier = Modifier
+                .size(40.dp)
+                .background(
+                    Color.Black.copy(alpha = 0.3f),
+                    CircleShape
+                )
+        ) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "返回",
-                tint = Color.White
+                tint = Color.White,
+                modifier = Modifier.size(20.dp)
             )
         }
         
+        // 标题
         Text(
             text = "财富等级",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
             color = Color.White,
-            modifier = Modifier.weight(1f),
-            textAlign = TextAlign.Center
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
         )
         
-        Text(
-            text = "规则说明*",
-            fontSize = 14.sp,
-            color = Color.White,
-            modifier = Modifier.clickable { onRulesClick() }
-        )
-    }
-}
-
-/**
- * 等级进度指示器
- */
-@Composable
-private fun LevelProgressIndicator() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 20.dp)
-    ) {
-        // 进度条
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(4.dp)
-                .background(
-                    Color(0xFF2D2D2D),
-                    RoundedCornerShape(2.dp)
-                )
+        // 规则说明按钮
+        TextButton(
+            onClick = onRulesClick,
+            colors = ButtonDefaults.textButtonColors(
+                contentColor = Color(0xFFFFD700)
+            )
         ) {
-            // 金色进度条
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(0.6f) // 60%进度
-                    .background(
-                        Color(0xFFFFD700),
-                        RoundedCornerShape(2.dp)
-                    )
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // 等级标签
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            // 白银
-            LevelLabel(
-                text = "白银",
-                isActive = false,
-                modifier = Modifier.weight(1f)
-            )
-            
-            // 黄金
-            LevelLabel(
-                text = "黄金",
-                isActive = true,
-                modifier = Modifier.weight(1f)
-            )
-            
-            // 铂金
-            LevelLabel(
-                text = "铂金",
-                isActive = false,
-                isLocked = true,
-                modifier = Modifier.weight(1f)
+            Text(
+                text = "规则说明",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium
             )
         }
     }
 }
 
 /**
- * 等级标签
+ * 等级进度条
  */
 @Composable
-private fun LevelLabel(
-    text: String,
-    isActive: Boolean,
-    isLocked: Boolean = false,
-    modifier: Modifier = Modifier
+private fun LevelProgressBar(
+    currentLevel: String,
+    currentWealth: Int
 ) {
+    val levels = listOf("白银", "黄金", "铂金")
+    val currentIndex = when (currentLevel) {
+        "白银" -> 0
+        "黄金" -> 1
+        "铂金" -> 2
+        else -> 0
+    }
+    
     Column(
-        modifier = modifier,
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (isActive) {
-            // 当前等级显示金色圆圈
-            Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .background(
-                        Color(0xFFFFD700),
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .background(
-                            Color(0xFFFFD700),
-                            CircleShape
-                        )
-                )
-            }
-        } else if (isLocked) {
-            // 锁定状态显示锁图标
-            Icon(
-                imageVector = Icons.Default.Lock,
-                contentDescription = "锁定",
-                modifier = Modifier.size(16.dp),
-                tint = Color(0xFF666666)
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(4.dp))
-        
-        Text(
-            text = text,
-            fontSize = 12.sp,
-            color = if (isActive) Color(0xFFFFD700) else Color.White,
-            fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal
-        )
-    }
-}
-
-/**
- * 当前等级信息卡片
- */
-@Composable
-private fun CurrentLevelCard() {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2D2D2D)
-        )
-    ) {
+        // 进度条
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 左侧信息
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                // 当前等级标签
-                Box(
-                    modifier = Modifier
-                        .background(
-                            Color(0xFFFFD700),
-                            RoundedCornerShape(4.dp)
-                        )
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = "当前等级",
-                        fontSize = 10.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // 等级名称
-                Text(
-                    text = "黄金",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFFFD700)
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // 财富值信息
+            levels.forEachIndexed { index, level ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // 等级名称
                     Text(
-                        text = "我的财富值: 9668?",
+                        text = level,
+                        color = if (index <= currentIndex) Color(0xFFFFD700) else Color.Gray,
                         fontSize = 14.sp,
-                        color = Color.White
+                        fontWeight = FontWeight.Medium
                     )
-                    Icon(
-                        imageVector = Icons.Default.Help,
-                        contentDescription = "帮助",
-                        modifier = Modifier.size(16.dp),
-                        tint = Color(0xFF999999)
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(4.dp))
-                
-                Text(
-                    text = "财富值达5000可享当前等级权益",
-                    fontSize = 12.sp,
-                    color = Color(0xFF999999)
-                )
-            }
-            
-            // 右侧徽章
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .background(
-                        Color(0xFFFFD700),
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = "黄金徽章",
-                    modifier = Modifier.size(40.dp),
-                    tint = Color(0xFF1A1A2E)
-                )
-            }
-        }
-    }
-}
-
-/**
- * 权益展示区域
- */
-@Composable
-private fun PrivilegesSection() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        // 标题
-        Text(
-            text = "◇ 尊享黄金4项权益 ◇",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFFFFD700),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // 权益网格
-        Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // 第一行
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                PrivilegeItem(
-                    icon = Icons.Default.DirectionsCar,
-                    title = "进场特效折扣",
-                    discount = "7折",
-                    isUnlocked = true,
-                    modifier = Modifier.weight(1f)
-                )
-                PrivilegeItem(
-                    icon = Icons.Default.Badge,
-                    title = "靓号购买折扣",
-                    discount = "8折",
-                    isUnlocked = true,
-                    modifier = Modifier.weight(1f)
-                )
-                PrivilegeItem(
-                    icon = Icons.Default.LocalOffer,
-                    title = "每周促销",
-                    discount = null,
-                    isUnlocked = true,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-            
-            // 第二行
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                PrivilegeItem(
-                    icon = Icons.Default.CheckCircle,
-                    title = "购买会员折扣",
-                    discount = "8折",
-                    isUnlocked = true,
-                    modifier = Modifier.weight(1f)
-                )
-                PrivilegeItem(
-                    icon = Icons.Default.HeadsetMic,
-                    title = "专属客服特权",
-                    discount = null,
-                    isUnlocked = false,
-                    modifier = Modifier.weight(1f)
-                )
-                PrivilegeItem(
-                    icon = Icons.Default.DirectionsCar,
-                    title = "专属进场特效",
-                    discount = null,
-                    isUnlocked = false,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-            
-            // 第三行
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                PrivilegeItem(
-                    icon = Icons.Default.CardGiftcard,
-                    title = "专属礼物特权",
-                    discount = null,
-                    isUnlocked = false,
-                    modifier = Modifier.weight(1f)
-                )
-                PrivilegeItem(
-                    icon = Icons.Default.Star,
-                    title = "靓号定制特权",
-                    discount = null,
-                    isUnlocked = false,
-                    modifier = Modifier.weight(1f)
-                )
-                // 第三列留空
-                Spacer(modifier = Modifier.weight(1f))
-            }
-        }
-    }
-}
-
-/**
- * 权益项
- */
-@Composable
-private fun PrivilegeItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    discount: String?,
-    isUnlocked: Boolean,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier.size(60.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            // 权益图标
-            Box(
-                modifier = Modifier
-                    .size(50.dp)
-                    .background(
-                        if (isUnlocked) Color(0xFFFFD700) else Color(0xFF666666),
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = title,
-                    modifier = Modifier.size(24.dp),
-                    tint = if (isUnlocked) Color(0xFF1A1A2E) else Color(0xFF999999)
-                )
-            }
-            
-            // 折扣标签
-            if (discount != null && isUnlocked) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .background(
-                            Color(0xFFFF4444),
-                            RoundedCornerShape(8.dp)
+                    
+                    // 连接线
+                    if (index < levels.size - 1) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Box(
+                            modifier = Modifier
+                                .width(40.dp)
+                                .height(2.dp)
+                                .background(
+                                    if (index < currentIndex) Color(0xFFFFD700) else Color.Gray.copy(alpha = 0.3f),
+                                    RoundedCornerShape(1.dp)
+                                )
                         )
-                        .padding(horizontal = 4.dp, vertical = 2.dp)
-                ) {
-                    Text(
-                        text = discount,
-                        fontSize = 10.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
                 }
-            }
-            
-            // 锁定图标
-            if (!isUnlocked) {
-                Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = "锁定",
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .size(16.dp),
-                    tint = Color(0xFF999999)
-                )
             }
         }
         
         Spacer(modifier = Modifier.height(8.dp))
         
-        Text(
-            text = title,
-            fontSize = 12.sp,
-            color = if (isUnlocked) Color.White else Color(0xFF666666),
-            textAlign = TextAlign.Center,
-            lineHeight = 14.sp
-        )
+        // 星星装饰
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            repeat(5) { index ->
+                Text(
+                    text = if (index <= currentIndex) "⭐" else "☆",
+                    fontSize = 12.sp
+                )
+            }
+        }
     }
 }
 
 /**
- * 促销商城按钮
+ * 精美等级卡片
  */
 @Composable
-private fun PromotionMallButton(
-    onPromotionMallClick: () -> Unit,
-    modifier: Modifier = Modifier
+private fun PremiumLevelCard(
+    levelName: String,
+    levelIcon: String,
+    levelColor: String,
+    wealthValue: Int,
+    progressPercentage: Double,
+    nextLevelName: String?,
+    nextLevelRequirement: Int?
 ) {
-    Box(
-        modifier = modifier
-            .width(60.dp)
-            .height(120.dp)
-            .background(
-                Color(0xFFFFD700),
-                RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp)
-            )
-            .clickable { onPromotionMallClick() }
-            .padding(vertical = 16.dp),
-        contentAlignment = Alignment.Center
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.Transparent
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Text(
-            text = "促销\n商城",
-            fontSize = 12.sp,
-            color = Color(0xFF1A1A2E),
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            lineHeight = 14.sp
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFFFFD700).copy(alpha = 0.15f),
+                            Color(0xFFFFA500).copy(alpha = 0.08f),
+                            Color(0xFFFF8C00).copy(alpha = 0.05f)
+                        )
+                    ),
+                    RoundedCornerShape(24.dp)
+                )
+                .border(
+                    width = 1.dp,
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFFFFD700).copy(alpha = 0.3f),
+                            Color(0xFFFFA500).copy(alpha = 0.2f)
+                        )
+                    ),
+                    shape = RoundedCornerShape(24.dp)
+                )
+        ) {
+            Column(
+                modifier = Modifier.padding(28.dp)
+            ) {
+                // 标题
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "当前等级",
+                        color = Color(0xFFFFD700),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "◆",
+                        color = Color(0xFFFFD700),
+                        fontSize = 12.sp
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // 等级信息
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = levelName,
+                            color = Color.White,
+                            fontSize = 36.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        )
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "我的财富值: ",
+                                color = Color.White.copy(alpha = 0.8f),
+                                fontSize = 16.sp
+                            )
+                            Text(
+                                text = "$wealthValue",
+                                color = Color(0xFFFFD700),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = " ?",
+                                color = Color.White.copy(alpha = 0.8f),
+                                fontSize = 16.sp
+                            )
+                        }
+                        
+                        if (nextLevelRequirement != null) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "财富值达${nextLevelRequirement}可享当前等级权益",
+                                color = Color.Gray,
+                                fontSize = 13.sp,
+                                lineHeight = 18.sp
+                            )
+                        }
+                    }
+                    
+                    // 等级徽章
+                    Box(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .background(
+                                Brush.radialGradient(
+                                    colors = listOf(
+                                        Color(0xFFFFD700),
+                                        Color(0xFFFFA500),
+                                        Color(0xFFFF8C00),
+                                        Color(0xFFFF4500)
+                                    )
+                                ),
+                                RoundedCornerShape(25.dp)
+                            )
+                            .border(
+                                width = 2.dp,
+                                brush = Brush.linearGradient(
+                                    colors = listOf(
+                                        Color.White.copy(alpha = 0.3f),
+                                        Color.Transparent
+                                    )
+                                ),
+                                shape = RoundedCornerShape(25.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "👑",
+                            fontSize = 50.sp
+                        )
+                    }
+                }
+            }
+        }
     }
 }
+
+/**
+ * 精美特权区域
+ */
+@Composable
+private fun PremiumPrivilegeSection(privileges: List<PrivilegeType>) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.Transparent
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFF1A1A2E).copy(alpha = 0.9f),
+                            Color(0xFF16213E).copy(alpha = 0.8f)
+                        )
+                    ),
+                    RoundedCornerShape(20.dp)
+                )
+                .border(
+                    width = 1.dp,
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFFFFD700).copy(alpha = 0.2f),
+                            Color.Transparent
+                        )
+                    ),
+                    shape = RoundedCornerShape(20.dp)
+                )
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp)
+            ) {
+                // 标题
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "◇",
+                        color = Color(0xFFFFD700),
+                        fontSize = 18.sp
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "尊享${privileges.size}项权益",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "◇",
+                        color = Color(0xFFFFD700),
+                        fontSize = 18.sp
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // 特权网格
+                val privilegeChunks = privileges.chunked(3)
+                privilegeChunks.forEach { rowPrivileges ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        rowPrivileges.forEach { privilege ->
+                            PremiumPrivilegeItem(
+                                privilege = privilege,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        // 填充空白
+                        repeat(3 - rowPrivileges.size) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                    if (rowPrivileges != privilegeChunks.last()) {
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 精美特权项目
+ */
+@Composable
+private fun PremiumPrivilegeItem(
+    privilege: PrivilegeType,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.padding(4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 特权图标
+        Box(
+            modifier = Modifier
+                .size(70.dp)
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color(0xFFFFD700).copy(alpha = 0.3f),
+                            Color(0xFFFFA500).copy(alpha = 0.1f)
+                        )
+                    ),
+                    CircleShape
+                )
+                .border(
+                    width = 1.dp,
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFFFFD700).copy(alpha = 0.5f),
+                            Color.Transparent
+                        )
+                    ),
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            // 根据特权类型显示不同图标
+            val icon = when (privilege) {
+                PrivilegeType.LUCKY_NUMBER_DISCOUNT -> "💎"
+                PrivilegeType.WEEKLY_PROMOTION -> "🛍️"
+                PrivilegeType.VIP_DISCOUNT -> "👑"
+                PrivilegeType.EFFECT_DISCOUNT -> "✨"
+                PrivilegeType.FREE_VIP -> "🎁"
+                PrivilegeType.FREE_EFFECT -> "🌟"
+                PrivilegeType.EXCLUSIVE_EFFECT -> "🎭"
+                PrivilegeType.LUCKY_NUMBER_CUSTOM -> "🔢"
+                PrivilegeType.EXCLUSIVE_GIFT -> "🎀"
+                PrivilegeType.EXCLUSIVE_SERVICE -> "🎧"
+            }
+            
+            Text(
+                text = icon,
+                fontSize = 28.sp
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        // 特权名称
+        Text(
+            text = privilege.displayName,
+            color = Color.White,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 2,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            lineHeight = 16.sp
+        )
+        
+        Spacer(modifier = Modifier.height(4.dp))
+        
+        // 折扣标签（如果有）
+        if (privilege == PrivilegeType.LUCKY_NUMBER_DISCOUNT || 
+            privilege == PrivilegeType.VIP_DISCOUNT || 
+            privilege == PrivilegeType.EFFECT_DISCOUNT) {
+            Box(
+                modifier = Modifier
+                    .background(
+                        Color(0xFFFF4444),
+                        RoundedCornerShape(8.dp)
+                    )
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text = when (privilege) {
+                        PrivilegeType.LUCKY_NUMBER_DISCOUNT -> "8折"
+                        PrivilegeType.VIP_DISCOUNT -> "8折"
+                        PrivilegeType.EFFECT_DISCOUNT -> "7折"
+                        else -> ""
+                    },
+                    color = Color.White,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+/**
+ * 精美促销商城按钮
+ */
+@Composable
+private fun PremiumPromotionMallButton() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { /* 跳转到促销商城 */ },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF1A1A2E).copy(alpha = 0.8f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ShoppingCart,
+                    contentDescription = "促销商城",
+                    tint = Color(0xFFFFD700),
+                    modifier = Modifier.size(24.dp)
+                )
+                
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                Text(
+                    text = "促销商城",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            
+            Text(
+                text = "→",
+                color = Color(0xFFFFD700),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+/**
+ * 财富等级数据类
+ */
+data class WealthLevelData(
+    val levelName: String,
+    val levelIcon: String,
+    val levelColor: String,
+    val wealthValue: Int,
+    val progressPercentage: Double,
+    val nextLevelName: String?,
+    val nextLevelRequirement: Int?
+)
+

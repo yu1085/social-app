@@ -19,14 +19,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myapplication.ui.theme.MyApplicationTheme
 
+/**
+ * 财富等级规则说明页面
+ */
 class WealthRulesActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            WealthRulesScreen(
-                onBackClick = { finish() }
-            )
+            MyApplicationTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    WealthRulesScreen(
+                        onBackClick = { finish() }
+                    )
+                }
+            }
         }
     }
 }

@@ -56,30 +56,50 @@ public class DataInitializer implements CommandLineRunner {
     
     private void initializeWealthLevels() {
         if (wealthLevelRepository.count() == 0) {
-            // 青铜
-            WealthLevel bronze = new WealthLevel("青铜", 1, BigDecimal.ZERO, new BigDecimal("99.99"), 
-                    "基础财富等级");
+            // 创建示例用户财富等级数据
+            // 青铜等级用户 (1000财富值)
+            WealthLevel bronze = new WealthLevel(1L, 1000);
             wealthLevelRepository.save(bronze);
             
-            // 白银
-            WealthLevel silver = new WealthLevel("白银", 2, new BigDecimal("100.00"), new BigDecimal("499.99"), 
-                    "中等财富等级");
+            // 白银等级用户 (2000财富值)
+            WealthLevel silver = new WealthLevel(2L, 2000);
             wealthLevelRepository.save(silver);
             
-            // 黄金
-            WealthLevel gold = new WealthLevel("黄金", 3, new BigDecimal("500.00"), new BigDecimal("999.99"), 
-                    "高级财富等级");
+            // 黄金等级用户 (5000财富值)
+            WealthLevel gold = new WealthLevel(3L, 5000);
             wealthLevelRepository.save(gold);
             
-            // 钻石
-            WealthLevel diamond = new WealthLevel("钻石", 4, new BigDecimal("1000.00"), new BigDecimal("4999.99"), 
-                    "顶级财富等级");
-            wealthLevelRepository.save(diamond);
+            // 铂金等级用户 (10000财富值)
+            WealthLevel platinum = new WealthLevel(4L, 10000);
+            wealthLevelRepository.save(platinum);
             
-            // 王者
-            WealthLevel king = new WealthLevel("王者", 5, new BigDecimal("5000.00"), null, 
-                    "至尊财富等级");
-            wealthLevelRepository.save(king);
+            // 青钻等级用户 (30000财富值)
+            WealthLevel cyanDiamond = new WealthLevel(5L, 30000);
+            wealthLevelRepository.save(cyanDiamond);
+            
+            // 蓝钻等级用户 (50000财富值)
+            WealthLevel blueDiamond = new WealthLevel(6L, 50000);
+            wealthLevelRepository.save(blueDiamond);
+            
+            // 紫钻等级用户 (100000财富值)
+            WealthLevel purpleDiamond = new WealthLevel(7L, 100000);
+            wealthLevelRepository.save(purpleDiamond);
+            
+            // 橙钻等级用户 (300000财富值)
+            WealthLevel orangeDiamond = new WealthLevel(8L, 300000);
+            wealthLevelRepository.save(orangeDiamond);
+            
+            // 红钻等级用户 (500000财富值)
+            WealthLevel redDiamond = new WealthLevel(9L, 500000);
+            wealthLevelRepository.save(redDiamond);
+            
+            // 金钻等级用户 (700000财富值)
+            WealthLevel goldDiamond = new WealthLevel(10L, 700000);
+            wealthLevelRepository.save(goldDiamond);
+            
+            // 黑钻等级用户 (1000000财富值)
+            WealthLevel blackDiamond = new WealthLevel(11L, 1000000);
+            wealthLevelRepository.save(blackDiamond);
         }
     }
     

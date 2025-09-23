@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.camera.FaceCameraPreview
 import com.example.myapplication.service.AliyunFaceAuthService
+import com.example.myapplication.auth.AuthManager
 // import com.google.mlkit.vision.face.Face  // 已移除Google ML Kit
 import androidx.compose.runtime.*
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -41,16 +42,39 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 
 class RealPersonAuthActivity : ComponentActivity() {
+    private lateinit var authManager: AuthManager
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // 初始化认证管理器
+        authManager = AuthManager.getInstance(this)
+        
         setContent {
             MyApplicationTheme {
                 RealPersonAuthScreen(
                     onClose = { finish() },
                     onStartAuth = { 
+                        // 检查用户是否已登录
+                        if (!authManager.isLoggedIn()) {
+                            Toast.makeText(this, "请先登录后再进行认证", Toast.LENGTH_LONG).show()
+                            return@RealPersonAuthScreen
+                        }
+                        
+                        // 获取用户ID和token
+                        val userId = authManager.getUserId()
+                        val token = authManager.getToken()
+                        
+                        if (userId == -1L || token == null) {
+                            Toast.makeText(this, "认证信息无效，请重新登录", Toast.LENGTH_LONG).show()
+                            return@RealPersonAuthScreen
+                        }
+                        
+                        android.util.Log.d("RealPersonAuth", "用户ID: $userId, 开始真人认证")
                         Toast.makeText(this, "开始真人认证", Toast.LENGTH_SHORT).show()
-                        // TODO: 实现真实的认证逻辑
-                    }
+                    },
+                    userId = authManager.getUserId(),
+                    token = authManager.getToken() ?: ""
                 )
             }
         }
@@ -61,7 +85,9 @@ class RealPersonAuthActivity : ComponentActivity() {
 fun RealPersonAuthScreen(
     onClose: () -> Unit,
     onStartAuth: () -> Unit,
-    viewModel: RealPersonAuthViewModel = viewModel()
+    viewModel: RealPersonAuthViewModel = viewModel(),
+    userId: Long = -1L,
+    token: String = ""
 ) {
     var isAgreementChecked by remember { mutableStateOf(false) }
     var showCamera by remember { mutableStateOf(false) }
@@ -75,7 +101,9 @@ fun RealPersonAuthScreen(
                 showCamera = false
                 onStartAuth()
             },
-            viewModel = viewModel
+            viewModel = viewModel,
+            userId = userId,
+            token = token
         )
     } else {
         // 说明界面
@@ -145,7 +173,9 @@ fun RealPersonAuthScreen(
 fun CameraAuthScreen(
     onBack: () -> Unit,
     onAuthSuccess: () -> Unit,
-    viewModel: RealPersonAuthViewModel
+    viewModel: RealPersonAuthViewModel,
+    userId: Long,
+    token: String
 ) {
     val context = LocalContext.current
     var isProcessing by remember { mutableStateOf(false) }
@@ -193,7 +223,7 @@ fun CameraAuthScreen(
                 },
                 onPhotoTaken = { bitmap ->
                     isProcessing = true
-                    viewModel.performFaceAuth(bitmap) { result ->
+                    viewModel.performFaceAuth(bitmap, userId, token) { result ->
                         isProcessing = false
                         authResult = result
                         if (result.contains("成功")) {
@@ -680,11 +710,14 @@ class RealPersonAuthViewModel : ViewModel() {
      */
     fun performFaceAuth(
         bitmap: android.graphics.Bitmap,
+        userId: Long,
+        token: String,
         onResult: (String) -> Unit
     ) {
         viewModelScope.launch {
             try {
-                val result = faceAuthService.performRealPersonAuth(bitmap)
+                android.util.Log.d("RealPersonAuth", "执行人脸认证，用户ID: $userId")
+                val result = faceAuthService.performRealPersonAuth(bitmap, userId, token)
                 
                 if (result.success) {
                     onResult("真人认证成功！您的身份已验证。")
@@ -692,6 +725,7 @@ class RealPersonAuthViewModel : ViewModel() {
                     onResult("认证失败：${result.message}")
                 }
             } catch (e: Exception) {
+                android.util.Log.e("RealPersonAuth", "人脸认证异常", e)
                 onResult("认证失败：${e.message}")
             }
         }

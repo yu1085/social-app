@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.myapplication.ui.screens.WealthLevelScreen
 import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.example.myapplication.auth.AuthManager
 
 /**
  * 财富等级Activity
@@ -36,36 +37,19 @@ class WealthLevelActivity : ComponentActivity() {
  */
 @Composable
 private fun WealthLevelActivityContent(activity: ComponentActivity) {
+    val authManager = AuthManager.getInstance(activity)
+    val token = authManager.getToken()
+    
     WealthLevelScreen(
         onBackClick = {
             // 返回上一页
             activity.finish()
         },
         onRulesClick = {
-            // 处理规则说明点击
-            handleRulesClick(activity)
+            // 跳转到规则说明页面
+            val intent = android.content.Intent(activity, WealthRulesActivity::class.java)
+            activity.startActivity(intent)
         },
-        onPromotionMallClick = {
-            // 处理促销商城点击
-            handlePromotionMallClick(activity)
-        }
+        token = token
     )
-}
-
-/**
- * 处理规则说明点击事件
- */
-private fun handleRulesClick(activity: ComponentActivity) {
-    // 跳转到规则说明页面
-    val intent = android.content.Intent(activity, WealthRulesActivity::class.java)
-    activity.startActivity(intent)
-}
-
-/**
- * 处理促销商城点击事件
- */
-private fun handlePromotionMallClick(activity: ComponentActivity) {
-    // 跳转到道具商城页面
-    val intent = android.content.Intent(activity, PropMallActivity::class.java)
-    activity.startActivity(intent)
 }

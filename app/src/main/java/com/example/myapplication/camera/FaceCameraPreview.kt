@@ -7,6 +7,7 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,6 +21,8 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import com.example.myapplication.util.ComposePerformanceOptimizer
+import com.example.myapplication.util.EGLPerformanceMonitor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -37,28 +40,56 @@ fun FaceCameraPreview(
     
     var isCapturing by remember { mutableStateOf(false) }
     var faceDetected by remember { mutableStateOf(false) }
+    var cameraError by remember { mutableStateOf<String?>(null) }
+    var isCameraReady by remember { mutableStateOf(false) }
     
     // 相机执行器
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
+    
+    // 帧时间记录
+    var lastFrameTime by remember { mutableStateOf(0L) }
     
     // 清理资源
     DisposableEffect(Unit) {
         onDispose {
             cameraExecutor.shutdown()
+            // 清理帧时间记录
+            lastFrameTime = 0L
+            // 建议垃圾回收
+            System.gc()
         }
     }
     
     Box(modifier = modifier) {
-        // 相机预览
+        // 相机预览 - 优化版本
         AndroidView(
             factory = { ctx ->
                 PreviewView(ctx).apply {
                     scaleType = PreviewView.ScaleType.FILL_CENTER
+                    // 启用硬件加速
+                    implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                 }
             },
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .then(ComposePerformanceOptimizer.optimizedCanvasModifier()),
             update = { previewView ->
-                startCamera(previewView, context, lifecycleOwner, cameraExecutor) { imageProxy ->
+                startCamera(
+                    previewView, 
+                    context, 
+                    lifecycleOwner, 
+                    cameraExecutor,
+                    onCameraReady = { isCameraReady = true },
+                    onCameraError = { error -> cameraError = error }
+                ) { imageProxy ->
+                    // 记录渲染性能（使用正确的帧间隔计算）
+                    val currentTime = System.currentTimeMillis()
+                    if (lastFrameTime > 0) {
+                        val frameTime = currentTime - lastFrameTime
+                        EGLPerformanceMonitor.recordRenderTime(frameTime)
+                    }
+                    lastFrameTime = currentTime
+                    
                     // 模拟人脸检测
                     val hasFace = simulateFaceDetection()
                     faceDetected = hasFace
@@ -107,8 +138,62 @@ fun FaceCameraPreview(
             }
         }
         
+        // 错误状态显示
+        cameraError?.let { error ->
+            Card(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "相机错误",
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = error,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
+        
+        // 相机加载状态
+        if (!isCameraReady && cameraError == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.7f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "正在启动相机...",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+        }
+        
         // 提示信息
-        if (!faceDetected) {
+        if (!faceDetected && isCameraReady && cameraError == null) {
             Card(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
@@ -135,48 +220,76 @@ private fun startCamera(
     context: Context,
     lifecycleOwner: androidx.lifecycle.LifecycleOwner,
     cameraExecutor: ExecutorService,
+    onCameraReady: () -> Unit = {},
+    onCameraError: (String) -> Unit = {},
     onImageAvailable: (ImageProxy) -> Unit
 ) {
     val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
     
     cameraProviderFuture.addListener({
-        val cameraProvider = cameraProviderFuture.get()
-        
-        val preview = Preview.Builder().build()
-        val imageAnalyzer = ImageAnalysis.Builder()
-            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-            .build()
-            .also {
-                it.setAnalyzer(cameraExecutor, FaceAnalyzer(onImageAvailable))
-            }
-        
-        val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
-        
         try {
+            val cameraProvider = cameraProviderFuture.get()
+            
+            // 先解绑所有相机
             cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(
+            
+            val preview = Preview.Builder()
+                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                .build()
+                
+            val imageAnalyzer = ImageAnalysis.Builder()
+                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .build()
+                .also {
+                    it.setAnalyzer(cameraExecutor, FaceAnalyzer(onImageAvailable))
+                }
+            
+            val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+            
+            // 绑定相机到生命周期
+            val camera = cameraProvider.bindToLifecycle(
                 lifecycleOwner,
                 cameraSelector,
                 preview,
                 imageAnalyzer
             )
+            
+            // 设置预览Surface
             preview.setSurfaceProvider(previewView.surfaceProvider)
+            
+            Log.d("CameraX", "相机启动成功")
+            onCameraReady()
+            
         } catch (e: Exception) {
-            Log.e("CameraX", "相机启动失败", e)
+            val errorMsg = "相机启动失败: ${e.message}"
+            Log.e("CameraX", errorMsg, e)
+            onCameraError(errorMsg)
         }
     }, ContextCompat.getMainExecutor(context))
 }
 
 /**
- * 人脸检测分析器
+ * 人脸检测分析器 - 优化版本
  */
 private class FaceAnalyzer(
     private val onImageAvailable: (ImageProxy) -> Unit
 ) : ImageAnalysis.Analyzer {
     
+    private var lastAnalysisTime = 0L
+    private val analysisInterval = 200L // 限制分析频率为5fps，进一步减少GPU负载
+    
     override fun analyze(imageProxy: ImageProxy) {
-        onImageAvailable(imageProxy)
-        imageProxy.close()
+        val currentTime = System.currentTimeMillis()
+        
+        // 限制分析频率，减少GPU负载
+        if (currentTime - lastAnalysisTime >= analysisInterval) {
+            onImageAvailable(imageProxy)
+            lastAnalysisTime = currentTime
+        } else {
+            // 如果不需要分析，直接关闭
+            imageProxy.close()
+        }
     }
 }
 
@@ -184,8 +297,13 @@ private class FaceAnalyzer(
  * 模拟人脸检测
  */
 private fun simulateFaceDetection(): Boolean {
-    // 模拟90%概率检测到人脸
-    return Math.random() > 0.1
+    // 模拟人脸检测，增加稳定性
+    // 在实际应用中，这里应该使用真实的人脸检测算法
+    val random = Math.random()
+    
+    // 模拟检测稳定性：80%概率检测到人脸
+    // 添加一些随机性来模拟真实环境
+    return random > 0.2
 }
 
 /**

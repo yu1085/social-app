@@ -51,9 +51,9 @@ class MyWalletActivity : ComponentActivity() {
                     startActivity(intent)
                 },
                 onRechargeClick = {
-                    // 暂时注释掉充值功能
-                    // val intent = android.content.Intent(this, com.example.myapplication.RechargeActivity::class.java)
-                    // startActivity(intent)
+                    // 跳转到充值页面
+                    val intent = android.content.Intent(this, com.example.myapplication.RechargeActivity::class.java)
+                    startActivity(intent)
                 },
                 onEarnCoinsClick = {
                     val intent = android.content.Intent(this, com.example.myapplication.HowToEarnCoinsActivity::class.java)

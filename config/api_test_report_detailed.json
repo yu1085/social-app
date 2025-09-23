@@ -1,0 +1,913 @@
+{
+  "test_time": "2025-09-23T05:28:46.035486",
+  "summary": {
+    "total_tests": 39,
+    "passed": 7,
+    "failed": 32,
+    "success_rate": "17.9%"
+  },
+  "error_analysis": {
+    "401_errors": [
+      {
+        "timestamp": "2025-09-23T05:28:45.912728",
+        "endpoint": "/api/database/test",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": null,
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:45.954773",
+        "endpoint": "/api/users/profile",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:45.956780",
+        "endpoint": "/api/users/profile/test-token",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:45.958786",
+        "endpoint": "/api/users/profile/1001",
+        "method": "PUT",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:45.959928",
+        "endpoint": "/api/users/profile",
+        "method": "PUT",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:45.961937",
+        "endpoint": "/api/users/1001/profile",
+        "method": "PUT",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:45.963939",
+        "endpoint": "/api/users/profile/update",
+        "method": "POST",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:45.966465",
+        "endpoint": "/api/users/profile",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:45.969224",
+        "endpoint": "/api/users/profile/test-token",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:45.971453",
+        "endpoint": "/api/users/1001",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:45.973951",
+        "endpoint": "/api/users/search",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:45.976161",
+        "endpoint": "/api/dynamics",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:45.978560",
+        "endpoint": "/api/dynamics/my",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:45.981968",
+        "endpoint": "/api/messages",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:45.987171",
+        "endpoint": "/api/messages/conversations",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:45.989749",
+        "endpoint": "/api/messages/unread-count",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:45.992366",
+        "endpoint": "/api/calls",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:45.994448",
+        "endpoint": "/api/calls/history",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:45.999172",
+        "endpoint": "/api/wallet",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:46.003428",
+        "endpoint": "/api/wallet/balance",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:46.005564",
+        "endpoint": "/api/wallet/transactions",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:46.007567",
+        "endpoint": "/api/vip",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:46.008567",
+        "endpoint": "/api/vip/status",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:46.010863",
+        "endpoint": "/api/gifts",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:46.014959",
+        "endpoint": "/api/gifts/received",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:46.016004",
+        "endpoint": "/api/relationships/friends",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:46.019018",
+        "endpoint": "/api/relationships/followers",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:46.021111",
+        "endpoint": "/api/relationships/following",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:46.023143",
+        "endpoint": "/api/settings",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:46.027940",
+        "endpoint": "/api/settings/privacy",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:46.031872",
+        "endpoint": "/api/coupons",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      },
+      {
+        "timestamp": "2025-09-23T05:28:46.034458",
+        "endpoint": "/api/coupons/my",
+        "method": "GET",
+        "status_code": 401,
+        "success": false,
+        "response": "{\"error\":\"未授权访问\",\"code\":401}",
+        "headers": {
+          "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+          "Content-Type": "application/json"
+        },
+        "error": null
+      }
+    ],
+    "500_errors": [],
+    "other_errors": []
+  },
+  "test_results": [
+    {
+      "timestamp": "2025-09-23T05:28:45.878376",
+      "endpoint": "/api/health",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "response": "{\"database\":\"UP\",\"resources\":{\"usedMemory\":159154472,\"totalMemory\":209715200,\"availableProcessors\":16,\"memoryUsagePercent\":3.743994383019182,\"maxMemory\":4250927104,\"freeMemory\":50560728},\"redis\":\"UP\",\"status\":\"UP\",\"timestamp\":1758576525877}",
+      "headers": null,
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.882428",
+      "endpoint": "/api/health",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "response": "{\"database\":\"UP\",\"resources\":{\"usedMemory\":159318144,\"totalMemory\":209715200,\"availableProcessors\":16,\"memoryUsagePercent\":3.7478446489963617,\"maxMemory\":4250927104,\"freeMemory\":50397056},\"redis\":\"UP\",\"status\":\"UP\",\"timestamp\":1758576525881}",
+      "headers": null,
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.887242",
+      "endpoint": "/swagger-ui.html",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "response": "<!-- HTML for static distribution bundle build -->\n<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\">\n    <title>Swagger UI</title>\n    <link rel=\"stylesheet\" type=\"text/css\" href=\"./swagger-ui.css\" />\n    <link rel=\"stylesheet\" type=\"text/css\" href=\"index.css\" />\n    <link rel=\"icon\" type=\"image/png\" href=\"./favicon-32x32.png\" sizes=\"32x32\" />\n    <link rel=\"icon\" type=\"image/png\" href=\"./favicon-16x16.png\" sizes=\"16x16\" />\n  </head>\n\n  <body>\n    <div id=\"swagger-ui\"></div>\n    <script src=\"./swagger-ui-bundle.js\" charset=\"UTF-8\"> </script>\n    <script src=\"./swagger-ui-standalone-preset.js\" charset=\"UTF-8\"> </script>\n    <script src=\"./swagger-initializer.js\" charset=\"UTF-8\"> </script>\n  </body>\n</html>\n",
+      "headers": null,
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.896497",
+      "endpoint": "/api-docs",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "response": "{\"openapi\":\"3.0.1\",\"info\":{\"title\":\"SocialMeet API\",\"description\":\"社交交友应用后端API文档\",\"contact\":{\"name\":\"SocialMeet Team\",\"email\":\"support@socialmeet.com\"},\"license\":{\"name\":\"MIT License\",\"url\":\"https://opensource.org/licenses/MIT\"},\"version\":\"1.0.0\"},\"servers\":[{\"url\":\"http://119.45.174.10:8080\",\"description\":\"生产服务器\"},{\"url\":\"http://localhost:8080\",\"description\":\"本地开发服务器\"}],\"tags\":[{\"name\":\"数据库修复\",\"description\":\"数据库修复相关接口\"}],\"paths\":{\"/api/users/{id}\":{\"get\":{\"tags\":[\"optimized-user-controller\"],\"operationId\":\"getUserById\",\"parameters\":[{\"name\":\"id\",\"in\":\"path\",\"required\":true,\"schema\":{\"type\":\"integer\",\"format\":\"int64\"}}],\"responses\":{\"500\":{\"description\":\"Internal Server Error\",\"content\":{\"*/*\":{\"schema\":{\"$ref\":\"#/components/schemas/ApiResponseObject\"}}}},\"200\":{\"description\":\"OK\",\"content\":{\"*/*\":{\"schema\":{\"$ref\":\"#/components/schemas/ApiResponseUserDTO\"}}}}}},\"put\":{\"tags\":[\"optimized-user-controller\"],\"operationId\":\"updateUser\",\"parameters\":[{\"name\":\"id\",\"in\":\"path\",\"required\":true",
+      "headers": null,
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.909506",
+      "endpoint": "/api/auth/send-code",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "response": "{\"success\":true,\"message\":\"验证码发送成功\",\"data\":\"191366\",\"timestamp\":\"2025-09-23T05:28:45.9083659\",\"path\":null}",
+      "headers": null,
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.912728",
+      "endpoint": "/api/database/test",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": null,
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.926033",
+      "endpoint": "/api/auth/send-code",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "response": "{\"success\":true,\"message\":\"验证码发送成功\",\"data\":\"199976\",\"timestamp\":\"2025-09-23T05:28:45.9250308\",\"path\":null}",
+      "headers": null,
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.951565",
+      "endpoint": "/api/auth/login-with-code",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "response": "{\"success\":true,\"message\":\"操作成功\",\"data\":{\"token\":\"eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw\",\"user\":{\"id\":1001,\"username\":\"user_1001\",\"nickname\":\"不吃香菜\",\"phone\":\"13800138001\",\"email\":\"user1001@example.com\",\"avatarUrl\":\"https://picsum.photos/200/200?random=1\",\"gender\":\"FEMALE\",\"birthDate\":\"1999-05-15T00:00:00\",\"bio\":\"我是一个活泼开朗的女孩，喜欢聊天和交朋友。希望能遇到有趣的人一起分享生活的美好。\",\"location\":\"北京\",\"age\":25,\"isOnline\":true,\"status\":\"ONLINE\",\"lastSeen\":\"2025-09-23T05:28:45.940905\",\"callPrice\":null,\"messagePrice\":null,\"videoCallEnabled\":null,\"voiceCallEnabled\":null,\"messageChargeEnabled\":null,\"city\":null,\"hometown\":null,\"beautyScore\":null,\"reviewScore\":null,\"followerCount\":null,\"likeCount\":null,\"latitude\":null,\"longitude\":null,\"height\":null,\"weight\":null,\"education\":null,\"income\":null,\"isVerified\":null,\"isAct",
+      "headers": null,
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.954773",
+      "endpoint": "/api/users/profile",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.956780",
+      "endpoint": "/api/users/profile/test-token",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.958786",
+      "endpoint": "/api/users/profile/1001",
+      "method": "PUT",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.959928",
+      "endpoint": "/api/users/profile",
+      "method": "PUT",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.961937",
+      "endpoint": "/api/users/1001/profile",
+      "method": "PUT",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.963939",
+      "endpoint": "/api/users/profile/update",
+      "method": "POST",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.966465",
+      "endpoint": "/api/users/profile",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.969224",
+      "endpoint": "/api/users/profile/test-token",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.971453",
+      "endpoint": "/api/users/1001",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.973951",
+      "endpoint": "/api/users/search",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.976161",
+      "endpoint": "/api/dynamics",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.978560",
+      "endpoint": "/api/dynamics/my",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.981968",
+      "endpoint": "/api/messages",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.987171",
+      "endpoint": "/api/messages/conversations",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.989749",
+      "endpoint": "/api/messages/unread-count",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.992366",
+      "endpoint": "/api/calls",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.994448",
+      "endpoint": "/api/calls/history",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:45.999172",
+      "endpoint": "/api/wallet",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:46.003428",
+      "endpoint": "/api/wallet/balance",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:46.005564",
+      "endpoint": "/api/wallet/transactions",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:46.007567",
+      "endpoint": "/api/vip",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:46.008567",
+      "endpoint": "/api/vip/status",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:46.010863",
+      "endpoint": "/api/gifts",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:46.014959",
+      "endpoint": "/api/gifts/received",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:46.016004",
+      "endpoint": "/api/relationships/friends",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:46.019018",
+      "endpoint": "/api/relationships/followers",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:46.021111",
+      "endpoint": "/api/relationships/following",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:46.023143",
+      "endpoint": "/api/settings",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:46.027940",
+      "endpoint": "/api/settings/privacy",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:46.031872",
+      "endpoint": "/api/coupons",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    },
+    {
+      "timestamp": "2025-09-23T05:28:46.034458",
+      "endpoint": "/api/coupons/my",
+      "method": "GET",
+      "status_code": 401,
+      "success": false,
+      "response": "{\"error\":\"未授权访问\",\"code\":401}",
+      "headers": {
+        "Authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwidXNlcklkIjoxMDAxLCJ1c2VybmFtZSI6InVzZXJfMTAwMSIsInN1YiI6InVzZXJfMTAwMSIsImlhdCI6MTc1ODU3NjUyNSwiZXhwIjoxNzU4NjYyOTI1fQ.fO4di2Pp4TDtgxZjT18pMGilwnpGlVfpJ4WjW0Ls75p0KtLrWMAwOT9-RDqpXg2Ys0kdiHqBVeU0PDoyZPsziw",
+        "Content-Type": "application/json"
+      },
+      "error": null
+    }
+  ]
+}

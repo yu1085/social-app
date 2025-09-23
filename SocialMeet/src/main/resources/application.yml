@@ -2,6 +2,7 @@
 spring:
   profiles:
     active: alipay-real  # 默认使用alipay-real配置
+    include: payment  # 包含支付配置
   
   # 数据库配置
   datasource:
@@ -27,6 +28,11 @@ spring:
 # 服务器配置
 server:
   port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 # 极光推送配置
 jpush:

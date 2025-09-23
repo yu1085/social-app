@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="32"
+    android:viewportHeight="32">
+    
+    <!-- 支付宝蓝色背景 -->
+    <path
+        android:fillColor="#1677FF"
+        android:pathData="M16,2C8.27,2 2,8.27 2,16s6.27,14 14,14 14,-6.27 14,-14S23.73,2 16,2z" />
+    
+    <!-- 支付宝"支"字图标 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M9,12h6v2H9zM9,16h6v2H9zM17,12h6v2h-6zM17,16h6v2h-6zM13,8h6v2h-6z" />
+</vector>

@@ -73,9 +73,9 @@ object ProfileComposeHost {
                             android.widget.Toast.makeText(context, "跳转到VIP会员中心", android.widget.Toast.LENGTH_SHORT).show()
                         },
                         onRechargeClick = {
-                            // 处理充值点击事件 - 跳转到我的钱包页面
+                            // 处理充值点击事件 - 直接跳转到充值页面
                             val context = target.context
-                            val intent = Intent(context, com.example.myapplication.MyWalletActivity::class.java)
+                            val intent = Intent(context, com.example.myapplication.RechargeActivity::class.java)
                             context.startActivity(intent)
                         },
                         onWealthLevelClick = {

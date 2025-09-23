@@ -63,8 +63,11 @@ fun ProfileActivityContent(
                 }
             },
             onRechargeClick = {
-                // 处理充值点击事件
-                handleRechargeClick()
+                // 处理充值点击事件 - 直接跳转到充值页面
+                activity?.let { 
+                    val intent = android.content.Intent(it, com.example.myapplication.RechargeActivity::class.java)
+                    it.startActivity(intent)
+                }
             },
             onWealthLevelClick = {
                 // 处理财富等级点击事件
@@ -98,13 +101,6 @@ fun handleSettingClick() {
     // startActivity(intent)
 }
 
-/**
- * 处理充值点击事件
- */
-fun handleRechargeClick() {
-    // 这里可以实现跳转到充值页面的逻辑
-    // 或者显示充值对话框
-}
 
 /**
  * 处理菜单点击事件

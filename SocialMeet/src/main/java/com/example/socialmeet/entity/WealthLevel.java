@@ -1,7 +1,6 @@
 package com.example.socialmeet.entity;
 
 import jakarta.persistence.*;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,26 +10,26 @@ public class WealthLevel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "name", nullable = false, length = 50)
-    private String name;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
     
-    @Column(name = "level", nullable = false, unique = true)
-    private Integer level;
+    @Column(name = "wealth_value", nullable = false)
+    private Integer wealthValue = 0;
     
-    @Column(name = "min_contribution", precision = 10, scale = 2, nullable = false)
-    private BigDecimal minContribution;
+    @Column(name = "level_name", nullable = false)
+    private String levelName;
     
-    @Column(name = "max_contribution", precision = 10, scale = 2)
-    private BigDecimal maxContribution;
+    @Column(name = "level_icon")
+    private String levelIcon;
     
-    @Column(name = "benefits", columnDefinition = "TEXT")
-    private String benefits;
+    @Column(name = "level_color")
+    private String levelColor;
     
-    @Column(name = "icon_url", length = 500)
-    private String iconUrl;
+    @Column(name = "min_wealth_value", nullable = false)
+    private Integer minWealthValue;
     
-    @Column(name = "is_active")
-    private Boolean isActive = true;
+    @Column(name = "max_wealth_value")
+    private Integer maxWealthValue;
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -52,12 +51,73 @@ public class WealthLevel {
     // Constructors
     public WealthLevel() {}
     
-    public WealthLevel(String name, Integer level, BigDecimal minContribution, BigDecimal maxContribution, String benefits) {
-        this.name = name;
-        this.level = level;
-        this.minContribution = minContribution;
-        this.maxContribution = maxContribution;
-        this.benefits = benefits;
+    public WealthLevel(Long userId, Integer wealthValue) {
+        this.userId = userId;
+        this.wealthValue = wealthValue;
+        // 等级信息将在服务层根据规则更新
+    }
+    
+    // 根据财富等级规则更新等级信息
+    public void updateLevelInfo(WealthLevelRule rule) {
+        if (rule != null) {
+            this.levelName = rule.getLevelName();
+            this.levelIcon = rule.getLevelIcon();
+            this.levelColor = rule.getLevelColor();
+            this.minWealthValue = rule.getMinWealthValue();
+            this.maxWealthValue = rule.getMaxWealthValue();
+        }
+    }
+    
+    // 检查是否有特定特权
+    public boolean hasPrivilege(PrivilegeType privilege) {
+        switch (privilege) {
+            case LUCKY_NUMBER_DISCOUNT:
+                return wealthValue >= 1000; // 青铜及以上
+            case WEEKLY_PROMOTION:
+                return wealthValue >= 1000; // 青铜及以上
+            case VIP_DISCOUNT:
+                return wealthValue >= 2000; // 白银及以上
+            case EFFECT_DISCOUNT:
+                return wealthValue >= 2000; // 白银及以上
+            case FREE_VIP:
+                return wealthValue >= 500000; // 红钻及以上
+            case FREE_EFFECT:
+                return wealthValue >= 500000; // 红钻及以上
+            case EXCLUSIVE_EFFECT:
+                return wealthValue >= 300000; // 橙钻及以上
+            case LUCKY_NUMBER_CUSTOM:
+                return wealthValue >= 300000; // 橙钻及以上
+            case EXCLUSIVE_GIFT:
+                return wealthValue >= 300000; // 橙钻及以上
+            case EXCLUSIVE_SERVICE:
+                return wealthValue >= 30000; // 青钻及以上
+            default:
+                return false;
+        }
+    }
+    
+    // 获取升级到下一等级需要的财富值（需要从服务层传入下一等级规则）
+    public Integer getNextLevelRequirement(WealthLevelRule nextRule) {
+        if (nextRule == null) {
+            return null; // 已经是最高等级
+        }
+        return nextRule.getMinWealthValue();
+    }
+    
+    // 获取当前等级进度百分比（需要从服务层传入下一等级规则）
+    public Double getLevelProgress(WealthLevelRule nextRule) {
+        if (nextRule == null) {
+            return 100.0; // 最高等级
+        }
+        
+        Integer currentMin = minWealthValue;
+        Integer currentMax = nextRule.getMinWealthValue();
+        
+        if (currentMax <= currentMin) {
+            return 100.0;
+        }
+        
+        return ((double)(wealthValue - currentMin) / (currentMax - currentMin)) * 100.0;
     }
     
     // Getters and Setters
@@ -69,60 +129,61 @@ public class WealthLevel {
         this.id = id;
     }
     
-    public String getName() {
-        return name;
+    public Long getUserId() {
+        return userId;
     }
     
-    public void setName(String name) {
-        this.name = name;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
     
-    public Integer getLevel() {
-        return level;
+    public Integer getWealthValue() {
+        return wealthValue;
     }
     
-    public void setLevel(Integer level) {
-        this.level = level;
+    public void setWealthValue(Integer wealthValue) {
+        this.wealthValue = wealthValue;
+        // 等级信息将在服务层根据规则更新
     }
     
-    public BigDecimal getMinContribution() {
-        return minContribution;
+    public String getLevelName() {
+        return levelName;
     }
     
-    public void setMinContribution(BigDecimal minContribution) {
-        this.minContribution = minContribution;
+    public void setLevelName(String levelName) {
+        this.levelName = levelName;
     }
     
-    public BigDecimal getMaxContribution() {
-        return maxContribution;
+    public String getLevelIcon() {
+        return levelIcon;
     }
     
-    public void setMaxContribution(BigDecimal maxContribution) {
-        this.maxContribution = maxContribution;
+    public void setLevelIcon(String levelIcon) {
+        this.levelIcon = levelIcon;
     }
     
-    public String getBenefits() {
-        return benefits;
+    public String getLevelColor() {
+        return levelColor;
     }
     
-    public void setBenefits(String benefits) {
-        this.benefits = benefits;
+    public void setLevelColor(String levelColor) {
+        this.levelColor = levelColor;
     }
     
-    public String getIconUrl() {
-        return iconUrl;
+    public Integer getMinWealthValue() {
+        return minWealthValue;
     }
     
-    public void setIconUrl(String iconUrl) {
-        this.iconUrl = iconUrl;
+    public void setMinWealthValue(Integer minWealthValue) {
+        this.minWealthValue = minWealthValue;
     }
     
-    public Boolean getIsActive() {
-        return isActive;
+    public Integer getMaxWealthValue() {
+        return maxWealthValue;
     }
     
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive;
+    public void setMaxWealthValue(Integer maxWealthValue) {
+        this.maxWealthValue = maxWealthValue;
     }
     
     public LocalDateTime getCreatedAt() {
@@ -141,12 +202,32 @@ public class WealthLevel {
         this.updatedAt = updatedAt;
     }
     
-    // Business methods
-    public boolean matchesContribution(BigDecimal contribution) {
-        if (maxContribution == null) {
-            return contribution.compareTo(minContribution) >= 0;
+    
+    // 特权类型枚举
+    public enum PrivilegeType {
+        LUCKY_NUMBER_DISCOUNT("靓号折扣"),
+        WEEKLY_PROMOTION("每周促销"),
+        VIP_DISCOUNT("VIP折扣"),
+        EFFECT_DISCOUNT("特效折扣"),
+        FREE_VIP("免费VIP"),
+        FREE_EFFECT("免费特效"),
+        EXCLUSIVE_EFFECT("专属特效"),
+        LUCKY_NUMBER_CUSTOM("靓号定制"),
+        EXCLUSIVE_GIFT("专属礼物"),
+        EXCLUSIVE_SERVICE("专属客服服务");
+        
+        private final String displayName;
+        
+        PrivilegeType(String displayName) {
+            this.displayName = displayName;
         }
-        return contribution.compareTo(minContribution) >= 0 && 
-               contribution.compareTo(maxContribution) < 0;
+        
+        public String getDisplayName() {
+            return displayName;
+        }
+        
+        public String getDescription() {
+            return displayName;
+        }
     }
 }

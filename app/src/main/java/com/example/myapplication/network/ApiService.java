@@ -262,4 +262,38 @@ public interface ApiService {
     Call<ApiResponse<Object>> getVerificationResult(
             @Header("Authorization") String authHeader
     );
+    
+        // 靓号相关API
+        @GET("lucky-numbers/items")
+        Call<ApiResponse<java.util.List<com.example.myapplication.model.LuckyNumber>>> getLuckyNumbers();
+    
+    @POST("lucky-numbers/purchase")
+    Call<ApiResponse<com.example.myapplication.model.LuckyNumber>> purchaseLuckyNumber(
+            @Header("Authorization") String authHeader,
+            @Body java.util.Map<String, Object> request
+    );
+    
+    // 财富等级相关API
+    @GET("wealth-level/my-level")
+    Call<ApiResponse<com.example.myapplication.model.WealthLevelData>> getMyWealthLevel(
+            @Header("Authorization") String authHeader
+    );
+    
+    @GET("wealth-level/progress")
+    Call<ApiResponse<com.example.myapplication.model.WealthLevelData>> getWealthLevelProgress(
+            @Header("Authorization") String authHeader
+    );
+    
+    @GET("wealth-level/privileges")
+    Call<ApiResponse<java.util.List<String>>> getUserPrivileges(
+            @Header("Authorization") String authHeader
+    );
+    
+    @GET("wealth-level/ranking")
+    Call<ApiResponse<java.util.List<com.example.myapplication.model.WealthLevelData>>> getWealthRanking(
+            @Query("limit") int limit
+    );
+    
+    @GET("wealth-level/rules")
+    Call<ApiResponse<java.util.List<com.example.myapplication.model.WealthLevelRule>>> getWealthLevelRules();
 }

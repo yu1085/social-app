@@ -96,6 +96,14 @@ public class WalletService {
         return true;
     }
     
+    /**
+     * 消费金币（Long类型金额）
+     */
+    public boolean consume(Long userId, Long amount, String description, Long relatedId) {
+        BigDecimal bigDecimalAmount = new BigDecimal(amount);
+        return consume(userId, bigDecimalAmount, description, relatedId);
+    }
+    
     public boolean earn(Long userId, BigDecimal amount, String description, Long relatedId) {
         Wallet wallet = getOrCreateWallet(userId);
         
@@ -110,6 +118,27 @@ public class WalletService {
         transactionRepository.save(transaction);
         
         return true;
+    }
+    
+    /**
+     * 添加余额（用于充值成功后的余额更新）
+     */
+    public boolean addBalance(Long userId, Long coins) {
+        try {
+            BigDecimal amount = new BigDecimal(coins);
+            return recharge(userId, amount, "充值成功");
+        } catch (Exception e) {
+            throw new RuntimeException("添加余额失败: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * 检查用户余额是否足够
+     */
+    public boolean hasEnoughBalance(Long userId, Long amount) {
+        Wallet wallet = getOrCreateWallet(userId);
+        BigDecimal requiredAmount = new BigDecimal(amount);
+        return wallet.hasEnoughBalance(requiredAmount);
     }
     
     private Wallet getOrCreateWallet(Long userId) {

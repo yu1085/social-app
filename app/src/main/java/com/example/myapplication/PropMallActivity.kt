@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import com.example.myapplication.ui.screens.PropMallScreen
 import com.example.myapplication.ui.screens.PropItem
 import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.example.myapplication.auth.AuthManager
 
 /**
  * 道具商城Activity
@@ -37,6 +38,9 @@ class PropMallActivity : ComponentActivity() {
  */
 @Composable
 private fun PropMallActivityContent(activity: ComponentActivity) {
+    val authManager = AuthManager.getInstance(activity)
+    val token = authManager.getToken()
+    
     PropMallScreen(
         onBackClick = {
             // 返回上一页
@@ -49,7 +53,8 @@ private fun PropMallActivityContent(activity: ComponentActivity) {
         onItemClick = { item ->
             // 处理商品点击
             handleItemClick(activity, item)
-        }
+        },
+        token = token
     )
 }
 
@@ -66,7 +71,12 @@ private fun handleMyPropsClick(activity: ComponentActivity) {
  * 处理商品点击事件
  */
 private fun handleItemClick(activity: ComponentActivity, item: PropItem) {
-    // TODO: 实现商品详情页面跳转
-    // 这里可以跳转到商品详情页面或显示购买对话框
-    android.widget.Toast.makeText(activity, "点击了商品: ${item.id}", android.widget.Toast.LENGTH_SHORT).show()
+    // 跳转到道具购买页面
+    if (item.luckyNumber != null) {
+        val intent = android.content.Intent(activity, PropPurchaseActivity::class.java)
+        intent.putExtra(PropPurchaseActivity.EXTRA_LUCKY_NUMBER, item.luckyNumber)
+        activity.startActivity(intent)
+    } else {
+        android.widget.Toast.makeText(activity, "商品信息错误", android.widget.Toast.LENGTH_SHORT).show()
+    }
 }
