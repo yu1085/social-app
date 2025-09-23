@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.myapplication.dto.EnhancedPostDTO
 import com.example.myapplication.network.PostApiService
 import com.example.myapplication.network.RetrofitClient
+import com.example.myapplication.auth.AuthManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -222,11 +223,10 @@ class EnhancedSquareViewModel : ViewModel() {
     }
     
     /**
-     * 获取认证Token（这里需要从SharedPreferences或其他地方获取）
+     * 获取认证Token
      */
     private fun getAuthToken(): String {
-        // TODO: 从SharedPreferences获取实际token
-        return "your_auth_token_here"
+        return AuthManager.getInstance(null).getToken() ?: ""
     }
 }
 
