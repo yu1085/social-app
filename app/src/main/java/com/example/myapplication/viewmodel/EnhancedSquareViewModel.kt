@@ -67,8 +67,9 @@ class EnhancedSquareViewModel : ViewModel() {
                 )
                 
                 if (response.isSuccessful) {
-                    val pageData = response.body()?.data
-                    if (pageData != null) {
+                    val apiResponse = response.body()
+                    if (apiResponse?.success == true && apiResponse.data != null) {
+                        val pageData = apiResponse.data
                         val newPosts = if (currentPage == 0) {
                             pageData.content
                         } else {
@@ -86,7 +87,7 @@ class EnhancedSquareViewModel : ViewModel() {
                     } else {
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
-                            error = "数据加载失败"
+                            error = "数据加载失败: ${apiResponse?.message ?: "未知错误"}"
                         )
                     }
                 } else {
@@ -128,8 +129,9 @@ class EnhancedSquareViewModel : ViewModel() {
                 )
                 
                 if (response.isSuccessful) {
-                    val pageData = response.body()?.data
-                    if (pageData != null) {
+                    val apiResponse = response.body()
+                    if (apiResponse?.success == true && apiResponse.data != null) {
+                        val pageData = apiResponse.data
                         val newPosts = _uiState.value.posts + pageData.content
                         _uiState.value = _uiState.value.copy(
                             posts = newPosts,
@@ -160,8 +162,9 @@ class EnhancedSquareViewModel : ViewModel() {
                 )
                 
                 if (response.isSuccessful) {
-                    val updatedPost = response.body()?.data
-                    if (updatedPost != null) {
+                    val apiResponse = response.body()
+                    if (apiResponse?.success == true && apiResponse.data != null) {
+                        val updatedPost = apiResponse.data
                         val currentPosts = _uiState.value.posts.toMutableList()
                         val index = currentPosts.indexOfFirst { it.id == postId }
                         if (index != -1) {
@@ -190,8 +193,9 @@ class EnhancedSquareViewModel : ViewModel() {
                 )
                 
                 if (response.isSuccessful) {
-                    val updatedPost = response.body()?.data
-                    if (updatedPost != null) {
+                    val apiResponse = response.body()
+                    if (apiResponse?.success == true && apiResponse.data != null) {
+                        val updatedPost = apiResponse.data
                         val currentPosts = _uiState.value.posts.toMutableList()
                         val index = currentPosts.indexOfFirst { it.id == postId }
                         if (index != -1) {
