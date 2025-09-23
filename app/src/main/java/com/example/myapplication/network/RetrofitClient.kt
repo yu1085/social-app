@@ -31,8 +31,4 @@ object RetrofitClient {
     fun <T> create(serviceClass: Class<T>): T {
         return retrofit.create(serviceClass)
     }
-    
-    inline fun <reified T> create(): T {
-        return retrofit.create(T::class.java)
-    }
 }

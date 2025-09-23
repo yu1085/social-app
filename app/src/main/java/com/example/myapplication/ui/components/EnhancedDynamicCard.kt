@@ -10,6 +10,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Comment
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -67,7 +69,7 @@ fun EnhancedDynamicCard(
                     modifier = Modifier
                         .size(60.dp)
                         .clip(CircleShape)
-                        .clickable { onUserClick(post.userId) }
+                        .clickable { post.userId?.let { onUserClick(it) } }
                 ) {
                     AsyncImage(
                         model = post.userAvatar ?: R.drawable.profile_avatar,
@@ -162,12 +164,14 @@ fun EnhancedDynamicCard(
             Spacer(modifier = Modifier.height(16.dp))
             
             // 动态内容
-            Text(
-                text = post.content,
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-                lineHeight = 24.sp
-            )
+            post.content?.let { content ->
+                Text(
+                    text = content,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    lineHeight = 24.sp
+                )
+            }
             
             // 图片内容
             if (!post.imageUrl.isNullOrEmpty()) {
@@ -224,12 +228,12 @@ fun EnhancedDynamicCard(
                     // 点赞按钮
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { onLikeClick(post.id) }
+                        modifier = Modifier.clickable { post.id?.let { onLikeClick(it) } }
                     ) {
                         Icon(
-                            imageVector = if (post.isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                            imageVector = if (post.isLiked == true) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                             contentDescription = "点赞",
-                            tint = if (post.isLiked) Color(0xFFA2C3FF) else MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = if (post.isLiked == true) Color(0xFFA2C3FF) else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
                         
@@ -238,7 +242,7 @@ fun EnhancedDynamicCard(
                         Text(
                             text = post.likeCount.toString(),
                             fontSize = 14.sp,
-                            color = if (post.isLiked) Color(0xFFA2C3FF) else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (post.isLiked == true) Color(0xFFA2C3FF) else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     
@@ -247,7 +251,7 @@ fun EnhancedDynamicCard(
                     // 留言按钮
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { onCommentClick(post.id) }
+                        modifier = Modifier.clickable { post.id?.let { onCommentClick(it) } }
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Comment,

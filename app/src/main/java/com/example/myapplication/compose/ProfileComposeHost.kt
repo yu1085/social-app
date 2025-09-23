@@ -182,7 +182,7 @@ object ProfileComposeHost {
                     if (response.isSuccessful && response.body() != null) {
                         val apiResponse = response.body()
                         if (apiResponse?.isSuccess() == true) {
-                            val user = apiResponse.getData()
+                            val user = apiResponse.data
                             android.util.Log.d("ProfileComposeHost", "获取用户信息成功: ${user?.nickname}")
                             // 更新ViewModel中的用户信息
                             viewModel.updateUserInfo(
@@ -191,7 +191,7 @@ object ProfileComposeHost {
                                 avatarUrl = user?.avatarUrl ?: ""
                             )
                         } else {
-                            android.util.Log.e("ProfileComposeHost", "API返回失败: ${apiResponse?.getMessage()}")
+                            android.util.Log.e("ProfileComposeHost", "API返回失败: ${apiResponse?.message}")
                         }
                     } else {
                         android.util.Log.e("ProfileComposeHost", "网络请求失败: ${response.code()}")

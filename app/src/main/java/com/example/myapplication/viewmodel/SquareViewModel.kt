@@ -201,12 +201,3 @@ data class SquareUiState(
     val error: String? = null
 )
 
-/**
- * 广场标签页枚举
- */
-enum class SquareTab(val title: String) {
-    NEARBY("附近"),
-    LATEST("最新"),
-    FRIENDS("知友"),
-    LIKE("喜欢")
-}

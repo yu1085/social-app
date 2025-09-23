@@ -11,28 +11,28 @@ import java.util.UUID;
 @Service
 public class AlipayApiService {
     
-    @Value("${app.alipay.app-id}")
+    @Value("${app.alipay.app-id:}")
     private String appId;
     
-    @Value("${app.alipay.private-key}")
+    @Value("${app.alipay.private-key:}")
     private String privateKey;
     
-    @Value("${app.alipay.public-key}")
+    @Value("${app.alipay.public-key:}")
     private String publicKey;
     
-    @Value("${app.alipay.gateway-url}")
+    @Value("${app.alipay.gateway-url:}")
     private String gatewayUrl;
     
-    @Value("${app.alipay.sign-type}")
+    @Value("${app.alipay.sign-type:RSA2}")
     private String signType;
     
-    @Value("${app.alipay.charset}")
+    @Value("${app.alipay.charset:UTF-8}")
     private String charset;
     
-    @Value("${app.alipay.format}")
+    @Value("${app.alipay.format:JSON}")
     private String format;
     
-    @Value("${app.alipay.version}")
+    @Value("${app.alipay.version:1.0}")
     private String version;
     
     @Value("${app.alipay.timeout:30000}")
