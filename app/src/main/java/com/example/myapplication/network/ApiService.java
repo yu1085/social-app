@@ -10,6 +10,8 @@ import com.example.myapplication.dto.WalletDTO;
 import com.example.myapplication.dto.TransactionDTO;
 import com.example.myapplication.dto.UserPhotoDTO;
 import com.example.myapplication.dto.UploadPhotoResponse;
+import com.example.myapplication.model.VipLevel;
+import com.example.myapplication.model.VipSubscription;
 
 import java.util.List;
 import retrofit2.Call;
@@ -128,12 +130,7 @@ public interface ApiService {
         public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
     }
     
-    // VIP相关
-    @GET("vip/levels")
-    Call<ApiResponse<List<Object>>> getVipLevels();
-    
-    @GET("vip/current")
-    Call<ApiResponse<Object>> getCurrentVip(@Header("Authorization") String authHeader);
+    // VIP相关 - 已移动到下方新的VIP API部分
     
     @POST("vip/subscribe")
     Call<ApiResponse<Object>> subscribeVip(@Header("Authorization") String authHeader, @Body Object vipRequest);
@@ -296,4 +293,50 @@ public interface ApiService {
     
     @GET("wealth-level/rules")
     Call<ApiResponse<java.util.List<com.example.myapplication.model.WealthLevelRule>>> getWealthLevelRules();
+    
+    // VIP会员相关API
+    @GET("vip/levels")
+    Call<ApiResponse<java.util.List<VipLevel>>> getVipLevels();
+    
+    @GET("vip/levels/{id}")
+    Call<ApiResponse<VipLevel>> getVipLevelById(@Path("id") Long id);
+    
+    @POST("vip/subscribe")
+    Call<ApiResponse<VipSubscription>> subscribeVip(
+            @Header("Authorization") String authHeader,
+            @Query("vipLevelId") Long vipLevelId
+    );
+    
+    @GET("vip/current")
+    Call<ApiResponse<VipSubscription>> getCurrentVipSubscription(
+            @Header("Authorization") String authHeader
+    );
+    
+    @GET("vip/history")
+    Call<ApiResponse<java.util.List<VipSubscription>>> getVipHistory(
+            @Header("Authorization") String authHeader
+    );
+    
+    @GET("vip/check")
+    Call<ApiResponse<Boolean>> checkVipStatus(
+            @Header("Authorization") String authHeader
+    );
+    
+    @GET("vip/level")
+    Call<ApiResponse<Integer>> getVipLevel(
+            @Header("Authorization") String authHeader
+    );
+    
+    // 支付相关API
+    @POST("vip/create-payment-order")
+    Call<ApiResponse<com.example.myapplication.service.PaymentOrderData>> createPaymentOrder(
+            @Header("Authorization") String authHeader,
+            @Body java.util.Map<String, Object> request
+    );
+    
+    @POST("payment/verify")
+    Call<ApiResponse<String>> verifyPayment(
+            @Header("Authorization") String authHeader,
+            @Body java.util.Map<String, String> request
+    );
 }

@@ -72,11 +72,12 @@ public class AlipayService {
         
         request.setBizModel(model);
         
-        // 调用API
-        AlipayTradeAppPayResponse response = getAlipayClient().sdkExecute(request);
+        // 调用API - 使用execute方法生成适合Android客户端的支付字符串
+        AlipayTradeAppPayResponse response = getAlipayClient().execute(request);
         
         if (response.isSuccess()) {
             log.info("支付宝订单创建成功: {}", order.getOrderId());
+            // 返回完整的支付字符串，包含所有必要的参数
             return response.getBody();
         } else {
             log.error("支付宝订单创建失败: {}, 错误信息: {}", order.getOrderId(), response.getMsg());

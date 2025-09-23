@@ -55,9 +55,14 @@ data class VipPlan(
 fun VipCenterScreen(
     onBackClick: () -> Unit,
     onUpgradeSvipClick: () -> Unit = {},
-    onActivateVipClick: () -> Unit = {},
-    onPaymentConfirm: (String, String, String) -> Unit = { _, _, _ -> },
+    onActivateVipClick: (Long) -> Unit = {},
+    onPaymentConfirm: (String, String, String, Long) -> Unit = { _, _, _, _ -> },
     onAgreementClick: () -> Unit = {},
+    vipLevels: List<com.example.myapplication.model.VipLevel> = emptyList(),
+    currentSubscription: com.example.myapplication.model.VipSubscription? = null,
+    isVip: Boolean = false,
+    isLoading: Boolean = false,
+    isSubscribing: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
@@ -98,10 +103,11 @@ fun VipCenterScreen(
         // 开通按钮
         ActivateVipButton(
             onActivateVipClick = {
+                // 显示支付对话框
                 showPaymentDialog = true
-                onActivateVipClick()
             },
-            isSvip = selectedTab == 1
+            isSvip = selectedTab == 1,
+            isLoading = isSubscribing
         )
         
         // 协议文本
@@ -119,7 +125,12 @@ fun VipCenterScreen(
         onDismiss = { showPaymentDialog = false },
         onConfirmPayment = { paymentMethod, membershipType, price ->
             // 处理支付确认
-            onPaymentConfirm(paymentMethod.name, membershipType, price)
+            val vipLevelId = when {
+                selectedTab == 0 -> 1L // VIP会员
+                selectedTab == 1 -> 2L // SVIP会员
+                else -> 2L
+            }
+            onPaymentConfirm(paymentMethod.name, membershipType, price, vipLevelId)
             showPaymentDialog = false
         },
         membershipType = if (selectedTab == 1) "SVIP会员${getPlanDuration(selectedPlan)}" else "VIP会员${getPlanDuration(selectedPlan)}",
@@ -509,7 +520,8 @@ private fun SavingsInfo(isSvip: Boolean = false) {
 @Composable
 private fun ActivateVipButton(
     onActivateVipClick: () -> Unit,
-    isSvip: Boolean = false
+    isSvip: Boolean = false,
+    isLoading: Boolean = false
 ) {
     Button(
         onClick = onActivateVipClick,
@@ -520,14 +532,22 @@ private fun ActivateVipButton(
         colors = ButtonDefaults.buttonColors(
             containerColor = if (isSvip) Color(0xFFFFD700) else Color(0xFFFF6B35)
         ),
-        shape = RoundedCornerShape(24.dp)
+        shape = RoundedCornerShape(24.dp),
+        enabled = !isLoading
     ) {
-        Text(
-            text = if (isSvip) "立即开通SVIP" else "立即开通VIP",
-            color = Color.White,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold
-        )
+        if (isLoading) {
+            CircularProgressIndicator(
+                color = Color.White,
+                modifier = Modifier.size(20.dp)
+            )
+        } else {
+            Text(
+                text = if (isSvip) "立即开通SVIP" else "立即开通VIP",
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 

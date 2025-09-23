@@ -86,6 +86,7 @@ public class SecurityConfig {
                 "/api/lucky-numbers/items",  // 靓号列表接口 - 公开访问
                 "/api/shop/items",           // 商品列表接口 - 公开访问
                 "/api/shop/categories",      // 商品分类接口 - 公开访问
+                "/api/vip/levels",           // VIP等级列表接口 - 公开访问
                 "/swagger-ui/**",
                 "/swagger-ui.html",
                 "/api-docs/**",
