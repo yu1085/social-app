@@ -60,6 +60,15 @@ interface PostApiService {
         @Header("Authorization") token: String,
         @Path("commentId") commentId: Long
     ): Response<ApiResponse<String>>
+    
+    /**
+     * 创建动态
+     */
+    @POST("api/posts")
+    suspend fun createPost(
+        @Header("Authorization") token: String,
+        @Body postData: Map<String, String>
+    ): Response<ApiResponse<Map<String, Any>>>
 }
 
 /**

@@ -32,9 +32,10 @@ import com.example.myapplication.dto.EnhancedPostDTO
 @Composable
 fun SquareScreen(
     onUserClick: (String) -> Unit,
+    onPublishClick: () -> Unit = {},
+    viewModel: EnhancedSquareViewModel = viewModel(),
     modifier: Modifier = Modifier
 ) {
-    val viewModel: EnhancedSquareViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsState()
     val selectedTab by viewModel.selectedTab.collectAsState()
     
@@ -42,7 +43,7 @@ fun SquareScreen(
         modifier = modifier.fillMaxSize()
     ) {
         // 顶部标题栏
-        TopTitleBar()
+        TopTitleBar(onPublishClick = onPublishClick)
         
         // 标签页
         TabRow(
@@ -51,11 +52,14 @@ fun SquareScreen(
         )
         
         // 动态列表
+        android.util.Log.d("SquareScreen", "UI状态 - 加载中: ${uiState.isLoading}, 动态数量: ${uiState.posts.size}")
         if (uiState.isLoading) {
             LoadingIndicator()
         } else if (uiState.posts.isEmpty()) {
+            android.util.Log.d("SquareScreen", "显示空状态")
             EmptyState()
         } else {
+            android.util.Log.d("SquareScreen", "显示动态列表: ${uiState.posts.size}条")
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(bottom = 16.dp)
@@ -106,7 +110,7 @@ fun SquareScreen(
  * 顶部标题栏
  */
 @Composable
-private fun TopTitleBar() {
+private fun TopTitleBar(onPublishClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -116,25 +120,46 @@ private fun TopTitleBar() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.Start,
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 左侧：动态标题（无图标）
-            Text(
-                text = stringResource(R.string.square_dynamic),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.Black
-            )
+            // 左侧：标题
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.square_dynamic),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.Black
+                )
+                
+                Spacer(modifier = Modifier.width(16.dp))
+                
+                Text(
+                    text = stringResource(R.string.square_video),
+                    fontSize = 18.sp,
+                    color = Color(0xFFABABAB)
+                )
+            }
             
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            // 小视频文字（无图标）
-            Text(
-                text = stringResource(R.string.square_video),
-                fontSize = 18.sp,
-                color = Color(0xFFABABAB)
-            )
+            // 右侧：发布按钮
+            IconButton(
+                onClick = onPublishClick,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(
+                        Color(0xFF007AFF),
+                        CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "发布动态",
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
     }
 }

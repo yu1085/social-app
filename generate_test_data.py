@@ -43,13 +43,17 @@ def login_user(phone, password):
         print(f"登录失败: {phone}, 错误: {response.text}")
         return None
 
-def create_post(token, content, location=None):
+def create_post(token, content, location=None, image_url=None):
     """创建动态"""
     headers = {"Authorization": f"Bearer {token}"}
     post_data = {
         "content": content,
         "location": location
     }
+    
+    # 如果有图片URL，添加到请求中
+    if image_url:
+        post_data["imageUrl"] = image_url
     
     response = requests.post(f"{BASE_URL}/api/posts", json=post_data, headers=headers)
     if response.status_code == 200:
@@ -142,16 +146,38 @@ def generate_test_data():
         "重庆市渝中区",
     ]
     
-    # 注册用户并获取token
+    # 示例图片URL（使用Picsum随机图片服务）
+    sample_images = [
+        "https://picsum.photos/400/300?random=1",
+        "https://picsum.photos/400/300?random=2", 
+        "https://picsum.photos/400/300?random=3",
+        "https://picsum.photos/400/300?random=4",
+        "https://picsum.photos/400/300?random=5",
+        "https://picsum.photos/400/300?random=6",
+        "https://picsum.photos/400/300?random=7",
+        "https://picsum.photos/400/300?random=8",
+        "https://picsum.photos/400/300?random=9",
+        "https://picsum.photos/400/300?random=10",
+        None,  # 一些动态没有图片
+        None,
+        None,
+    ]
+    
+    # 注册用户并获取token（如果用户已存在则直接登录）
     user_tokens = {}
     for user in users:
+        # 先尝试注册，如果失败则尝试登录
         token = register_user(user["username"], "123456", user["phone"], user["gender"])
+        if not token:
+            # 注册失败，尝试登录
+            token = login_user(user["phone"], "123456")
+        
         if token:
             user_tokens[user["username"]] = token
-            print(f"✅ 用户 {user['username']} 注册成功")
+            print(f"✅ 用户 {user['username']} 获取token成功")
         time.sleep(0.5)  # 避免请求过快
     
-    print(f"\n成功注册 {len(user_tokens)} 个用户")
+    print(f"\n成功获取 {len(user_tokens)} 个用户的token")
     
     # 创建动态
     post_ids = []
@@ -161,11 +187,13 @@ def generate_test_data():
         for j in range(num_posts):
             content = random.choice(post_contents)
             location = random.choice(locations)
+            image_url = random.choice(sample_images)  # 随机选择图片
             
-            post_id = create_post(token, content, location)
+            post_id = create_post(token, content, location, image_url)
             if post_id:
                 post_ids.append(post_id)
-                print(f"✅ 用户 {username} 创建动态: {content[:20]}...")
+                image_info = f" (图片: {image_url})" if image_url else " (无图片)"
+                print(f"✅ 用户 {username} 创建动态: {content[:20]}...{image_info}")
             time.sleep(0.3)
     
     print(f"\n成功创建 {len(post_ids)} 条动态")

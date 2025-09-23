@@ -68,13 +68,21 @@ class EnhancedSquareViewModel : ViewModel() {
                 
                 if (response.isSuccessful) {
                     val apiResponse = response.body()
+                    android.util.Log.d("EnhancedSquareViewModel", "API响应成功: ${apiResponse?.success}")
+                    android.util.Log.d("EnhancedSquareViewModel", "API数据: ${apiResponse?.data}")
+                    
                     if (apiResponse?.success == true && apiResponse.data != null) {
                         val pageData = apiResponse.data
+                        android.util.Log.d("EnhancedSquareViewModel", "分页数据: ${pageData.content.size}条动态")
+                        android.util.Log.d("EnhancedSquareViewModel", "第一条动态: ${pageData.content.firstOrNull()}")
+                        
                         val newPosts = if (currentPage == 0) {
                             pageData.content
                         } else {
                             _uiState.value.posts + pageData.content
                         }
+                        
+                        android.util.Log.d("EnhancedSquareViewModel", "更新后的动态列表: ${newPosts.size}条")
                         
                         _uiState.value = _uiState.value.copy(
                             posts = newPosts,
@@ -85,18 +93,21 @@ class EnhancedSquareViewModel : ViewModel() {
                         currentPage++
                         hasMoreData = !pageData.last
                     } else {
+                        android.util.Log.e("EnhancedSquareViewModel", "API返回失败: ${apiResponse?.message}")
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
                             error = "数据加载失败: ${apiResponse?.message ?: "未知错误"}"
                         )
                     }
                 } else {
+                    android.util.Log.e("EnhancedSquareViewModel", "HTTP请求失败: ${response.code()}")
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         error = "网络请求失败: ${response.code()}"
                     )
                 }
             } catch (e: Exception) {
+                android.util.Log.e("EnhancedSquareViewModel", "加载动态失败", e)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = "加载失败: ${e.message}"
