@@ -48,19 +48,30 @@ public class MessageService {
     @Transactional
     public ApiResponse<MessageDTO> sendMessage(SendMessageRequest request, String token) {
         try {
+            System.out.println("=== MessageService.sendMessage 开始执行 ===");
+            System.out.println("接收到的token: " + token);
+            
             // 验证token并获取用户ID
+            System.out.println("开始从JWT中提取用户ID...");
             Long senderId = jwtUtil.getUserIdFromToken(token);
+            System.out.println("提取到的发送者ID: " + senderId);
+            
             if (senderId == null) {
+                System.out.println("JWT解析失败，返回错误");
                 return ApiResponse.error("无效的认证token");
             }
             
             // 验证接收者是否存在
+            System.out.println("开始验证接收者ID: " + request.getReceiverId());
             Optional<User> receiverOpt = userRepository.findById(request.getReceiverId());
             if (!receiverOpt.isPresent()) {
+                System.out.println("接收者不存在，ID: " + request.getReceiverId());
                 return ApiResponse.error("接收者不存在");
             }
+            System.out.println("接收者验证成功: " + receiverOpt.get().getUsername());
             
             // 创建消息实体
+            System.out.println("开始创建消息实体...");
             MessageEntity message = new MessageEntity();
             message.setSenderId(senderId);
             message.setReceiverId(request.getReceiverId());
@@ -75,18 +86,28 @@ public class MessageService {
             message.setReplyToMessageId(request.getReplyToMessageId());
             message.setForwardFromMessageId(request.getForwardFromMessageId());
             
+            System.out.println("消息实体创建完成，开始保存到数据库...");
             // 保存消息
             message = messageRepository.save(message);
+            System.out.println("消息保存成功，消息ID: " + message.getId());
             
             // 更新或创建会话
+            System.out.println("开始更新或创建会话...");
             updateOrCreateConversation(senderId, request.getReceiverId(), message);
+            System.out.println("会话更新完成");
             
             // 转换为DTO
+            System.out.println("开始转换为DTO...");
             MessageDTO messageDTO = convertToDTO(message);
+            System.out.println("DTO转换完成");
             
+            System.out.println("=== MessageService.sendMessage 执行成功 ===");
             return ApiResponse.success(messageDTO);
             
         } catch (Exception e) {
+            System.out.println("=== MessageService.sendMessage 执行失败 ===");
+            System.out.println("错误信息: " + e.getMessage());
+            e.printStackTrace();
             return ApiResponse.error("发送消息失败: " + e.getMessage());
         }
     }
@@ -281,19 +302,26 @@ public class MessageService {
      * 更新或创建会话
      */
     private void updateOrCreateConversation(Long user1Id, Long user2Id, MessageEntity message) {
+        System.out.println("=== updateOrCreateConversation 开始执行 ===");
+        System.out.println("用户1ID: " + user1Id + ", 用户2ID: " + user2Id);
+        
         Optional<ConversationEntity> conversationOpt = conversationRepository.findConversationBetweenUsers(user1Id, user2Id);
         
         ConversationEntity conversation;
         if (conversationOpt.isPresent()) {
+            System.out.println("找到现有会话，ID: " + conversationOpt.get().getId());
             conversation = conversationOpt.get();
             // 更新最后消息
+            System.out.println("开始更新最后消息...");
             conversationRepository.updateLastMessage(
                 conversation.getId(),
                 message.getId(),
                 message.getContent(),
                 message.getSendTime()
             );
+            System.out.println("最后消息更新完成");
         } else {
+            System.out.println("未找到现有会话，创建新会话...");
             // 创建新会话
             conversation = new ConversationEntity();
             conversation.setUser1Id(user1Id);
@@ -303,14 +331,21 @@ public class MessageService {
             conversation.setLastMessageTime(message.getSendTime());
             conversation.setConversationType(ConversationEntity.ConversationType.PRIVATE);
             conversation = conversationRepository.save(conversation);
+            System.out.println("新会话创建完成，ID: " + conversation.getId());
         }
         
         // 增加未读计数
+        System.out.println("开始增加未读计数...");
         conversationRepository.incrementUnreadCount(conversation.getId(), user2Id);
+        System.out.println("未读计数增加完成");
         
         // 设置消息的会话ID
+        System.out.println("开始设置消息的会话ID...");
         message.setConversationId(conversation.getId());
         messageRepository.save(message);
+        System.out.println("消息会话ID设置完成");
+        
+        System.out.println("=== updateOrCreateConversation 执行完成 ===");
     }
     
     /**

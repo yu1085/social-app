@@ -34,8 +34,10 @@ public class UserRelationshipController {
     @PostMapping
     public ResponseEntity<ApiResponse<UserRelationshipDTO>> createRelationship(
             @Valid @RequestBody CreateRelationshipRequest request,
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader("Authorization") String authHeader) {
         
+        // 提取纯token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         ApiResponse<UserRelationshipDTO> response = userRelationshipService.createRelationship(request, token);
         
         if (response.isSuccess()) {
@@ -52,8 +54,10 @@ public class UserRelationshipController {
     public ResponseEntity<ApiResponse<Page<UserRelationshipDTO>>> getRelationships(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader("Authorization") String authHeader) {
         
+        // 提取纯token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         ApiResponse<Page<UserRelationshipDTO>> response = userRelationshipService.getRelationships(page, size, token);
         
         if (response.isSuccess()) {
@@ -68,8 +72,10 @@ public class UserRelationshipController {
      */
     @GetMapping("/friends")
     public ResponseEntity<ApiResponse<List<UserRelationshipDTO>>> getFriends(
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader("Authorization") String authHeader) {
         
+        // 提取纯token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         ApiResponse<List<UserRelationshipDTO>> response = userRelationshipService.getFriends(token);
         
         if (response.isSuccess()) {
@@ -84,8 +90,10 @@ public class UserRelationshipController {
      */
     @GetMapping("/likes")
     public ResponseEntity<ApiResponse<List<UserRelationshipDTO>>> getLikes(
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader("Authorization") String authHeader) {
         
+        // 提取纯token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         ApiResponse<List<UserRelationshipDTO>> response = userRelationshipService.getLikes(token);
         
         if (response.isSuccess()) {
@@ -100,8 +108,10 @@ public class UserRelationshipController {
      */
     @GetMapping("/intimate")
     public ResponseEntity<ApiResponse<List<UserRelationshipDTO>>> getIntimateRelationships(
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader("Authorization") String authHeader) {
         
+        // 提取纯token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         ApiResponse<List<UserRelationshipDTO>> response = userRelationshipService.getIntimateRelationships(token);
         
         if (response.isSuccess()) {
@@ -117,8 +127,10 @@ public class UserRelationshipController {
     @GetMapping("/high-intimacy")
     public ResponseEntity<ApiResponse<List<UserRelationshipDTO>>> getHighIntimacyRelationships(
             @RequestParam(defaultValue = "50") Integer minIntimacyScore,
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader("Authorization") String authHeader) {
         
+        // 提取纯token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         ApiResponse<List<UserRelationshipDTO>> response = userRelationshipService.getHighIntimacyRelationships(minIntimacyScore, token);
         
         if (response.isSuccess()) {
@@ -135,8 +147,10 @@ public class UserRelationshipController {
     public ResponseEntity<ApiResponse<Page<UserRelationshipDTO>>> getRecentChatRelationships(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader("Authorization") String authHeader) {
         
+        // 提取纯token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         ApiResponse<Page<UserRelationshipDTO>> response = userRelationshipService.getRecentChatRelationships(page, size, token);
         
         if (response.isSuccess()) {
@@ -153,8 +167,10 @@ public class UserRelationshipController {
     public ResponseEntity<ApiResponse<String>> updateRelationshipNotes(
             @PathVariable Long relationshipId,
             @RequestParam String notes,
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader("Authorization") String authHeader) {
         
+        // 提取纯token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         ApiResponse<String> response = userRelationshipService.updateRelationshipNotes(relationshipId, notes, token);
         
         if (response.isSuccess()) {
@@ -171,8 +187,10 @@ public class UserRelationshipController {
     public ResponseEntity<ApiResponse<String>> updateRelationshipTags(
             @PathVariable Long relationshipId,
             @RequestParam String tags,
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader("Authorization") String authHeader) {
         
+        // 提取纯token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         ApiResponse<String> response = userRelationshipService.updateRelationshipTags(relationshipId, tags, token);
         
         if (response.isSuccess()) {
@@ -188,8 +206,10 @@ public class UserRelationshipController {
     @DeleteMapping("/{relationshipId}")
     public ResponseEntity<ApiResponse<String>> deleteRelationship(
             @PathVariable Long relationshipId,
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader("Authorization") String authHeader) {
         
+        // 提取纯token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         ApiResponse<String> response = userRelationshipService.deleteRelationship(relationshipId, token);
         
         if (response.isSuccess()) {
@@ -204,8 +224,10 @@ public class UserRelationshipController {
      */
     @GetMapping("/statistics")
     public ResponseEntity<ApiResponse<Object>> getRelationshipStatistics(
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader("Authorization") String authHeader) {
         
+        // 提取纯token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         ApiResponse<Object> response = userRelationshipService.getRelationshipStatistics(token);
         
         if (response.isSuccess()) {
@@ -222,8 +244,10 @@ public class UserRelationshipController {
     public ResponseEntity<ApiResponse<Boolean>> hasRelationship(
             @RequestParam Long targetUserId,
             @RequestParam UserRelationshipEntity.RelationshipType relationshipType,
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader("Authorization") String authHeader) {
         
+        // 提取纯token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         ApiResponse<Boolean> response = userRelationshipService.hasRelationship(targetUserId, relationshipType, token);
         
         if (response.isSuccess()) {

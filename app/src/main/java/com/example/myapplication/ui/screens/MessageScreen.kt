@@ -40,6 +40,22 @@ fun MessageScreen(
     // 添加状态管理来跟踪当前选中的标签
     var selectedTab by remember { mutableStateOf(0) } // 0: 消息, 1: 通话, 2: 关系
     
+    // 消息搜索状态
+    var searchQuery by remember { mutableStateOf("") }
+    var isSearching by remember { mutableStateOf(false) }
+    
+    // 过滤后的消息列表
+    val filteredMessages = remember(searchQuery) {
+        if (searchQuery.isEmpty()) {
+            messageList
+        } else {
+            messageList.filter { message ->
+                message.name.contains(searchQuery, ignoreCase = true) ||
+                message.content.contains(searchQuery, ignoreCase = true)
+            }
+        }
+    }
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -60,7 +76,7 @@ fun MessageScreen(
         
         // 根据选中的标签显示不同的内容
         when (selectedTab) {
-            0 -> MessageListSection() // 消息页面
+            0 -> MessageListSection(filteredMessages = filteredMessages) // 消息页面
             1 -> CallListSection()    // 通话页面
             2 -> RelationshipSection() // 关系页面
         }
@@ -294,15 +310,80 @@ private fun TabBarSection(
 }
 
 @Composable
-private fun MessageListSection() {
+private fun MessageListSection(filteredMessages: List<Message>) {
+    val context = LocalContext.current
+    
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
-        items(messageList) { message ->
-            MessageItem(message = message)
+        // 添加顶部间距
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+        
+        // 消息列表或空状态
+        if (filteredMessages.isEmpty()) {
+            item {
+                // 空状态显示
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 60.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "📭",
+                        fontSize = 48.sp
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "暂无消息",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF999999)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "开始和朋友们聊天吧",
+                        fontSize = 14.sp,
+                        color = Color(0xFFCCCCCC)
+                    )
+                }
+            }
+        } else {
+            items(filteredMessages) { message ->
+                MessageItem(
+                    message = message,
+                    onClick = {
+                        // 跳转到聊天页面
+                        val intent = Intent(context, ChatActivity::class.java).apply {
+                            putExtra("user_name", message.name)
+                            putExtra("user_avatar", message.avatarImage)
+                            putExtra("user_status", if (message.isOnline) "在线" else "离线")
+                            putExtra("last_message", message.content)
+                            putExtra("unread_count", message.unreadCount)
+                        }
+                        context.startActivity(intent)
+                    }
+                )
+                
+                // 添加分割线
+                if (message != filteredMessages.last()) {
+                    Divider(
+                        modifier = Modifier.padding(start = 60.dp, end = 0.dp),
+                        color = Color(0xFFF0F0F0),
+                        thickness = 0.5.dp
+                    )
+                }
+            }
+        }
+        
+        // 添加底部间距
+        item {
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
@@ -661,32 +742,30 @@ private fun RelationshipCard(
 }
 
 @Composable
-private fun MessageItem(message: Message) {
-    val context = LocalContext.current
-    
+private fun MessageItem(
+    message: Message,
+    onClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
-            .clickable { 
-                val intent = Intent(context, ChatActivity::class.java)
-                intent.putExtra("user_name", message.name)
-                intent.putExtra("user_avatar", message.avatarImage)
-                context.startActivity(intent)
-            },
+            .clickable { onClick() }
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 头像
+        // 头像容器
         Box(
             modifier = Modifier
                 .size(48.dp)
-                .clip(RoundedCornerShape(12.dp))
         ) {
-            // 使用真实的用户头像图片
+            // 用户头像
             Image(
                 painter = painterResource(id = getImageResourceId(message.avatarImage)),
                 contentDescription = "用户头像",
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Crop
             )
             
@@ -695,65 +774,95 @@ private fun MessageItem(message: Message) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
+                        .offset(x = 4.dp, y = (-4).dp)
                         .size(20.dp)
                         .background(Color(0xFFFE4E4E), CircleShape)
-                        .padding(4.dp),
+                        .border(2.dp, Color.White, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = message.unreadCount.toString(),
+                        text = if (message.unreadCount > 99) "99+" else message.unreadCount.toString(),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                 }
             }
+            
+            // 在线状态指示器
+            if (message.isOnline) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .offset(x = 2.dp, y = 2.dp)
+                        .size(14.dp)
+                        .background(Color(0xFF64E684), CircleShape)
+                        .border(2.dp, Color.White, CircleShape)
+                )
+            }
         }
         
         Spacer(modifier = Modifier.width(12.dp))
         
-        // 消息内容
+        // 消息内容区域
         Column(
             modifier = Modifier.weight(1f)
         ) {
-            Text(
-                text = message.name,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF333333)
-            )
+            // 用户名和时间行
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = message.name,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF333333),
+                    maxLines = 1
+                )
+                
+                Text(
+                    text = message.time,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF999999)
+                )
+            }
             
             Spacer(modifier = Modifier.height(4.dp))
             
-            Text(
-                text = message.content,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color(0xFF999999),
-                maxLines = 1
-            )
-        }
-        
-        Spacer(modifier = Modifier.width(12.dp))
-        
-        // 时间
-        Text(
-            text = message.time,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color(0xFF999999),
-            textAlign = TextAlign.End
-        )
-        
-        // 在线状态指示器
-        if (message.isOnline) {
-            Spacer(modifier = Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .size(16.dp)
-                    .background(Color(0xFF64E684), CircleShape)
-                    .border(2.dp, Color.White, CircleShape)
-            )
+            // 消息内容
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = message.content,
+                    fontSize = 14.sp,
+                    fontWeight = if (message.unreadCount > 0) FontWeight.Medium else FontWeight.Normal,
+                    color = if (message.unreadCount > 0) Color(0xFF333333) else Color(0xFF999999),
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f)
+                )
+                
+                // 消息类型图标
+                if (message.content.contains("[视频通话]") || message.content.contains("[语音通话]")) {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(16.dp)
+                            .background(Color(0xFFFE62AC), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (message.content.contains("视频")) "📹" else "📞",
+                            fontSize = 8.sp
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -923,6 +1032,55 @@ private val messageList = listOf(
         time = "1小时前",
         avatarImage = "group_27",
         unreadCount = 2
+    ),
+    Message(
+        name = "小雨",
+        content = "好的，那我们明天见！",
+        time = "2小时前",
+        avatarImage = "group_28",
+        unreadCount = 0
+    ),
+    Message(
+        name = "小美",
+        content = "[语音通话]",
+        time = "3小时前",
+        avatarImage = "group_29",
+        unreadCount = 0
+    ),
+    Message(
+        name = "小琳",
+        content = "谢谢你的礼物，我很喜欢！",
+        time = "5小时前",
+        avatarImage = "group_30",
+        unreadCount = 1
+    ),
+    Message(
+        name = "甜心宝贝",
+        content = "最近工作忙吗？",
+        time = "1天前",
+        avatarImage = "group_27",
+        unreadCount = 0
+    ),
+    Message(
+        name = "不吃香菜",
+        content = "周末有空一起看电影吗？",
+        time = "2天前",
+        avatarImage = "group_28",
+        unreadCount = 3
+    ),
+    Message(
+        name = "你的菜",
+        content = "今天心情不错，想和你分享",
+        time = "3天前",
+        avatarImage = "group_29",
+        unreadCount = 0
+    ),
+    Message(
+        name = "小仙女",
+        content = "晚安，做个好梦",
+        time = "3天前",
+        avatarImage = "group_30",
+        unreadCount = 0
     )
 )
 

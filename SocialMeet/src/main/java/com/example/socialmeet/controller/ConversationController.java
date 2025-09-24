@@ -30,8 +30,10 @@ public class ConversationController {
     public ResponseEntity<ApiResponse<Page<ConversationDTO>>> getConversations(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader("Authorization") String authHeader) {
         
+        // 提取纯token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         ApiResponse<Page<ConversationDTO>> response = conversationService.getConversations(page, size, token);
         
         if (response.isSuccess()) {
@@ -48,8 +50,10 @@ public class ConversationController {
     public ResponseEntity<ApiResponse<Page<ConversationDTO>>> getPinnedConversations(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader("Authorization") String authHeader) {
         
+        // 提取纯token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         ApiResponse<Page<ConversationDTO>> response = conversationService.getPinnedConversations(page, size, token);
         
         if (response.isSuccess()) {
@@ -66,8 +70,10 @@ public class ConversationController {
     public ResponseEntity<ApiResponse<Page<ConversationDTO>>> getUnreadConversations(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader("Authorization") String authHeader) {
         
+        // 提取纯token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         ApiResponse<Page<ConversationDTO>> response = conversationService.getUnreadConversations(page, size, token);
         
         if (response.isSuccess()) {
@@ -85,8 +91,10 @@ public class ConversationController {
             @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader("Authorization") String authHeader) {
         
+        // 提取纯token
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
         ApiResponse<Page<ConversationDTO>> response = conversationService.searchConversations(keyword, page, size, token);
         
         if (response.isSuccess()) {
