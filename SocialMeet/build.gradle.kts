@@ -4,6 +4,11 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
 }
 
+// 配置 Spring Boot 主类
+springBoot {
+    mainClass.set("com.example.socialmeet.SocialMeetApplication")
+}
+
 group = "com.example"
 version = "0.0.1-SNAPSHOT"
 description = "Social Meet Backend"

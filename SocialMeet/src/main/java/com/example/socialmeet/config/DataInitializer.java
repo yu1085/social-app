@@ -30,7 +30,7 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         initializeVipLevels();
-        initializeWealthLevels();
+        // initializeWealthLevels(); // 禁用：WealthLevel 是用户专属数据，不应该初始化示例数据
         initializeGifts();
         initializeCoupons();
         initializeSystemConfigs();
