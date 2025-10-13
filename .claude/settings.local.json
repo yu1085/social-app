@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(..gradlew.bat clean build)",
+      "Bash(dir:*)",
+      "Bash(gradlew.bat clean:*)",
+      "Bash(cmd /c gradlew.bat clean:*)",
+      "Bash(./gradlew:*)",
+      "Bash(where java)",
+      "Bash(java:*)",
+      "Bash(where python3 python)",
+      "Bash(curl -L -o gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/master/gradle/wrapper/gradle-wrapper.jar)",
+      "Read(//c/Users/Administrator/IdeaProjects/**)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(cp:*)",
+      "Bash(git rm:*)",
+      "Bash(awk:*)",
+      "Bash(rm:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

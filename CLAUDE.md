@@ -2,29 +2,20 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ⚠️ Project Structure Change (2025-10-13)
+
+**IMPORTANT**: This project has been separated into two independent repositories:
+
+- **Android Client** (this repository): Android app only
+- **Backend Service**: Moved to `C:\Users\Administrator\IdeaProjects\social-meet-backend`
+
+The backend (SocialMeet/) is NO LONGER in this repository. See the backend README for backend-specific instructions.
+
 ## Project Overview
 
-SocialMeet is a complete social dating application consisting of a Spring Boot backend service and an Android client. The project has been optimized to reduce code redundancy and improve maintainability.
+This repository contains the **Android client** for SocialMeet social dating application. It's a modern Android app built with Kotlin and Jetpack Compose.
 
 ## Build and Run Commands
-
-### Backend (Spring Boot)
-
-```bash
-# Start backend service
-cd SocialMeet
-gradlew bootRun
-
-# Build JAR file
-gradlew bootJar
-
-# Clean build
-gradlew clean build
-
-# Skip tests (tests are disabled by default in build.gradle.kts)
-```
-
-The backend runs on `http://localhost:8080` by default.
 
 ### Android Client
 
@@ -43,52 +34,24 @@ gradlew assembleArm64-v8aDebug    # 64-bit ARM
 gradlew assembleArmeabi-v7aDebug  # 32-bit ARM
 ```
 
-### Unified Management Scripts
+### Backend Service (Separate Project)
+
+The backend is now located at: `C:\Users\Administrator\IdeaProjects\social-meet-backend`
 
 ```bash
-# Backend operations
-scripts\unified_management.bat start-backend
-scripts\unified_management.bat clean-build
+# Navigate to backend project
+cd ../social-meet-backend
 
-# Android operations
-scripts\unified_management.bat start-emulator
-scripts\unified_management.bat build-app
-scripts\unified_management.bat install-app
+# Start backend service
+gradlew bootRun
 
-# Testing
-scripts\unified_management.bat test-api
-scripts\unified_management.bat test-basic
-scripts\unified_management.bat test-auth
-
-# Using Python test suite directly
-python scripts\unified_test_suite.py --verbose
-python scripts\unified_test_suite.py --test basic
+# Or use start script
+start_backend_simple.bat
 ```
 
+The backend runs on `http://localhost:8080` by default.
+
 ## Architecture Overview
-
-### Backend Architecture (SocialMeet/)
-
-The backend follows a layered Spring Boot architecture:
-
-- **Controller Layer** (`controller/`): REST API endpoints, handles HTTP requests
-- **Service Layer** (`service/`): Business logic and transaction management
-- **Repository Layer** (`repository/`): JPA repositories for data access
-- **Entity Layer** (`entity/`): JPA entities mapping to database tables
-- **DTO Layer** (`dto/`): Data Transfer Objects for API communication
-- **WebSocket** (`websocket/`): Real-time messaging support
-- **Config** (`config/`): Spring configuration classes including:
-  - `SecurityConfig`: JWT authentication and authorization
-  - `WebConfig`: CORS and web MVC configuration
-  - `JPushConfig`: Push notification setup
-  - `PaymentConfig`: Alipay and WeChat payment configuration
-  - `DynamicDatabaseConfig`: Dynamic database configuration management
-
-Key architectural patterns:
-- **JWT Authentication**: Token-based auth implemented in `SecurityConfig` and `JwtAuthenticationEntryPoint`
-- **WebSocket Communication**: Real-time messaging through Spring WebSocket
-- **Multi-tenancy Support**: Dynamic configuration through `DynamicDatabaseConfig` and `DynamicCacheConfig`
-- **Async Processing**: Configured in `AsyncConfig` for non-blocking operations
 
 ### Android Architecture (app/)
 
@@ -130,179 +93,218 @@ Key architectural patterns:
 - **Coroutines**: All network operations use Kotlin coroutines
 - **Hybrid UI**: Mix of XML-based Views and Jetpack Compose for flexibility
 
-## Database Configuration
+## API Configuration
 
-The backend uses MySQL 8.0. Configuration is in `SocialMeet/src/main/resources/application.yml`:
+### Network Configuration
 
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/socialmeet?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-    username: root
-    password: root
+The app communicates with the backend service. Configure the backend URL in:
+
+`app/src/main/java/com/example/myapplication/network/NetworkConfig.java`
+
+```java
+public static final String BASE_URL = "http://localhost:8080/api/";
 ```
 
-Database schema is auto-managed by JPA with `ddl-auto: update`. Major entity tables include:
-- User management: `User`, `UserProfile`, `DeviceToken`
-- Messaging: `Message`, `ConversationEntity`
-- Social features: `Dynamic`, `FollowRelationship`, `Comment`, `DynamicLike`
-- Calls: `CallSession`, `CallRecordEntity`, `CallSettings`
-- Payment: `Wallet`, `CurrencyTransaction`, `RechargeOrder`
-- Gamification: `Gift`, `Coupon`, `VipMembership`, `WealthLevel`
+**Important**:
+- For emulator: Use `http://10.0.2.2:8080/api/`
+- For real device: Use your computer's IP address
+- For production: Use `https://your-domain.com/api/`
 
-## Key Integration Points
+## Backend Integration
 
-### JWT Authentication Flow
+### Backend Project Location
 
-1. User logs in via `AuthController.login()`
-2. `AuthService` validates credentials and generates JWT token
-3. Token contains user ID and expiration
-4. Subsequent requests include token in `Authorization: Bearer <token>` header
-5. `JwtAuthenticationFilter` validates token on each request
-6. Token parsed by `JwtUtil` to extract user information
+The backend service is in a separate project:
+- **Path**: `C:\Users\Administrator\IdeaProjects\social-meet-backend`
+- **Documentation**: See `../social-meet-backend/README.md`
 
-### WebSocket Real-time Messaging
+### Starting the Backend
 
-1. Client connects to `/ws` endpoint
-2. Connection handled by WebSocket configuration
-3. Messages routed through message handlers
-4. `MessageService` persists messages to database
-5. Real-time delivery to online users via WebSocket
-6. Offline messages stored for later delivery
+1. Navigate to backend directory
+2. Ensure MySQL is running
+3. Start backend: `gradlew bootRun` or `start_backend_simple.bat`
+4. Verify at: http://localhost:8080/swagger-ui.html
 
-### Push Notification System
+### Backend API Endpoints
 
-Backend uses JPush (极光推送):
-- Configuration in `application.yml` and `JPushConfig`
-- `PushService` handles notification sending
-- Device tokens stored in `DeviceToken` entity
-- Notifications sent for: new messages, likes, comments, call requests
+The Android app connects to these main endpoints:
 
-Android receives notifications through JPush SDK integrated in the app.
+- **Authentication**: `/api/auth/*`
+- **User Profile**: `/api/user/*`
+- **Messages**: `/api/messages/*`
+- **Social Feed**: `/api/dynamics/*` or `/api/posts/*`
+- **Wallet**: `/api/wallet/*`
+- **Calls**: `/api/call/*`
 
-### Payment Integration
+Full API documentation: http://localhost:8080/swagger-ui.html
 
-Two payment methods supported:
+## Development Workflow
 
-1. **Alipay**:
-   - Service: `AlipayService`
-   - Controller: `AlipayTestController`
-   - SDK: alipay-sdk-java
-
-2. **WeChat Pay**:
-   - Service: `WeChatPayService`
-   - Configuration in `PaymentConfig`
-
-Payment flow:
-1. User initiates recharge via `WalletController`
-2. Order created in `RechargeOrder` table
-3. Payment service generates payment parameters
-4. Client completes payment
-5. Callback updates order status and wallet balance
-
-### Phone Authentication
-
-Multiple authentication methods:
-- **Aliyun Phone Auth**: One-click login via carrier authentication (`AliyunPhoneAuthController`, `AliyunPhoneAuthService`)
-- **CMCC (China Mobile)**: Card auth and SIM auth services
-- **Face Verification**: Real-person authentication with Aliyun Face SDK
-
-## Configuration Management
-
-### Backend Configuration
-
-Primary config: `SocialMeet/src/main/resources/application.yml`
-
-Active profile: `default` (can be changed via `spring.profiles.active`)
-
-Key configurations:
-- Database connection
-- JWT secret keys (should be configured)
-- JPush credentials
-- Aliyun access keys
-- Payment service credentials
-
-Use `scripts/unified_config.py` to manage configurations:
+### 1. Start Backend Service
 
 ```bash
-# Save database config
-python scripts\unified_config.py --config-type database --action save \
-  --db-host localhost --db-port 3306 --db-name socialmeet
-
-# Generate environment configs
-python scripts\unified_config.py --generate-env --env development
-python scripts\unified_config.py --generate-env --env production
+cd ../social-meet-backend
+gradlew bootRun
 ```
 
-### Android Configuration
+### 2. Update Network Config
 
-Build config in `app/build.gradle.kts`:
+Update `NetworkConfig.java` with correct backend URL.
+
+### 3. Build Android App
+
+```bash
+gradlew assembleDebug
+```
+
+### 4. Install and Test
+
+```bash
+gradlew installDebug
+```
+
+### 5. Test API Connection
+
+Use Swagger UI or test with the app.
+
+## Android Configuration
+
+### Build Config
+
+In `app/build.gradle.kts`:
 - `compileSdk = 34`
 - `minSdk = 24`
 - `targetSdk = 34`
+- Kotlin version: 1.9.10
+- Compose version: 1.6.0
 
-Base URL for API configured in `NetworkConfig.java` - ensure this points to your backend server.
+### Dependencies
+
+Major dependencies:
+- Retrofit 2.9.0 - HTTP client
+- Kotlin Coroutines - Async operations
+- Jetpack Compose - Modern UI
+- Material3 - Design system
+- Coil - Image loading
+- Aliyun SDKs - Face recognition, auth
+
+### APK Size Optimization
+
+Current APK is ~74MB due to:
+- Aliyun SDK (24MB): Face recognition, OCR, NFC
+- Multiple ABI support
+
+Optimization strategies:
+1. Use APK splits for different ABIs
+2. Make Aliyun SDK optional
+3. Enable ProGuard/R8 shrinking
 
 ## Testing
 
-### API Testing
+### Android Testing
 
 ```bash
-# Full API test suite
-python scripts\unified_test_suite.py --verbose
+# Run unit tests
+gradlew test
 
-# Specific test categories
-python test_api_with_data.py       # API with test data
-python test_message_api.py         # Messaging APIs
-python test_dynamic_api.py         # Social posts APIs
-python test_relationship_api.py    # Friend relationships
-python test_wealth_level_api.py    # Wealth system
-python test_profile_api.py         # User profiles
+# Run instrumented tests
+gradlew connectedAndroidTest
 ```
 
-### Database Testing
+### API Testing
+
+Backend API tests are in the backend project:
 
 ```bash
-python check_database.py              # Check DB structure
-python check_relationship_tables.py   # Verify relationships
-python check_user_data.py             # User data validation
+cd ../social-meet-backend
+python check_database.py
+python scripts/unified_test_suite.py --verbose
 ```
 
 ## Important Notes
 
 ### Security Considerations
 
-- JWT secret should be changed from default in production
-- All API keys and credentials in `application.yml` should be externalized using environment variables
-- Database password should not be hardcoded
-- HTTPS should be enabled for production
+- API keys should not be hardcoded in production
+- Use ProGuard to obfuscate sensitive code
+- Store tokens securely (EncryptedSharedPreferences)
+- Use HTTPS in production
 
 ### Known Limitations
 
-- Redis configuration is commented out in `application.yml` to avoid JPA conflicts
-- Payment configurations are partially disabled (`spring.profiles.include: payment` is commented)
-- Tests are disabled in backend build by default to speed up builds
-- Some carrier SDK features use mock implementations
+- Backend must be running for app to function
+- Emulator requires special localhost address (10.0.2.2)
+- Some Aliyun SDK features may not work on all devices
+- Large APK size due to SDKs
 
-### Development Workflow
+### Development Tips
 
-1. Start MySQL database
-2. Run backend via `gradlew bootRun` or management script
-3. Verify backend at `http://localhost:8080/swagger-ui.html`
-4. Update API base URL in Android NetworkConfig if needed
-5. Build and install Android app
-6. Test features using test scripts or manually
+1. **Network Debugging**: Enable OkHttp logging in debug builds
+2. **Compose Previews**: Use `@Preview` for rapid UI iteration
+3. **Hot Reload**: Android Studio supports Compose hot reload
+4. **ADB Commands**:
+   - `adb logcat -s MyApplication` - View app logs
+   - `adb shell am start -n com.example.myapplication/.MainActivity` - Launch app
 
-### API Documentation
+### Common Issues
 
-Swagger UI available at: `http://localhost:8080/swagger-ui.html`
-OpenAPI JSON: `http://localhost:8080/api-docs`
+1. **Network Connection Failures**
+   - Check backend is running
+   - Verify NetworkConfig BASE_URL
+   - Check device/emulator network connectivity
 
-### Common Gotchas
+2. **Build Failures**
+   - Clean project: `gradlew clean`
+   - Invalidate caches in Android Studio
+   - Check Gradle sync
 
-- **CORS Issues**: CORS is configured in `WebConfig` - update allowed origins if deploying
-- **Token Expiration**: JWT tokens expire after configured time, implement refresh logic
-- **WebSocket Connection**: WebSocket requires HTTP upgrade, ensure proxy/firewall allows it
-- **File Uploads**: File upload endpoint exists in `FileUploadController` - check size limits
-- **Device Permissions**: Android app requires camera, location, audio permissions - handle runtime permissions
-- **Gradle Version**: Project uses Gradle 8.9 - wrapper is included, use `gradlew` not global gradle
+3. **Large APK Size**
+   - Use APK Analyzer to inspect size
+   - Consider using App Bundles
+   - Remove unused SDKs
+
+## Project Links
+
+- **Backend Project**: `C:\Users\Administrator\IdeaProjects\social-meet-backend`
+- **Android Documentation**: [README.md](README.md)
+- **Backend Documentation**: `../social-meet-backend/README.md`
+- **API Documentation**: http://localhost:8080/swagger-ui.html
+
+## Technology Stack
+
+### Android
+- **Language**: Kotlin 1.9.10
+- **UI Framework**: Jetpack Compose 1.6.0 + XML Views
+- **Architecture**: MVVM
+- **Networking**: Retrofit 2.9.0 + OkHttp 4.12.0
+- **Async**: Kotlin Coroutines
+- **Image Loading**: Coil 2.5.0
+- **Design**: Material3
+
+### Backend (Separate Project)
+- **Language**: Java 21
+- **Framework**: Spring Boot 3.3.5
+- **Database**: MySQL 8.0
+- **Authentication**: JWT
+- **Messaging**: WebSocket
+- **Build Tool**: Gradle 8.9
+
+## Getting Help
+
+For Android-specific issues:
+- Check this README and CLAUDE.md
+- Review code comments and documentation
+- Use Android Studio's built-in help
+
+For backend-specific issues:
+- See `../social-meet-backend/README.md`
+- Check backend logs
+- Use Swagger UI for API testing
+
+---
+
+**Last Updated**: 2025-10-13
+**Android SDK**: 34
+**Minimum SDK**: 24
+**Kotlin Version**: 1.9.10
+**Project Status**: Frontend and Backend Separated ✅

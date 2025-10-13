@@ -1,2 +1,0 @@
--dontwarn com.cmic.gen.sdk.**
--keep class com.cmic.gen.sdk.** {*;}
