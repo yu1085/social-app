@@ -415,31 +415,33 @@ public class MainActivity extends AppCompatActivity {
     
     private void setupUserCardClickListeners() {
         // 为首页的用户卡片设置点击事件
-        // 用户卡片1 - 不吃香菜
+        // 用户卡片1 - video_caller (视频发起者)
         View userCard1 = findViewById(R.id.user_card_1);
         if (userCard1 != null) {
             userCard1.setOnClickListener(v -> {
                 Intent intent = new Intent(MainActivity.this, UserDetailActivity.class);
-                intent.putExtra("user_name", "不吃香菜");
-                intent.putExtra("user_status", "空闲");
-                intent.putExtra("user_age", "25岁");
-                intent.putExtra("user_location", "北京");
-                intent.putExtra("user_description", "我是一个活泼开朗的女孩，喜欢聊天和交朋友。希望能遇到有趣的人一起分享生活的美好。");
+                intent.putExtra("user_id", 23820512L);
+                intent.putExtra("user_name", "video_caller");
+                intent.putExtra("user_status", "在线");
+                intent.putExtra("user_age", "32岁");
+                intent.putExtra("user_location", "杭州市");
+                intent.putExtra("user_description", "喜欢音乐和电影，享受简单快乐的生活");
                 intent.putExtra("user_avatar", R.drawable.rectangle_411_1);
                 startActivity(intent);
             });
         }
-        
-        // 用户卡片2 - 你的菜
+
+        // 用户卡片2 - video_receiver (视频接收者)
         View userCard2 = findViewById(R.id.user_card_2);
         if (userCard2 != null) {
             userCard2.setOnClickListener(v -> {
                 Intent intent = new Intent(MainActivity.this, UserDetailActivity.class);
-                intent.putExtra("user_name", "你的菜");
-                intent.putExtra("user_status", "忙碌");
-                intent.putExtra("user_age", "23岁");
-                intent.putExtra("user_location", "广州");
-                intent.putExtra("user_description", "温柔可爱的女孩，喜欢听音乐和看电影。希望能找到志同道合的朋友。");
+                intent.putExtra("user_id", 22491729L);
+                intent.putExtra("user_name", "video_receiver");
+                intent.putExtra("user_status", "在线");
+                intent.putExtra("user_age", "31岁");
+                intent.putExtra("user_location", "西安市");
+                intent.putExtra("user_description", "喜欢音乐和艺术，享受安静美好的时光");
                 intent.putExtra("user_avatar", R.drawable.rectangle_412_1);
                 startActivity(intent);
             });

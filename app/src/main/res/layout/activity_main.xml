@@ -512,13 +512,13 @@
                         android:background="@drawable/status_badge_bg_design"
                         android:gravity="center_vertical|start"
                         android:paddingStart="16dp"
-                        android:text="空闲"
+                        android:text="在线"
                         android:textColor="#FFFFFF"
                         android:textSize="9sp"
                         android:fontFamily="sans-serif"
                         android:lineHeight="12.6sp" />
 
-                    <!-- 状态指示器 - 绿色表示空闲，按照设计文档精确坐标 -->
+                    <!-- 状态指示器 - 绿色表示在线，按照设计文档精确坐标 -->
                     <View
                         android:layout_width="5dp"
                         android:layout_height="5dp"
@@ -534,12 +534,12 @@
                         android:layout_marginBottom="10dp"
                         android:layout_gravity="bottom|start"
                         android:orientation="vertical">
-                        
+
                         <!-- 用户名 -->
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="不吃香菜"
+                            android:text="video_caller"
                             android:textColor="#FFFFFF"
                             android:textSize="12sp"
                             android:fontFamily="sans-serif"
@@ -598,7 +598,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:maxLines="1"
-                                android:text="北京"
+                                android:text="杭州"
                                 android:textColor="#FFFFFF"
                                 android:textSize="7sp"
                                 android:fontFamily="sans-serif"
@@ -652,19 +652,19 @@
                         android:background="@drawable/status_badge_bg_design"
                         android:gravity="center_vertical|start"
                         android:paddingStart="16dp"
-                        android:text="忙碌"
+                        android:text="在线"
                         android:textColor="#FFFFFF"
                         android:textSize="9sp"
                         android:fontFamily="sans-serif"
                         android:lineHeight="12.6sp" />
 
-                    <!-- 状态指示器 - 橙色表示忙碌，按照设计文档精确坐标 -->
+                    <!-- 状态指示器 - 绿色表示在线，按照设计文档精确坐标 -->
                     <View
                         android:layout_width="5dp"
                         android:layout_height="5dp"
                         android:layout_marginStart="13dp"
                         android:layout_marginTop="11dp"
-                        android:background="@drawable/status_indicator_orange" />
+                        android:background="@drawable/status_indicator_green" />
 
                     <!-- 左下角用户信息区域 - 垂直排列 -->
                     <LinearLayout
@@ -679,7 +679,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="你的菜"
+                            android:text="video_receiver"
                             android:textColor="#FFFFFF"
                             android:textSize="12sp"
                             android:fontFamily="sans-serif"
@@ -707,7 +707,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="300/分钟"
+                                android:text="350/分钟"
                                 android:textColor="#FFFFFF"
                                 android:textSize="8sp"
                                 android:fontFamily="sans-serif"
@@ -738,7 +738,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:maxLines="1"
-                                android:text="广州"
+                                android:text="西安"
                                 android:textColor="#FFFFFF"
                                 android:textSize="7sp"
                                 android:fontFamily="sans-serif"

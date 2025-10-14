@@ -518,6 +518,14 @@
                 android:exported="false"
                 android:theme="@style/Theme.MyApplication"
                 android:screenOrientation="portrait" />
+
+        <!-- 视频通话页面（火山引擎RTC） -->
+        <activity
+                android:name=".VideoChatActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:configChanges="orientation|keyboardHidden|screenSize" />
                 
         <!-- 知友页面 -->
         <activity

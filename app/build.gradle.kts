@@ -39,6 +39,7 @@ android {
     }
     buildFeatures {
         compose = true
+        viewBinding = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.3"
@@ -80,6 +81,10 @@ dependencies {
     
     // 支付宝支付SDK
     implementation("com.alipay.sdk:alipaysdk-android:15.8.11")
+
+    // VolcEngineRTC SDK for video calling
+    implementation(files("libs/VolcEngineRTC-lite.aar"))
+
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     
