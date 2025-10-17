@@ -1,0 +1,111 @@
+# SocialMeet 后端服务配置文件
+spring:
+  application:
+    name: socialmeet-backend
+
+  # 数据源配置
+  datasource:
+    url: jdbc:mysql://localhost:3306/socialmeet?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    # HikariCP 连接池配置
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # JPA 配置
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+        jdbc:
+          batch_size: 20
+
+  # Jackson JSON 配置
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+# 服务器配置
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+# JWT 配置
+jwt:
+  secret: socialmeet-super-secret-key-2024-change-this-in-production-environment
+  expiration: 86400000  # 24小时（毫秒）
+  refresh-expiration: 604800000  # 7天（毫秒）
+  token-prefix: Bearer
+  header-string: Authorization
+
+# 验证码配置
+verification:
+  code-length: 6
+  expire-minutes: 5
+  test-mode: true  # 测试模式，验证码固定为 123456
+  test-code: "123456"
+
+# 阿里云短信配置（生产环境启用）
+aliyun:
+  sms:
+    access-key-id: your-access-key-id
+    access-key-secret: your-access-key-secret
+    sign-name: SocialMeet
+    template-code: SMS_123456789
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.example.myapplication: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/socialmeet.log
+    max-size: 10MB
+    max-history: 30
+
+# 跨域配置
+cors:
+  allowed-origins: "*"
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: "*"
+  allow-credentials: true
+  max-age: 3600
+
+# 文件上传配置
+upload:
+  path: /uploads
+  max-file-size: 10MB
+  max-request-size: 20MB
+  allowed-extensions: jpg,jpeg,png,gif,mp4
+
+# 应用配置
+app:
+  name: SocialMeet
+  version: 1.0.0
+  description: 社交约会应用后端服务
