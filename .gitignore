@@ -169,3 +169,7 @@ application-*.properties
 *.p12
 *.jks
 *.keystore
+
+# APK files
+*.apk
+app-debug.apk
