@@ -98,9 +98,9 @@ dependencies {
     // 支付宝支付SDK
     implementation("com.alipay.sdk:alipaysdk-android:15.8.11")
 
-    // JPush 极光推送 SDK (用于来电通知)
-    implementation(files("../jpush-android-5.9.0-release/jpush-android-5.9.0-release/libs/jcore-android-5.2.0.jar"))
-    implementation(files("../jpush-android-5.9.0-release/jpush-android-5.9.0-release/libs/jpush-android-5.9.0.jar"))
+    // JPush 极光推送 SDK (用于来电通知) - 使用本地JAR文件
+    implementation(files("libs/jcore-android-5.2.0.jar"))
+    implementation(files("libs/jpush-android-5.9.0.jar"))
 
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")

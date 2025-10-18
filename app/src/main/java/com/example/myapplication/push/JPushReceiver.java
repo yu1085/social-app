@@ -367,7 +367,14 @@ public class JPushReceiver extends JPushMessageReceiver {
                 if (runningProcesses != null) {
                     for (android.app.ActivityManager.RunningAppProcessInfo processInfo : runningProcesses) {
                         if (processInfo.processName.equals(context.getPackageName())) {
-                            return processInfo.importance == android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND;
+                            boolean isForeground = processInfo.importance == android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND;
+                            Log.i(TAG, "=== 应用前台状态检测 ===");
+                            Log.i(TAG, "进程名: " + processInfo.processName);
+                            Log.i(TAG, "重要性级别: " + processInfo.importance);
+                            Log.i(TAG, "前台级别: " + android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND);
+                            Log.i(TAG, "是否前台: " + isForeground);
+                            Log.i(TAG, "========================");
+                            return isForeground;
                         }
                     }
                 }
@@ -375,6 +382,9 @@ public class JPushReceiver extends JPushMessageReceiver {
         } catch (Exception e) {
             Log.e(TAG, "检查应用前台状态失败", e);
         }
+        
+        // 如果检测失败，默认返回false（后台），避免误判
+        Log.w(TAG, "无法检测应用状态，默认认为在后台");
         return false;
     }
 
