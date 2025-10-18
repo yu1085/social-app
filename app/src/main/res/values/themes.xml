@@ -8,4 +8,20 @@
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowBackground">@color/background</item>
     </style>
+
+    <!-- JPush PopWinActivity 对话框样式 -->
+    <style name="MyDialogStyle" parent="@android:Theme.Dialog">
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+
+    <!-- JPush JNotifyActivity 必需主题 (不可混淆) -->
+    <style name="JPushTheme" parent="@android:style/Theme.Translucent.NoTitleBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
 </resources>

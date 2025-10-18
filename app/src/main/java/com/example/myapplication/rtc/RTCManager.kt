@@ -3,13 +3,13 @@ package com.example.myapplication.rtc
 import android.content.Context
 import android.util.Log
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import com.ss.bytertc.engine.RTCRoom
 import com.ss.bytertc.engine.RTCRoomConfig
 import com.ss.bytertc.engine.RTCVideo
 import com.ss.bytertc.engine.UserInfo
 import com.ss.bytertc.engine.VideoCanvas
 import com.ss.bytertc.engine.data.CameraId
-import com.ss.bytertc.engine.data.MirrorType
 import com.ss.bytertc.engine.data.RemoteStreamKey
 import com.ss.bytertc.engine.data.StreamIndex
 import com.ss.bytertc.engine.handler.IRTCRoomEventHandler
@@ -67,6 +67,29 @@ class RTCManager private constructor() {
         }
 
         try {
+            Log.d(TAG, "Starting RTC Engine initialization with AppID: $appId")
+            
+            // 检查AppID是否有效
+            if (appId.isBlank() || appId == "your_app_id_here") {
+                Log.e(TAG, "Invalid AppID: $appId")
+                throw IllegalArgumentException("Invalid AppID: $appId")
+            }
+
+            // 检查权限
+            if (!hasRequiredPermissions(context)) {
+                Log.e(TAG, "Missing required permissions for RTC")
+                throw SecurityException("Missing required permissions for RTC")
+            }
+
+            // 设置日志级别（调试模式）
+            try {
+                // 尝试设置日志级别，如果方法不存在则忽略
+                val setLogLevelMethod = RTCVideo::class.java.getDeclaredMethod("setLogLevel", Int::class.java)
+                setLogLevelMethod.invoke(null, 2) // 2 = Debug level
+            } catch (e: Exception) {
+                Log.w(TAG, "Could not set log level: ${e.message}")
+            }
+            
             // 创建 RTCVideo 实例
             rtcVideo = RTCVideo.createRTCVideo(
                 context.applicationContext,
@@ -76,17 +99,53 @@ class RTCManager private constructor() {
                 null
             )
 
-            // 设置视频采集参数
-            val captureConfig = VideoCaptureConfig().apply {
-                width = 640
-                height = 480
-                frameRate = 15
+            if (rtcVideo == null) {
+                Log.e(TAG, "Failed to create RTCVideo instance")
+                throw RuntimeException("Failed to create RTCVideo instance")
             }
-            rtcVideo?.setVideoCaptureConfig(captureConfig)
+
+            // 设置视频采集参数
+            try {
+                val captureConfig = VideoCaptureConfig().apply {
+                    width = 640
+                    height = 480
+                    frameRate = 15
+                }
+                rtcVideo?.setVideoCaptureConfig(captureConfig)
+            } catch (e: Exception) {
+                Log.w(TAG, "Could not set video capture config: ${e.message}")
+            }
 
             Log.d(TAG, "RTC Engine initialized successfully")
+        } catch (e: UnsatisfiedLinkError) {
+            Log.e(TAG, "Native library loading failed", e)
+            Log.e(TAG, "Please check if libvolcenginertc.so is properly included in the APK")
+            throw e
+        } catch (e: NoClassDefFoundError) {
+            Log.e(TAG, "Missing class definition", e)
+            Log.e(TAG, "Please check if all required dependencies are included")
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "Failed to initialize RTC Engine", e)
+            throw e
+        }
+    }
+
+    /**
+     * 检查是否有必要的权限
+     */
+    private fun hasRequiredPermissions(context: Context): Boolean {
+        val requiredPermissions = arrayOf(
+            android.Manifest.permission.CAMERA,
+            android.Manifest.permission.RECORD_AUDIO,
+            android.Manifest.permission.MODIFY_AUDIO_SETTINGS,
+            android.Manifest.permission.BLUETOOTH,
+            android.Manifest.permission.BLUETOOTH_CONNECT
+        )
+        
+        return requiredPermissions.all { permission ->
+            ContextCompat.checkSelfPermission(context, permission) ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED
         }
     }
 
@@ -210,11 +269,24 @@ class RTCManager private constructor() {
     // ========== RTCVideo 事件回调 ==========
     private val rtcVideoEventHandler = object : IRTCVideoEventHandler() {
         override fun onWarning(warn: Int) {
-            Log.w(TAG, "onWarning: $warn")
+            Log.w(TAG, "RTC Warning: $warn")
         }
 
         override fun onError(err: Int) {
-            Log.e(TAG, "onError: $err")
+            Log.e(TAG, "RTC Error: $err")
+            when (err) {
+                -1 -> Log.e(TAG, "RTC Error: Invalid parameter")
+                -2 -> Log.e(TAG, "RTC Error: Invalid state")
+                -3 -> Log.e(TAG, "RTC Error: No permission")
+                -4 -> Log.e(TAG, "RTC Error: Network error")
+                -5 -> Log.e(TAG, "RTC Error: Token expired")
+                -6 -> Log.e(TAG, "RTC Error: Token invalid")
+                -7 -> Log.e(TAG, "RTC Error: App ID invalid")
+                -8 -> Log.e(TAG, "RTC Error: Room ID invalid")
+                -9 -> Log.e(TAG, "RTC Error: User ID invalid")
+                -10 -> Log.e(TAG, "RTC Error: Token expired")
+                else -> Log.e(TAG, "RTC Error: Unknown error $err")
+            }
         }
     }
 

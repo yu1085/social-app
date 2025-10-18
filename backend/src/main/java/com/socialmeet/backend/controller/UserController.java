@@ -4,6 +4,10 @@ import com.socialmeet.backend.dto.ApiResponse;
 import com.socialmeet.backend.dto.UserDTO;
 import com.socialmeet.backend.security.JwtUtil;
 import com.socialmeet.backend.service.AuthService;
+import com.socialmeet.backend.service.JPushService;
+import com.socialmeet.backend.repository.UserRepository;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +25,8 @@ public class UserController {
 
     private final AuthService authService;
     private final JwtUtil jwtUtil;
+    private final JPushService jPushService;
+    private final UserRepository userRepository;
 
     /**
      * 获取当前用户信息
@@ -150,6 +156,79 @@ public class UserController {
         } catch (Exception e) {
             log.error("更新 Registration ID 失败", e);
             return ApiResponse.error("更新 Registration ID 失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 查看用户Registration ID状态
+     */
+    @GetMapping("/registration-status")
+    public ApiResponse<Map<String, Object>> getRegistrationStatus(
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            
+            // 获取用户的Registration ID
+            var user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("用户不存在"));
+            String registrationId = user.getJpushRegistrationId();
+            
+            Map<String, Object> status = new HashMap<>();
+            status.put("userId", userId);
+            status.put("registrationId", registrationId);
+            status.put("isValid", registrationId != null && !registrationId.trim().isEmpty() && !"0".equals(registrationId));
+            status.put("username", user.getUsername());
+            
+            return ApiResponse.success("获取成功", status);
+
+        } catch (Exception e) {
+            log.error("获取Registration状态失败", e);
+            return ApiResponse.error("获取失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 测试JPush推送功能
+     */
+    @PostMapping("/test-push")
+    public ApiResponse<String> testPush(
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            
+            // 获取用户的Registration ID
+            var user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("用户不存在"));
+            String registrationId = user.getJpushRegistrationId();
+            
+            if (registrationId == null || registrationId.trim().isEmpty() || "0".equals(registrationId)) {
+                return ApiResponse.error("用户未注册推送服务，Registration ID: " + registrationId);
+            }
+
+            // 发送测试推送
+            boolean success = jPushService.sendTestNotification(userId, registrationId);
+            
+            if (success) {
+                log.info("✅ 测试推送发送成功 - userId: {}, registrationId: {}", userId, registrationId);
+                return ApiResponse.success("测试推送发送成功，Registration ID: " + registrationId);
+            } else {
+                log.error("❌ 测试推送发送失败 - userId: {}, registrationId: {}", userId, registrationId);
+                return ApiResponse.error("测试推送发送失败");
+            }
+
+        } catch (Exception e) {
+            log.error("测试推送失败", e);
+            return ApiResponse.error("测试推送失败: " + e.getMessage());
         }
     }
 }

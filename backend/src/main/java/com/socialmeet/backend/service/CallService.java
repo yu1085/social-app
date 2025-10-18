@@ -26,6 +26,7 @@ public class CallService {
     private final CallSessionRepository callSessionRepository;
     private final UserRepository userRepository;
     private final JPushService jPushService;
+    private final SignalingService signalingService;
 
     /**
      * 获取用户通话价格信息
@@ -87,7 +88,15 @@ public class CallService {
         callSession = callSessionRepository.save(callSession);
         log.info("通话会话创建成功 - sessionId: {}", callSession.getCallSessionId());
 
-        // 发送JPush通知给接收方
+        // 1. 发送WebSocket信令消息（主要方式）
+        try {
+            signalingService.sendCallInitiate(callerId, receiverId, callSession.getCallSessionId(), callType);
+            log.info("✅ 信令消息已发送 - receiverId: {}, sessionId: {}", receiverId, callSession.getCallSessionId());
+        } catch (Exception e) {
+            log.error("❌ 发送信令消息失败 - receiverId: {}, sessionId: {}", receiverId, callSession.getCallSessionId(), e);
+        }
+
+        // 2. 发送JPush通知给接收方（备用方式）
         try {
             boolean sent = jPushService.sendCallNotification(
                     receiverId,
@@ -98,12 +107,12 @@ public class CallService {
                     callType
             );
             if (sent) {
-                log.info("来电通知已发送 - receiverId: {}, sessionId: {}", receiverId, callSession.getCallSessionId());
+                log.info("✅ 推送通知已发送 - receiverId: {}, sessionId: {}", receiverId, callSession.getCallSessionId());
             } else {
-                log.warn("来电通知发送失败 - receiverId: {}, sessionId: {}", receiverId, callSession.getCallSessionId());
+                log.warn("⚠️ 推送通知发送失败 - receiverId: {}, sessionId: {}", receiverId, callSession.getCallSessionId());
             }
         } catch (Exception e) {
-            log.error("发送来电通知异常 - receiverId: {}, sessionId: {}", receiverId, callSession.getCallSessionId(), e);
+            log.error("❌ 发送推送通知异常 - receiverId: {}, sessionId: {}", receiverId, callSession.getCallSessionId(), e);
             // 不影响通话会话的创建，继续返回
         }
 
@@ -127,7 +136,42 @@ public class CallService {
         callSession.setStatus(CallSession.CallStatus.ACCEPTED);
         callSession.setStartTime(LocalDateTime.now());
 
-        return callSessionRepository.save(callSession);
+        callSession = callSessionRepository.save(callSession);
+
+        // 1. 发送WebSocket信令消息（主要方式）
+        try {
+            signalingService.sendCallAccept(callSession.getCallerId(), callSessionId);
+            log.info("✅ 接听信令已发送 - callerId: {}, sessionId: {}", callSession.getCallerId(), callSessionId);
+        } catch (Exception e) {
+            log.error("❌ 发送接听信令失败 - callerId: {}, sessionId: {}", callSession.getCallerId(), callSessionId, e);
+        }
+
+        // 2. 发送状态通知给发起方（备用方式）
+        try {
+            User receiver = userRepository.findById(userId).orElse(null);
+            String receiverName = receiver != null ? 
+                (receiver.getNickname() != null ? receiver.getNickname() : receiver.getUsername()) : "用户";
+            
+            boolean sent = jPushService.sendCallStatusNotification(
+                    callSession.getCallerId(),
+                    callSessionId,
+                    "ACCEPTED",
+                    receiverName + " 已接受您的通话"
+            );
+            
+            if (sent) {
+                log.info("✅ 接听推送已发送 - callerId: {}, sessionId: {}", 
+                        callSession.getCallerId(), callSessionId);
+            } else {
+                log.warn("⚠️ 接听推送发送失败 - callerId: {}, sessionId: {}", 
+                        callSession.getCallerId(), callSessionId);
+            }
+        } catch (Exception e) {
+            log.error("❌ 发送接听推送异常 - callerId: {}, sessionId: {}", 
+                    callSession.getCallerId(), callSessionId, e);
+        }
+
+        return callSession;
     }
 
     /**
@@ -147,7 +191,42 @@ public class CallService {
         callSession.setStatus(CallSession.CallStatus.REJECTED);
         callSession.setEndTime(LocalDateTime.now());
 
-        return callSessionRepository.save(callSession);
+        callSession = callSessionRepository.save(callSession);
+
+        // 1. 发送WebSocket信令消息（主要方式）
+        try {
+            signalingService.sendCallReject(callSession.getCallerId(), callSessionId);
+            log.info("✅ 拒绝信令已发送 - callerId: {}, sessionId: {}", callSession.getCallerId(), callSessionId);
+        } catch (Exception e) {
+            log.error("❌ 发送拒绝信令失败 - callerId: {}, sessionId: {}", callSession.getCallerId(), callSessionId, e);
+        }
+
+        // 2. 发送状态通知给发起方（备用方式）
+        try {
+            User receiver = userRepository.findById(userId).orElse(null);
+            String receiverName = receiver != null ? 
+                (receiver.getNickname() != null ? receiver.getNickname() : receiver.getUsername()) : "用户";
+            
+            boolean sent = jPushService.sendCallStatusNotification(
+                    callSession.getCallerId(),
+                    callSessionId,
+                    "REJECTED",
+                    receiverName + " 拒绝了您的通话"
+            );
+            
+            if (sent) {
+                log.info("✅ 拒绝推送已发送 - callerId: {}, sessionId: {}", 
+                        callSession.getCallerId(), callSessionId);
+            } else {
+                log.warn("⚠️ 拒绝推送发送失败 - callerId: {}, sessionId: {}", 
+                        callSession.getCallerId(), callSessionId);
+            }
+        } catch (Exception e) {
+            log.error("❌ 发送拒绝推送异常 - callerId: {}, sessionId: {}", 
+                    callSession.getCallerId(), callSessionId, e);
+        }
+
+        return callSession;
     }
 
     /**
@@ -184,6 +263,23 @@ public class CallService {
         }
 
         return callSessionRepository.save(callSession);
+    }
+
+    /**
+     * 获取通话状态
+     */
+    public CallSession getCallStatus(String callSessionId, Long userId) {
+        log.info("获取通话状态 - callSessionId: {}, userId: {}", callSessionId, userId);
+
+        CallSession callSession = callSessionRepository.findByCallSessionId(callSessionId)
+                .orElseThrow(() -> new RuntimeException("通话会话不存在"));
+
+        // 检查用户是否有权限查看此通话
+        if (!callSession.getCallerId().equals(userId) && !callSession.getReceiverId().equals(userId)) {
+            throw new RuntimeException("无权查看此通话状态");
+        }
+
+        return callSession;
     }
 
     /**

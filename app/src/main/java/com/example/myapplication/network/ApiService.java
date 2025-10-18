@@ -40,7 +40,14 @@ public interface ApiService {
     // 验证码登录/注册
     @POST("auth/login-with-code")
     Call<ApiResponse<LoginResponse>> loginWithVerificationCode(@Query("phone") String phone, @Query("code") String code);
-    
+
+    // 上传 JPush Registration ID
+    @POST("auth/update-registration-id")
+    Call<ApiResponse<String>> updateRegistrationId(
+            @Header("Authorization") String authHeader,
+            @Query("registrationId") String registrationId
+    );
+
     // 用户登录
     @POST("auth/login")
     Call<ApiResponse<LoginResponse>> login(@Body LoginRequest request);
@@ -99,6 +106,14 @@ public interface ApiService {
     // 发送消息
     @POST("messages")
     Call<ApiResponse<MessageDTO>> sendMessage(@Header("Authorization") String authHeader, @Body MessageDTO message);
+    
+    // 获取聊天记录
+    @GET("messages/chat-history")
+    Call<ApiResponse<List<MessageDTO>>> getChatHistory(
+            @Header("Authorization") String authHeader,
+            @Query("userId1") Long userId1,
+            @Query("userId2") Long userId2
+    );
     
     // 获取未读消息数量
     @GET("messages/unread-count")

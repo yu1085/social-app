@@ -10,6 +10,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import cn.jpush.android.api.JPushInterface;
+import com.example.myapplication.dto.ApiResponse;
 import com.example.myapplication.dto.LoginRequest;
 import com.example.myapplication.dto.LoginResponse;
 import com.example.myapplication.network.NetworkConfig;
@@ -87,7 +89,7 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     } else {
                         // 后端不可用时，显示固定验证码
-                        SafeToast.showLong(LoginActivity.this, "后端不可用，使用测试验证码：123456");
+                        SafeToast.showLong(LoginActivity.this, "后端不可用，请检查网络连接");
                         isCodeSent = true;
                     }
                 });
@@ -95,7 +97,7 @@ public class LoginActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (isFinishing() || isDestroyed()) return;
                     // 后端不可用时，显示固定验证码
-                    Toast.makeText(LoginActivity.this, "后端不可用，使用测试验证码：123456", Toast.LENGTH_LONG).show();
+                    Toast.makeText(LoginActivity.this, "后端不可用，请检查网络连接", Toast.LENGTH_LONG).show();
                     isCodeSent = true;
                 });
             }
@@ -118,7 +120,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         // 检查是否是测试验证码
-        if ("123456".equals(code)) {
+        if (isValidTestCode(code)) {
             // 测试模式登录 - 使用真实API调用
             Log.d(TAG, "测试模式登录，手机号: " + phone);
             progressDialog.show();
@@ -144,6 +146,9 @@ public class LoginActivity extends AppCompatActivity {
                                 // 保存登录信息
                                 AuthManager.getInstance(this).saveToken(loginResponse.getToken());
                                 AuthManager.getInstance(this).saveUserId(loginResponse.getUser().getId());
+
+                                // 上传JPush Registration ID
+                                uploadJPushRegistrationId();
 
                                 // 登录成功后跳转到性别选择界面
                                 Intent intent = new Intent(LoginActivity.this, GenderSelectionActivity.class);
@@ -194,6 +199,9 @@ public class LoginActivity extends AppCompatActivity {
                             // 保存登录信息
                             AuthManager.getInstance(this).saveToken(loginResponse.getToken());
                             AuthManager.getInstance(this).saveUserId(loginResponse.getUser().getId());
+
+                            // 上传JPush Registration ID
+                            uploadJPushRegistrationId();
 
                             // 登录成功后跳转到性别选择界面
                             Intent intent = new Intent(LoginActivity.this, GenderSelectionActivity.class);
@@ -253,6 +261,56 @@ public class LoginActivity extends AppCompatActivity {
         return phone.matches("^1[3-9]\\d{9}$");
     }
     
+    private boolean isValidTestCode(String code) {
+        // 在开发环境中允许特定的测试验证码
+        return "123456".equals(code) || "000000".equals(code);
+    }
+
+    /**
+     * 上传JPush Registration ID到后端
+     */
+    private void uploadJPushRegistrationId() {
+        new Thread(() -> {
+            try {
+                // 获取JPush Registration ID
+                String registrationId = JPushInterface.getRegistrationID(getApplicationContext());
+
+                if (registrationId == null || registrationId.trim().isEmpty()) {
+                    Log.w(TAG, "JPush Registration ID 为空，稍后将通过广播上传");
+                    return;
+                }
+
+                Log.d(TAG, "准备上传 Registration ID: " + registrationId);
+
+                // 获取Token
+                String token = AuthManager.getInstance(this).getAuthHeader();
+                if (token == null) {
+                    Log.e(TAG, "Token为空，无法上传 Registration ID");
+                    return;
+                }
+
+                // 调用后端API上传
+                retrofit2.Call<ApiResponse<String>> call =
+                    NetworkConfig.getApiService().updateRegistrationId(token, registrationId);
+
+                retrofit2.Response<ApiResponse<String>> response = call.execute();
+
+                if (response.isSuccessful() && response.body() != null) {
+                    if (response.body().isSuccess()) {
+                        Log.i(TAG, "✅ Registration ID 上传成功: " + registrationId);
+                    } else {
+                        Log.e(TAG, "❌ Registration ID 上传失败: " + response.body().getMessage());
+                    }
+                } else {
+                    Log.e(TAG, "❌ Registration ID 上传请求失败: " + response.code());
+                }
+
+            } catch (Exception e) {
+                Log.e(TAG, "上传 Registration ID 异常", e);
+            }
+        }).start();
+    }
+
     private void startCountDown() {
         btnSendCode.setEnabled(false);
         countDownTimer = new CountDownTimer(60000, 1000) {

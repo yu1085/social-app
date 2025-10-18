@@ -52,17 +52,33 @@ android {
 }
 
 dependencies {
+    // VolcEngineRTC SDK for video calling (火山引擎RTC SDK)
+    // 注意：这个必须放在最前面，确保优先加载RTC SDK
+    implementation(files("libs/rtc/VolcEngineRTC.jar"))
+
+    // AndroidX compatibility for legacy support library (required by VolcEngine RTC SDK)
+    implementation("androidx.legacy:legacy-support-v4:1.0.0")
+    
+    // AndroidX support libraries for ByteRTC SDK compatibility
+    implementation("androidx.core:core:1.12.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("androidx.fragment:fragment:1.6.2")
+    
+    // Additional support libraries that ByteRTC might need
+    implementation("androidx.annotation:annotation:1.7.1")
+    implementation("androidx.collection:collection:1.3.0")
+
     // 阿里云融合认证SDK - 一键登录
     implementation(files("libs/fusionAuthSDK_APP_Android_v1.2.12_operator_ui_log_static/SDK/fusionauth-1.2.12-online-release.aar"))
     implementation(files("libs/fusionAuthSDK_APP_Android_v1.2.12_operator_ui_log_static/SDK/umeng-asm/umeng-asms-v1.8.0.aar"))
     implementation(files("libs/fusionAuthSDK_APP_Android_v1.2.12_operator_ui_log_static/SDK/umeng-common/umeng-common-9.5.6.aar"))
-    
+
     // 相机和图像处理依赖
     implementation("androidx.camera:camera-core:1.3.1")
     implementation("androidx.camera:camera-camera2:1.3.1")
     implementation("androidx.camera:camera-lifecycle:1.3.1")
     implementation("androidx.camera:camera-view:1.3.1")
-    
+
     // 阿里云官方Android SDK v2.3.40
     implementation(files("libs/aliyun-base-2.3.40.250909104131.aar"))
     implementation(files("libs/aliyun-facade-2.3.40.250909104131.aar"))
@@ -75,15 +91,16 @@ dependencies {
     implementation(files("libs/aliyun-wishverify-2.3.40.250909104131.aar"))
     implementation(files("libs/Android-AliyunFaceGuard-10057.aar"))
     implementation(files("libs/APSecuritySDK-deepSec-7.0.1.20250411.jiagu.aar"))
-    
+
     // HTTP客户端
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    
+
     // 支付宝支付SDK
     implementation("com.alipay.sdk:alipaysdk-android:15.8.11")
 
-    // VolcEngineRTC SDK for video calling
-    implementation(files("libs/VolcEngineRTC-lite.aar"))
+    // JPush 极光推送 SDK (用于来电通知)
+    implementation(files("../jpush-android-5.9.0-release/jpush-android-5.9.0-release/libs/jcore-android-5.2.0.jar"))
+    implementation(files("../jpush-android-5.9.0-release/jpush-android-5.9.0-release/libs/jpush-android-5.9.0.jar"))
 
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")

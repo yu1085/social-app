@@ -1,6 +1,7 @@
 package com.example.myapplication
 
 import android.os.Bundle
+import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -28,12 +29,14 @@ class FilterActivity : ComponentActivity() {
             FilterScreen(
                 onDismiss = { finish() },
                 onConfirm = { filterData ->
-                    // 处理筛选确认
-                    android.widget.Toast.makeText(
-                        this,
-                        "筛选条件已应用",
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
+                    // 处理筛选确认 - 返回筛选条件
+                    val resultIntent = Intent().apply {
+                        putExtra("gender", filterData.callType)
+                        putExtra("location", if (filterData.currentCity != "不限") filterData.currentCity else null)
+                        putExtra("minAge", filterData.ageRange.first)
+                        putExtra("maxAge", filterData.ageRange.second)
+                    }
+                    setResult(RESULT_OK, resultIntent)
                     finish()
                 }
             )

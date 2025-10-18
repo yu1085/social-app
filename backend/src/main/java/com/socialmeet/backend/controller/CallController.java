@@ -175,4 +175,39 @@ public class CallController {
             return ApiResponse.error("结束通话失败: " + e.getMessage());
         }
     }
+
+    /**
+     * 获取通话状态（用于轮询）
+     */
+    @GetMapping("/status/{sessionId}")
+    public ApiResponse<Map<String, Object>> getCallStatus(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable String sessionId) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            log.info("获取通话状态请求 - userId: {}, sessionId: {}", userId, sessionId);
+
+            CallSession callSession = callService.getCallStatus(sessionId, userId);
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("callSessionId", callSession.getCallSessionId());
+            data.put("status", callSession.getStatus().toString());
+            data.put("callerId", callSession.getCallerId());
+            data.put("receiverId", callSession.getReceiverId());
+            data.put("callType", callSession.getCallType().toString());
+            data.put("startTime", callSession.getStartTime());
+            data.put("endTime", callSession.getEndTime());
+
+            return ApiResponse.success(data);
+
+        } catch (Exception e) {
+            log.error("获取通话状态失败", e);
+            return ApiResponse.error("获取通话状态失败: " + e.getMessage());
+        }
+    }
 }

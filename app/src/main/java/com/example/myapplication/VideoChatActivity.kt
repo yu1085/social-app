@@ -5,12 +5,12 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.myapplication.call.CallManager
 import com.example.myapplication.databinding.ActivityVideoChatBinding
 import com.example.myapplication.rtc.RTCConfig
 import com.example.myapplication.rtc.RTCManager
@@ -25,18 +25,18 @@ class VideoChatActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityVideoChatBinding
     private val rtcManager = RTCManager.instance
-    private val callManager by lazy { CallManager.getInstance(this) }
 
     // 配置信息 - 从火山引擎控制台获取
     private val APP_ID = RTCConfig.APP_ID
     private val APP_KEY = RTCConfig.APP_KEY
-
-    // 从Intent获取房间ID和用户信息
-    private var ROOM_ID = ""
-    private var USER_ID = ""
-    private var REMOTE_USER_ID = ""
-    private var CALL_ID = ""
-    private var IS_CALLER = false
+    private val ROOM_ID = RTCConfig.DEFAULT_ROOM_ID
+    // 使用设备唯一ID生成用户ID，确保每个设备ID不同（懒加载，避免在初始化时访问contentResolver）
+    private val USER_ID by lazy {
+        "User_${android.provider.Settings.Secure.getString(
+            contentResolver,
+            android.provider.Settings.Secure.ANDROID_ID
+        ).takeLast(6)}"
+    }
 
     // 动态生成 Token（懒加载，使用USER_ID）
     private val TOKEN by lazy {
@@ -47,7 +47,14 @@ class VideoChatActivity : AppCompatActivity() {
     private val PERMISSION_REQUEST_CODE = 1001
     private val REQUIRED_PERMISSIONS = arrayOf(
         Manifest.permission.CAMERA,
-        Manifest.permission.RECORD_AUDIO
+        Manifest.permission.RECORD_AUDIO,
+        Manifest.permission.MODIFY_AUDIO_SETTINGS,
+        Manifest.permission.BLUETOOTH,
+        Manifest.permission.BLUETOOTH_CONNECT,
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.ACCESS_WIFI_STATE,
+        Manifest.permission.ACCESS_NETWORK_STATE
     )
 
     // 通话计时
@@ -72,15 +79,6 @@ class VideoChatActivity : AppCompatActivity() {
         binding = ActivityVideoChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 从Intent获取参数
-        CALL_ID = intent.getStringExtra("CALL_ID") ?: ""
-        ROOM_ID = intent.getStringExtra("ROOM_ID") ?: RTCConfig.DEFAULT_ROOM_ID // 如果没有指定，使用默认房间
-        REMOTE_USER_ID = intent.getStringExtra("REMOTE_USER_ID") ?: ""
-        IS_CALLER = intent.getBooleanExtra("IS_CALLER", false)
-
-        // 生成当前用户ID
-        USER_ID = generateUserId()
-
         // 检查权限
         if (checkPermissions()) {
             initializeVideoChat()
@@ -90,30 +88,61 @@ class VideoChatActivity : AppCompatActivity() {
 
         setupControls()
         setupRTCCallbacks()
-        setupCallManagerCallbacks()
     }
 
     /**
      * 初始化视频聊天
      */
     private fun initializeVideoChat() {
-        // 初始化 RTC 引擎
-        rtcManager.initEngine(this, APP_ID)
+        try {
+            Log.d("VideoChatActivity", "开始初始化视频聊天")
+            Log.d("VideoChatActivity", "AppID: $APP_ID")
+            Log.d("VideoChatActivity", "RoomID: $ROOM_ID")
+            Log.d("VideoChatActivity", "UserID: $USER_ID")
+            
+            // 检查AppID是否有效
+            if (APP_ID.isBlank() || APP_ID == "your_app_id_here") {
+                Log.e("VideoChatActivity", "无效的AppID，请检查RTCConfig配置")
+                Toast.makeText(this, "RTC配置错误，请检查AppID", Toast.LENGTH_LONG).show()
+                return
+            }
+            
+            // 初始化 RTC 引擎
+            rtcManager.initEngine(this, APP_ID)
 
-        // 创建本地视频 TextureView 并设置
-        val localTextureView = rtcManager.createTextureView(this)
-        binding.localVideoView.addView(localTextureView)
-        rtcManager.setLocalVideoView(localTextureView)
+            // 创建本地视频 TextureView 并设置
+            val localTextureView = rtcManager.createTextureView(this)
+            binding.localVideoView.addView(localTextureView)
+            rtcManager.setLocalVideoView(localTextureView)
 
-        // 加入房间
-        rtcManager.joinRoom(ROOM_ID, USER_ID, TOKEN)
+            // 延迟加入房间，确保引擎完全初始化
+            Handler(Looper.getMainLooper()).postDelayed({
+                try {
+                    rtcManager.joinRoom(ROOM_ID, USER_ID, TOKEN)
+                } catch (e: Exception) {
+                    Log.e("VideoChatActivity", "加入房间失败", e)
+                    Toast.makeText(this, "加入房间失败: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }, 1000)
 
-        // 更新房间信息
-        binding.roomInfoText.text = "房间: $ROOM_ID\n用户: $USER_ID"
+            // 更新房间信息
+            binding.roomInfoText.text = "房间: $ROOM_ID\n用户: $USER_ID"
 
-        // 显示等待状态
-        binding.statusText.visibility = View.VISIBLE
-        binding.statusText.text = "等待对方加入..."
+            // 显示等待状态
+            binding.statusText.visibility = View.VISIBLE
+            binding.statusText.text = "等待对方加入..."
+            
+            Log.d("VideoChatActivity", "视频聊天初始化完成")
+        } catch (e: UnsatisfiedLinkError) {
+            Log.e("VideoChatActivity", "RTC SDK库加载失败", e)
+            Toast.makeText(this, "RTC SDK库加载失败，请检查APK是否包含必要的so库", Toast.LENGTH_LONG).show()
+        } catch (e: NoClassDefFoundError) {
+            Log.e("VideoChatActivity", "缺少必要的类定义", e)
+            Toast.makeText(this, "缺少必要的类定义: ${e.message}", Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Log.e("VideoChatActivity", "初始化视频聊天失败", e)
+            Toast.makeText(this, "初始化视频聊天失败: ${e.message}", Toast.LENGTH_LONG).show()
+        }
     }
 
     /**
@@ -136,8 +165,6 @@ class VideoChatActivity : AppCompatActivity() {
 
         // 挂断
         binding.hangUpButton.setOnClickListener {
-            // 通知对方挂断
-            callManager.endCall()
             finish()
         }
 
@@ -204,6 +231,11 @@ class VideoChatActivity : AppCompatActivity() {
 
                 // 停止计时
                 stopCallDuration()
+                
+                // 延迟2秒后自动退出界面
+                Handler(Looper.getMainLooper()).postDelayed({
+                    finish()
+                }, 2000)
             }
         }
     }
@@ -247,49 +279,20 @@ class VideoChatActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                Log.d("VideoChatActivity", "所有权限已授予，开始初始化视频聊天")
                 initializeVideoChat()
             } else {
+                Log.e("VideoChatActivity", "权限被拒绝，无法进行视频通话")
                 Toast.makeText(this, "需要相机和麦克风权限才能进行视频通话", Toast.LENGTH_LONG).show()
                 finish()
             }
         }
     }
 
-    /**
-     * 设置呼叫管理器回调
-     */
-    private fun setupCallManagerCallbacks() {
-        // 对方挂断
-        callManager.setOnCallEnded { endedCallId ->
-            if (endedCallId == CALL_ID) {
-                runOnUiThread {
-                    Toast.makeText(this, "对方已挂断", Toast.LENGTH_SHORT).show()
-                    finish()
-                }
-            }
-        }
-    }
-
-    /**
-     * 生成用户ID（使用设备唯一ID）
-     */
-    private fun generateUserId(): String {
-        val deviceId = android.provider.Settings.Secure.getString(
-            contentResolver,
-            android.provider.Settings.Secure.ANDROID_ID
-        ).takeLast(6)
-        return "User_$deviceId"
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         stopCallDuration()
         rtcManager.leaveRoom()
-
-        // 如果还在通话中，通知对方挂断
-        if (callManager.getCurrentCallId() == CALL_ID) {
-            callManager.endCall()
-        }
     }
 
     /**

@@ -15,9 +15,27 @@ import android.widget.Toast;
 import android.util.Log;
 import android.content.SharedPreferences;
 import androidx.appcompat.app.AlertDialog;
+import com.example.myapplication.network.NetworkConfig;
+import com.example.myapplication.network.ApiService;
+import com.example.myapplication.dto.ApiResponse;
+import com.example.myapplication.dto.UserDTO;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import java.util.List;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.annotation.NonNull;
 
 public class MainActivity extends AppCompatActivity {
-    
+
+    private static final String TAG = "MainActivity";
+    private static final int REQUEST_CODE_FILTER = 1001;
+    private static final int REQUEST_CODE_NOTIFICATION_PERMISSION = 1002;
+
     private LinearLayout tabActive, tabHot, tabNearby, tabNew, tabExclusive;
     private LinearLayout navHome, navSquare, navMessage, navProfile;
     private LinearLayout filterButton;
@@ -25,7 +43,11 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout voiceMatchButton;
     private ComposeView composeSquare, composeMessage, composeProfile;
     private TextView textActive, textHot, textNearby, textNew, textExclusive;
-    
+
+    // 用户卡片视图的引用
+    private View userCard1, userCard2, userCard3, userCard4;
+    private List<UserDTO> currentUserList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,32 +90,32 @@ public class MainActivity extends AppCompatActivity {
     
     private void initializeApp() {
         setContentView(R.layout.activity_main);
-        
+
+        // 请求通知权限（Android 13+）
+        requestNotificationPermission();
+
         // 启用GPU渲染优化
         try {
             com.example.myapplication.util.GPURenderingOptimizer.INSTANCE.optimizeActivityRendering(this);
         } catch (Exception e) {
             android.util.Log.e("MainActivity", "GPU渲染优化失败", e);
         }
-        
+
         // 初始化标签视图
         initTabViews();
-        
+
         // 设置标签点击监听器
         setTabClickListeners();
 
         // 底部导航点击
         initBottomNav();
-        
+
         // 筛选按钮点击
         initFilterButton();
-        
+
         // 匹配按钮点击
         initMatchButtons();
 
-        // 设置用户卡片点击事件
-        setupUserCardClickListeners();
-        
         // 添加真人认证测试按钮
         setupTestButtons();
 
@@ -104,13 +126,244 @@ public class MainActivity extends AppCompatActivity {
 
         // 初始状态：所有标签保持相同样式与尺寸
         resetAllTabs();
-        
+
         // 设置默认选中首页
         updateBottomNavSelection("home");
-    }
-    
 
-    
+        // 加载用户列表
+        loadUsers(null, null, null, null, null);
+    }
+
+    /**
+     * 请求通知权限（Android 13+）
+     */
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "请求通知权限");
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        REQUEST_CODE_NOTIFICATION_PERMISSION);
+            } else {
+                Log.d(TAG, "通知权限已授予");
+            }
+        } else {
+            Log.d(TAG, "Android版本 < 13，无需请求通知权限");
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQUEST_CODE_NOTIFICATION_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.i(TAG, "✅ 通知权限已授予");
+                Toast.makeText(this, "通知权限已授予", Toast.LENGTH_SHORT).show();
+            } else {
+                Log.w(TAG, "❌ 通知权限被拒绝");
+                Toast.makeText(this, "通知权限被拒绝，您可能无法接收来电通知", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    /**
+     * 加载用户列表
+     */
+    private void loadUsers(String keyword, String gender, String location, Integer minAge, Integer maxAge) {
+        Log.d(TAG, "开始加载用户列表...");
+
+        ApiService apiService = NetworkConfig.getApiService();
+        Call<ApiResponse<List<UserDTO>>> call = apiService.searchUsers(
+                keyword, gender, location, minAge, maxAge, 0, 6
+        );
+
+        call.enqueue(new Callback<ApiResponse<List<UserDTO>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<UserDTO>>> call, Response<ApiResponse<List<UserDTO>>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<List<UserDTO>> apiResponse = response.body();
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        currentUserList = apiResponse.getData();
+                        Log.d(TAG, "成功加载 " + currentUserList.size() + " 个用户");
+
+                        // 打印所有用户信息
+                        for (int i = 0; i < currentUserList.size(); i++) {
+                            UserDTO u = currentUserList.get(i);
+                            Log.d(TAG, "  用户" + i + " - ID: " + u.getId() +
+                                       ", 昵称: " + u.getNickname() +
+                                       ", 用户名: " + u.getUsername());
+                        }
+
+                        updateUserCards();
+                    } else {
+                        Log.e(TAG, "API返回失败: " + apiResponse.getMessage());
+                        Toast.makeText(MainActivity.this, "加载用户失败", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Log.e(TAG, "请求失败: " + response.code());
+                    Toast.makeText(MainActivity.this, "网络请求失败", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<UserDTO>>> call, Throwable t) {
+                Log.e(TAG, "加载用户列表失败", t);
+                Toast.makeText(MainActivity.this, "加载失败: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * 更新用户卡片UI
+     */
+    private void updateUserCards() {
+        if (currentUserList == null || currentUserList.isEmpty()) {
+            Log.w(TAG, "用户列表为空");
+            return;
+        }
+
+        Log.d(TAG, "═══════════════════════════════════════");
+        Log.d(TAG, "开始更新用户卡片UI");
+        Log.d(TAG, "用户列表大小: " + currentUserList.size());
+        for (int i = 0; i < currentUserList.size(); i++) {
+            UserDTO user = currentUserList.get(i);
+            Log.d(TAG, "  卡片" + i + " - ID: " + user.getId() + 
+                       ", 用户名: " + user.getUsername() + 
+                       ", 昵称: " + user.getNickname());
+        }
+        Log.d(TAG, "═══════════════════════════════════════");
+
+        // 获取用户卡片视图（只有4个）
+        userCard1 = findViewById(R.id.user_card_1);
+        userCard2 = findViewById(R.id.user_card_2);
+        userCard3 = findViewById(R.id.user_card_3);
+        userCard4 = findViewById(R.id.user_card_4);
+
+        View[] userCards = {userCard1, userCard2, userCard3, userCard4};
+
+        for (int i = 0; i < userCards.length; i++) {
+            if (i < currentUserList.size()) {
+                UserDTO user = currentUserList.get(i);
+                Log.d(TAG, "更新卡片" + i + " - 用户: " + user.getUsername() + " (ID: " + user.getId() + ")");
+                updateUserCard(userCards[i], user, i);
+            } else {
+                if (userCards[i] != null) {
+                    userCards[i].setVisibility(View.GONE);
+                }
+            }
+        }
+    }
+
+    /**
+     * 更新单个用户卡片
+     */
+    private void updateUserCard(View cardView, UserDTO user, int index) {
+        if (cardView == null || user == null) return;
+
+        cardView.setVisibility(View.VISIBLE);
+
+        // 根据索引查找卡片内的视图
+        String suffix = "_" + (index + 1);
+        TextView nameView = findTextViewInCard(cardView, "user_name" + suffix);
+        TextView statusView = findTextViewInCard(cardView, "user_status" + suffix);
+        TextView priceView = findTextViewInCard(cardView, "user_price" + suffix);
+        TextView locationView = findTextViewInCard(cardView, "user_location" + suffix);
+        View statusIndicator = findViewInCard(cardView, "status_indicator" + suffix);
+
+        // 更新用户名
+        if (nameView != null) {
+            String displayName = user.getNickname() != null ? user.getNickname() : user.getUsername();
+            nameView.setText(displayName);
+        }
+
+        // 更新状态
+        if (statusView != null && statusIndicator != null) {
+            if (user.getIsOnline() != null && user.getIsOnline()) {
+                statusView.setText("在线");
+                statusIndicator.setBackgroundResource(R.drawable.status_indicator_green);
+            } else {
+                statusView.setText("离线");
+                statusIndicator.setBackgroundResource(R.drawable.status_indicator_red);
+            }
+        }
+
+        // 更新价格（暂时使用默认价格，如果DTO中有价格字段可以使用）
+        if (priceView != null) {
+            int[] prices = {300, 350, 500, 400, 600, 350};
+            priceView.setText(prices[index] + "/分钟");
+        }
+
+        // 更新位置
+        if (locationView != null) {
+            String location = user.getLocation() != null ? user.getLocation() : "未知";
+            locationView.setText(location);
+        }
+
+        // 设置点击事件
+        final UserDTO finalUser = user;
+        final int cardIndex = index;
+        cardView.setOnClickListener(v -> {
+            // 添加详细日志
+            Log.d(TAG, "═══════════════════════════════════════");
+            Log.d(TAG, "点击用户卡片 - 卡片索引: " + cardIndex);
+            Log.d(TAG, "点击用户卡片 - ID: " + finalUser.getId() +
+                       ", 昵称: " + (finalUser.getNickname() != null ? finalUser.getNickname() : finalUser.getUsername()) +
+                       ", 用户名: " + finalUser.getUsername());
+            Log.d(TAG, "═══════════════════════════════════════");
+
+            Intent intent = new Intent(MainActivity.this, UserDetailActivity.class);
+            intent.putExtra("user_id", finalUser.getId());
+            intent.putExtra("user_name", finalUser.getNickname() != null ? finalUser.getNickname() : finalUser.getUsername());
+            intent.putExtra("user_status", finalUser.getIsOnline() ? "在线" : "离线");
+            // 暂时不传年龄,因为UserDTO中没有getAge()方法
+            if (finalUser.getLocation() != null) {
+                intent.putExtra("user_location", finalUser.getLocation());
+            }
+            if (finalUser.getSignature() != null) {
+                intent.putExtra("user_description", finalUser.getSignature());
+            }
+            intent.putExtra("user_avatar", R.drawable.rectangle_411_1);
+            startActivity(intent);
+        });
+    }
+
+    /**
+     * 在卡片中查找TextView
+     */
+    private TextView findTextViewInCard(View cardView, String textViewName) {
+        try {
+            // 使用反射查找资源ID
+            int resId = getResources().getIdentifier(textViewName, "id", getPackageName());
+            if (resId != 0) {
+                View view = cardView.findViewById(resId);
+                if (view instanceof TextView) {
+                    return (TextView) view;
+                }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "查找TextView失败: " + textViewName, e);
+        }
+        return null;
+    }
+
+    /**
+     * 在卡片中查找View
+     */
+    private View findViewInCard(View cardView, String viewName) {
+        try {
+            int resId = getResources().getIdentifier(viewName, "id", getPackageName());
+            if (resId != 0) {
+                return cardView.findViewById(resId);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "查找View失败: " + viewName, e);
+        }
+        return null;
+    }
+
+
     private void initTabViews() {
         tabActive = findViewById(R.id.tab_active);
         tabHot = findViewById(R.id.tab_hot);
@@ -183,9 +436,31 @@ public class MainActivity extends AppCompatActivity {
     private void showFilterDialog() {
         // 跳转到筛选Activity
         Intent intent = new Intent(this, FilterActivity.class);
-        startActivity(intent);
+        startActivityForResult(intent, REQUEST_CODE_FILTER);
     }
-    
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE_FILTER && resultCode == RESULT_OK && data != null) {
+            // 获取筛选条件
+            String gender = data.getStringExtra("gender");
+            String location = data.getStringExtra("location");
+            Integer minAge = data.getIntExtra("minAge", -1);
+            Integer maxAge = data.getIntExtra("maxAge", -1);
+
+            // 处理-1值（未设置）
+            if (minAge == -1) minAge = null;
+            if (maxAge == -1) maxAge = null;
+
+            Log.d(TAG, "筛选条件 - gender: " + gender + ", location: " + location + ", minAge: " + minAge + ", maxAge: " + maxAge);
+
+            // 重新加载用户列表
+            loadUsers(null, gender, location, minAge, maxAge);
+        }
+    }
+
     private void initMatchButtons() {
         // 视频速配按钮
         if (videoMatchButton != null) {
@@ -412,72 +687,7 @@ public class MainActivity extends AppCompatActivity {
         float density = getResources().getDisplayMetrics().density;
         return Math.round(dp * density);
     }
-    
-    private void setupUserCardClickListeners() {
-        // 为首页的用户卡片设置点击事件
-        // 用户卡片1 - video_caller (视频发起者)
-        View userCard1 = findViewById(R.id.user_card_1);
-        if (userCard1 != null) {
-            userCard1.setOnClickListener(v -> {
-                Intent intent = new Intent(MainActivity.this, UserDetailActivity.class);
-                intent.putExtra("user_id", 23820512L);
-                intent.putExtra("user_name", "video_caller");
-                intent.putExtra("user_status", "在线");
-                intent.putExtra("user_age", "32岁");
-                intent.putExtra("user_location", "杭州市");
-                intent.putExtra("user_description", "喜欢音乐和电影，享受简单快乐的生活");
-                intent.putExtra("user_avatar", R.drawable.rectangle_411_1);
-                startActivity(intent);
-            });
-        }
 
-        // 用户卡片2 - video_receiver (视频接收者)
-        View userCard2 = findViewById(R.id.user_card_2);
-        if (userCard2 != null) {
-            userCard2.setOnClickListener(v -> {
-                Intent intent = new Intent(MainActivity.this, UserDetailActivity.class);
-                intent.putExtra("user_id", 22491729L);
-                intent.putExtra("user_name", "video_receiver");
-                intent.putExtra("user_status", "在线");
-                intent.putExtra("user_age", "31岁");
-                intent.putExtra("user_location", "西安市");
-                intent.putExtra("user_description", "喜欢音乐和艺术，享受安静美好的时光");
-                intent.putExtra("user_avatar", R.drawable.rectangle_412_1);
-                startActivity(intent);
-            });
-        }
-        
-        // 用户卡片3 - 小仙女
-        View userCard3 = findViewById(R.id.user_card_3);
-        if (userCard3 != null) {
-            userCard3.setOnClickListener(v -> {
-                Intent intent = new Intent(MainActivity.this, UserDetailActivity.class);
-                intent.putExtra("user_name", "小仙女");
-                intent.putExtra("user_status", "在线");
-                intent.putExtra("user_age", "26岁");
-                intent.putExtra("user_location", "上海");
-                intent.putExtra("user_description", "充满正能量的女孩，喜欢运动和旅行。希望能遇到有趣的人一起分享快乐。");
-                intent.putExtra("user_avatar", R.drawable.rectangle_411_1);
-                startActivity(intent);
-            });
-        }
-        
-        // 用户卡片4 - 甜心宝贝
-        View userCard4 = findViewById(R.id.user_card_4);
-        if (userCard4 != null) {
-            userCard4.setOnClickListener(v -> {
-                Intent intent = new Intent(MainActivity.this, UserDetailActivity.class);
-                intent.putExtra("user_name", "甜心宝贝");
-                intent.putExtra("user_status", "离线");
-                intent.putExtra("user_age", "28岁");
-                intent.putExtra("user_location", "深圳");
-                intent.putExtra("user_description", "成熟稳重的姐姐，善解人意，喜欢读书和品茶。希望能找到真诚的朋友。");
-                intent.putExtra("user_avatar", R.drawable.rectangle_412_1);
-                startActivity(intent);
-            });
-        }
-    }
-    
     private void setupTestButtons() {
         // 在首页添加身份证二要素核验按钮（长按功能区域触发）
         View testArea = findViewById(R.id.function_entry_area);
@@ -494,9 +704,10 @@ public class MainActivity extends AppCompatActivity {
         String[] options = {
             "身份证实名认证测试",
             "手机身份认证测试",
-            "手机认证功能测试"
+            "手机认证功能测试",
+            "🔔 模拟接收来电通知 (JPush测试)"
         };
-        
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("选择测试功能");
         builder.setItems(options, (dialog, which) -> {
@@ -515,9 +726,42 @@ public class MainActivity extends AppCompatActivity {
                     intent = new Intent(MainActivity.this, PhoneIdentityAuthActivity.class);
                     startActivity(intent);
                     break;
+                case 3:
+                    // 手动触发来电通知界面（模拟JPush推送）
+                    simulateIncomingCall();
+                    break;
             }
         });
         builder.show();
+    }
+
+    /**
+     * 模拟接收来电通知（用于测试JPush推送功能）
+     */
+    private void simulateIncomingCall() {
+        // 创建测试数据
+        String testSessionId = "TEST_SESSION_" + System.currentTimeMillis();
+        String testCallerId = "23820512";  // video_caller 的用户ID
+        String testCallerName = "测试用户";
+        String testCallerAvatar = "";
+        String testCallType = "VIDEO";  // 或 "VOICE"
+
+        Log.d(TAG, "【测试】模拟接收来电通知 - sessionId: " + testSessionId);
+
+        // 直接启动来电界面
+        Intent intent = new Intent(this, IncomingCallActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        intent.putExtra("sessionId", testSessionId);
+        intent.putExtra("callerId", testCallerId);
+        intent.putExtra("callerName", testCallerName);
+        intent.putExtra("callerAvatar", testCallerAvatar);
+        intent.putExtra("callType", testCallType);
+
+        startActivity(intent);
+
+        Toast.makeText(this, "模拟来电通知已触发", Toast.LENGTH_SHORT).show();
     }
     
     private long lastClickTime = 0;

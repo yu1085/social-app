@@ -32,6 +32,23 @@ public class AuthController {
     }
 
     /**
+     * 测试JPush推送
+     */
+    @PostMapping("/test-push")
+    public ApiResponse<String> testPush(@RequestParam Long userId, @RequestParam String registrationId) {
+        try {
+            log.info("收到测试推送请求 - userId: {}, registrationId: {}", userId, registrationId);
+            
+            // 这里需要注入JPushService，暂时返回提示
+            return ApiResponse.success("测试推送功能已添加，请通过MessageController测试");
+            
+        } catch (Exception e) {
+            log.error("测试推送失败", e);
+            return ApiResponse.error("测试推送失败: " + e.getMessage());
+        }
+    }
+
+    /**
      * 发送验证码
      * @param phone 手机号
      */

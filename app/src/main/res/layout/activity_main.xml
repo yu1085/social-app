@@ -505,6 +505,7 @@
                     
                     <!-- 状态标签背景 - 按照设计文档：10%透明度黑色，6.5px圆角 -->
                     <TextView
+                        android:id="@+id/user_status_1"
                         android:layout_width="36dp"
                         android:layout_height="13dp"
                         android:layout_marginStart="7dp"
@@ -520,6 +521,7 @@
 
                     <!-- 状态指示器 - 绿色表示在线，按照设计文档精确坐标 -->
                     <View
+                        android:id="@+id/status_indicator_1"
                         android:layout_width="5dp"
                         android:layout_height="5dp"
                         android:layout_marginStart="13dp"
@@ -537,6 +539,7 @@
 
                         <!-- 用户名 -->
                         <TextView
+                            android:id="@+id/user_name_1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="video_caller"
@@ -565,6 +568,7 @@
                                 android:layout_marginEnd="3dp" />
 
                             <TextView
+                                android:id="@+id/user_price_1"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="300/分钟"
@@ -595,6 +599,7 @@
                                 android:layout_marginEnd="2dp" />
 
                             <TextView
+                                android:id="@+id/user_location_1"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:maxLines="1"
@@ -645,6 +650,7 @@
                     
                     <!-- 状态标签背景 - 按照设计文档精确坐标 -->
                     <TextView
+                        android:id="@+id/user_status_2"
                         android:layout_width="36dp"
                         android:layout_height="13dp"
                         android:layout_marginStart="7dp"
@@ -660,6 +666,7 @@
 
                     <!-- 状态指示器 - 绿色表示在线，按照设计文档精确坐标 -->
                     <View
+                        android:id="@+id/status_indicator_2"
                         android:layout_width="5dp"
                         android:layout_height="5dp"
                         android:layout_marginStart="13dp"
@@ -677,6 +684,7 @@
 
                         <!-- 用户名 -->
                         <TextView
+                            android:id="@+id/user_name_2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="video_receiver"
@@ -705,6 +713,7 @@
                                 android:layout_marginEnd="3dp" />
 
                             <TextView
+                                android:id="@+id/user_price_2"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="350/分钟"
@@ -735,6 +744,7 @@
                                 android:layout_marginEnd="2dp" />
 
                             <TextView
+                                android:id="@+id/user_location_2"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:maxLines="1"

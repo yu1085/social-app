@@ -1,12 +1,11 @@
 package com.example.myapplication.rtc.accesstoken;
 
-import android.util.Base64;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Date;
 
 public class Utils {
@@ -22,11 +21,12 @@ public class Utils {
     }
 
     public static String base64Encode(byte[] data) {
-        return Base64.encodeToString(data, Base64.NO_WRAP);
+        byte[] encodedBytes = Base64.getEncoder().encode(data);
+        return new String(encodedBytes);
     }
 
     public static byte[] base64Decode(String data) {
-        return Base64.decode(data, Base64.NO_WRAP);
+        return Base64.getDecoder().decode(data.getBytes());
     }
 
     public static int getTimestamp() {

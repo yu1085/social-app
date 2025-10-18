@@ -1,8 +1,10 @@
 package com.example.myapplication.auth;
 
+import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
+import com.example.myapplication.MyApplication;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -14,12 +16,14 @@ public class AuthManager {
     private static final String KEY_USERNAME = "username";
     private static final String KEY_TOKEN_EXPIRY = "token_expiry";
     private static final String KEY_REFRESH_TOKEN = "refresh_token";
-    
+
     private static AuthManager instance;
     private SharedPreferences prefs;
+    private Context context;
     
     private AuthManager(Context context) {
-        prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        this.context = context.getApplicationContext();
+        prefs = this.context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
     
     public static synchronized AuthManager getInstance(Context context) {
@@ -59,12 +63,27 @@ public class AuthManager {
     public void saveUserId(Long userId) {
         Log.d(TAG, "保存用户ID: " + userId);
         prefs.edit().putLong(KEY_USER_ID, userId).apply();
+
+        // 设置 JPush 别名（用于推送通知）
+        if (userId != null && userId != -1) {
+            try {
+                Application app = (Application) context.getApplicationContext();
+                MyApplication.setJPushAlias(app, userId);
+                Log.d(TAG, "JPush 别名已设置: " + userId);
+            } catch (Exception e) {
+                Log.e(TAG, "设置 JPush 别名失败", e);
+            }
+        }
     }
     
     public Long getUserId() {
         Long userId = prefs.getLong(KEY_USER_ID, -1);
         Log.d(TAG, "获取用户ID: " + userId);
         return userId;
+    }
+    
+    public Long getCurrentUserId() {
+        return getUserId();
     }
     
     public void saveUsername(String username) {
@@ -162,6 +181,16 @@ public class AuthManager {
     
     public void logout() {
         Log.d(TAG, "用户登出，清除所有认证信息");
+
+        // 删除 JPush 别名
+        try {
+            Application app = (Application) context.getApplicationContext();
+            MyApplication.deleteJPushAlias(app);
+            Log.d(TAG, "JPush 别名已删除");
+        } catch (Exception e) {
+            Log.e(TAG, "删除 JPush 别名失败", e);
+        }
+
         prefs.edit().clear().apply();
     }
     

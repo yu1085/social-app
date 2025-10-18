@@ -51,7 +51,8 @@ public class UserDetailActivity extends AppCompatActivity {
     private CallService callService;
     private AuthManager authManager;
     private String userToken;
-    private Long receiverUserId; // 接收方用户ID
+    private Long currentUserId; // 当前查看的用户ID
+    private Long receiverUserId; // 接收方用户ID(仅用于通话)
     private CallPrices currentCallPrices; // 当前通话价格信息
     
     // 用户图片资源数组
@@ -65,36 +66,154 @@ public class UserDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_detail);
-        
-        // 获取传递的用户数据
-        String userName = getIntent().getStringExtra("user_name");
-        String userStatus = getIntent().getStringExtra("user_status");
-        String userAge = getIntent().getStringExtra("user_age");
-        String userLocation = getIntent().getStringExtra("user_location");
-        String userDescription = getIntent().getStringExtra("user_description");
-        int userAvatarResId = getIntent().getIntExtra("user_avatar", R.drawable.rectangle_411_1);
-        
+
+        // 获取传递的用户ID
+        currentUserId = getIntent().getLongExtra("user_id", -1L);
+
+        Log.d("UserDetailActivity", "═══════════════════════════════════════");
+        Log.d("UserDetailActivity", "onCreate - 接收到的user_id: " + currentUserId);
+        Log.d("UserDetailActivity", "Intent中的所有extras:");
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            for (String key : extras.keySet()) {
+                Log.d("UserDetailActivity", "  " + key + " = " + extras.get(key));
+            }
+        }
+        Log.d("UserDetailActivity", "═══════════════════════════════════════");
+
         // 初始化通话相关服务
-        initCallServices();
-        
+        initCallServices(currentUserId);
+
         initViews();
         setupViewPager();
-        populateUserData(userName, userStatus, userAge, userLocation, userDescription, userAvatarResId);
         setupClickListeners();
-        
+
+        // 从后端加载用户详细信息
+        if (currentUserId != null && currentUserId != -1L) {
+            loadUserDetail(currentUserId);
+        } else {
+            // 如果没有传递用户ID,显示错误并关闭页面
+            Toast.makeText(this, "用户信息错误", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         // 加载用户通话价格信息
         loadUserCallPrices();
     }
-    
-    private void initCallServices() {
+
+    /**
+     * 从后端加载用户详细信息
+     */
+    private void loadUserDetail(Long userId) {
+        Log.d("UserDetailActivity", "═══════════════════════════════════════");
+        Log.d("UserDetailActivity", "开始加载用户详情,userId: " + userId);
+        Log.d("UserDetailActivity", "当前currentUserId: " + currentUserId);
+        Log.d("UserDetailActivity", "当前receiverUserId: " + receiverUserId);
+        Log.d("UserDetailActivity", "═══════════════════════════════════════");
+
+        // 在后台线程调用API
+        new AsyncTask<Void, Void, com.example.myapplication.dto.UserDTO>() {
+            @Override
+            protected com.example.myapplication.dto.UserDTO doInBackground(Void... voids) {
+                try {
+                    Log.d("UserDetailActivity", "API调用开始 - 请求用户ID: " + userId);
+                    
+                    // 获取Token
+                    String token = authManager.getAuthHeader();
+                    Log.d("UserDetailActivity", "Token状态: " + (token != null ? "已获取" : "未获取"));
+
+                    // 调用API获取用户详情
+                    retrofit2.Call<com.example.myapplication.dto.ApiResponse<com.example.myapplication.dto.UserDTO>> call =
+                        com.example.myapplication.network.NetworkConfig.getApiService().getUserById(userId);
+
+                    retrofit2.Response<com.example.myapplication.dto.ApiResponse<com.example.myapplication.dto.UserDTO>> response =
+                        call.execute();
+
+                    Log.d("UserDetailActivity", "API响应状态: " + response.code());
+                    
+                    if (response.isSuccessful() && response.body() != null) {
+                        com.example.myapplication.dto.ApiResponse<com.example.myapplication.dto.UserDTO> apiResponse = response.body();
+                        if (apiResponse.isSuccess()) {
+                            com.example.myapplication.dto.UserDTO userData = apiResponse.getData();
+                            Log.d("UserDetailActivity", "API返回成功 - 用户ID: " + userData.getId() + 
+                                 ", 用户名: " + userData.getUsername() + 
+                                 ", 昵称: " + userData.getNickname());
+                            return userData;
+                        } else {
+                            Log.e("UserDetailActivity", "API返回失败: " + apiResponse.getMessage());
+                            return null;
+                        }
+                    } else {
+                        Log.e("UserDetailActivity", "请求失败,code: " + response.code());
+                        return null;
+                    }
+                } catch (Exception e) {
+                    Log.e("UserDetailActivity", "加载用户详情异常", e);
+                    return null;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(com.example.myapplication.dto.UserDTO user) {
+                Log.d("UserDetailActivity", "═══════════════════════════════════════");
+                Log.d("UserDetailActivity", "onPostExecute - 接收到的用户数据:");
+                if (user != null) {
+                    Log.d("UserDetailActivity", "  用户ID: " + user.getId());
+                    Log.d("UserDetailActivity", "  用户名: " + user.getUsername());
+                    Log.d("UserDetailActivity", "  昵称: " + user.getNickname());
+                    Log.d("UserDetailActivity", "  在线状态: " + user.getIsOnline());
+                    Log.d("UserDetailActivity", "  位置: " + user.getLocation());
+                    Log.d("UserDetailActivity", "  签名: " + user.getSignature());
+                    Log.d("UserDetailActivity", "═══════════════════════════════════════");
+
+                    // 更新UI显示用户信息
+                    String displayName = user.getNickname() != null ? user.getNickname() : user.getUsername();
+                    tvUserName.setText(displayName);
+                    Log.d("UserDetailActivity", "设置显示名称: " + displayName);
+
+                    String status = (user.getIsOnline() != null && user.getIsOnline()) ? "在线" : "离线";
+                    tvUserStatus.setText(status);
+                    Log.d("UserDetailActivity", "设置在线状态: " + status);
+
+                    // 年龄处理:如果有birthday,可以计算年龄;目前暂时隐藏
+                    tvUserAge.setVisibility(View.GONE);
+
+                    String location = user.getLocation() != null ? user.getLocation() : "未知";
+                    tvUserLocation.setText(location);
+                    Log.d("UserDetailActivity", "设置位置: " + location);
+
+                    String description = user.getSignature() != null ? user.getSignature() : "这个人很懒,什么都没写";
+                    tvUserDescription.setText(description);
+                    Log.d("UserDetailActivity", "设置描述: " + description);
+
+                    // 显示用户ID
+                    tvUserId.setText("ID: " + user.getId());
+                    Log.d("UserDetailActivity", "设置用户ID显示: ID: " + user.getId());
+                } else {
+                    Log.e("UserDetailActivity", "加载用户详情失败 - 用户数据为null");
+                    Toast.makeText(UserDetailActivity.this, "加载用户信息失败", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            }
+        }.execute();
+    }
+
+    private void initCallServices(Long userId) {
         callService = CallService.Companion.getInstance();
         authManager = AuthManager.getInstance(this);
         userToken = authManager.getToken();
-        
-        // 模拟接收方用户ID（实际应该从Intent传递）
-        receiverUserId = 22491729L; // 测试用：视频接收者 (video_receiver)
-        
-        Log.d("UserDetailActivity", "初始化通话服务，Token: " + (userToken != null ? "已获取" : "未获取"));
+
+        // 使用从Intent传递的真实用户ID
+        if (userId != null && userId != -1L) {
+            receiverUserId = userId;
+        } else {
+            // 如果没有传递用户ID，使用默认测试ID
+            receiverUserId = 23820512L; // 测试用：video_caller
+            Log.w("UserDetailActivity", "未传递用户ID，使用默认测试ID");
+        }
+
+        Log.d("UserDetailActivity", "初始化通话服务，Token: " + (userToken != null ? "已获取" : "未获取") + ", receiverUserId: " + receiverUserId);
     }
     
     private void initViews() {
@@ -157,16 +276,7 @@ public class UserDetailActivity extends AppCompatActivity {
                 break;
         }
     }
-    
-    private void populateUserData(String userName, String userStatus, String userAge, 
-                                 String userLocation, String userDescription, int userAvatarResId) {
-        if (userName != null) tvUserName.setText(userName);
-        if (userStatus != null) tvUserStatus.setText(userStatus);
-        if (userAge != null) tvUserAge.setText(userAge);
-        if (userLocation != null) tvUserLocation.setText(userLocation);
-        if (userDescription != null) tvUserDescription.setText(userDescription);
-    }
-    
+
     private void setupClickListeners() {
         llVideoButton.setOnClickListener(v -> {
             if (userToken == null) {
@@ -469,17 +579,13 @@ public class UserDetailActivity extends AppCompatActivity {
 
                     Log.d("UserDetailActivity", "视频通话发起成功，会话ID: " + callSession.getCallSessionId());
 
-                    // 显示成功消息
-                    Toast.makeText(UserDetailActivity.this,
-                        "视频通话已发起，正在等待对方接听...",
-                        Toast.LENGTH_LONG).show();
-
-                    // 跳转到视频通话界面（使用火山引擎RTC）
-                    android.content.Intent intent = new android.content.Intent(UserDetailActivity.this, VideoChatActivity.class);
-                    intent.putExtra("CALL_ID", callSession.getCallSessionId());
-                    intent.putExtra("ROOM_ID", callSession.getCallSessionId()); // 使用callSessionId作为roomId
-                    intent.putExtra("REMOTE_USER_ID", String.valueOf(receiverUserId));
-                    intent.putExtra("IS_CALLER", true);
+                    // 跳转到等待接听界面（OutgoingCallActivity）
+                    android.content.Intent intent = new android.content.Intent(UserDetailActivity.this, OutgoingCallActivity.class);
+                    intent.putExtra("sessionId", callSession.getCallSessionId());
+                    intent.putExtra("receiverId", String.valueOf(receiverUserId));
+                    intent.putExtra("receiverName", tvUserName.getText().toString());
+                    intent.putExtra("receiverAvatar", ""); // TODO: 从用户信息获取头像URL
+                    intent.putExtra("callType", "VIDEO");
                     startActivity(intent);
 
                 } else if (result instanceof CallInitiateResult.Error) {
@@ -544,18 +650,13 @@ public class UserDetailActivity extends AppCompatActivity {
 
                     Log.d("UserDetailActivity", "语音通话发起成功，会话ID: " + callSession.getCallSessionId());
 
-                    // 显示成功消息
-                    Toast.makeText(UserDetailActivity.this,
-                        "语音通话已发起，正在等待对方接听...",
-                        Toast.LENGTH_LONG).show();
-
-                    // 跳转到视频通话界面（语音模式：关闭视频即可）
-                    android.content.Intent intent = new android.content.Intent(UserDetailActivity.this, VideoChatActivity.class);
-                    intent.putExtra("CALL_ID", callSession.getCallSessionId());
-                    intent.putExtra("ROOM_ID", callSession.getCallSessionId()); // 使用callSessionId作为roomId
-                    intent.putExtra("REMOTE_USER_ID", String.valueOf(receiverUserId));
-                    intent.putExtra("IS_CALLER", true);
-                    intent.putExtra("CALL_TYPE", "VOICE"); // 标记为语音通话
+                    // 跳转到等待接听界面（OutgoingCallActivity）
+                    android.content.Intent intent = new android.content.Intent(UserDetailActivity.this, OutgoingCallActivity.class);
+                    intent.putExtra("sessionId", callSession.getCallSessionId());
+                    intent.putExtra("receiverId", String.valueOf(receiverUserId));
+                    intent.putExtra("receiverName", tvUserName.getText().toString());
+                    intent.putExtra("receiverAvatar", ""); // TODO: 从用户信息获取头像URL
+                    intent.putExtra("callType", "VOICE");
                     startActivity(intent);
 
                 } else if (result instanceof CallInitiateResult.Error) {
