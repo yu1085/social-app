@@ -23,6 +23,15 @@ public interface VerificationCodeRepository extends JpaRepository<VerificationCo
     );
 
     /**
+     * 查找最新的有效验证码（按创建时间倒序）
+     */
+    Optional<VerificationCode> findFirstByPhoneAndCodeAndIsUsedFalseAndExpiredAtAfterOrderByCreatedAtDesc(
+        String phone,
+        String code,
+        LocalDateTime now
+    );
+
+    /**
      * 查找最近的验证码（用于限制发送频率）
      */
     Optional<VerificationCode> findFirstByPhoneOrderByCreatedAtDesc(String phone);

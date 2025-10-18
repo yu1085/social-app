@@ -88,9 +88,9 @@ public class AuthService {
     public LoginResponse loginWithVerificationCode(String phone, String code) {
         log.info("验证码登录请求 - 手机号: {}", phone);
 
-        // 验证验证码
+        // 验证验证码（获取最新的有效验证码）
         VerificationCode verificationCode = verificationCodeRepository
-                .findByPhoneAndCodeAndIsUsedFalseAndExpiredAtAfter(phone, code, LocalDateTime.now())
+                .findFirstByPhoneAndCodeAndIsUsedFalseAndExpiredAtAfterOrderByCreatedAtDesc(phone, code, LocalDateTime.now())
                 .orElseThrow(() -> new RuntimeException("验证码无效或已过期"));
 
         // 标记验证码为已使用

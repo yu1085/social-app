@@ -150,8 +150,8 @@ public class LoginActivity extends AppCompatActivity {
                                 // 上传JPush Registration ID
                                 uploadJPushRegistrationId();
 
-                                // 登录成功后跳转到性别选择界面
-                                Intent intent = new Intent(LoginActivity.this, GenderSelectionActivity.class);
+                                // 登录成功后直接跳转到主界面
+                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 startActivity(intent);
                                 finish();
@@ -203,8 +203,8 @@ public class LoginActivity extends AppCompatActivity {
                             // 上传JPush Registration ID
                             uploadJPushRegistrationId();
 
-                            // 登录成功后跳转到性别选择界面
-                            Intent intent = new Intent(LoginActivity.this, GenderSelectionActivity.class);
+                            // 登录成功后直接跳转到主界面
+                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);
                             finish();

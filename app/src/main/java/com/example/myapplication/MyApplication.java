@@ -44,12 +44,12 @@ public class MyApplication extends Application {
                     NotificationChannel channel = new NotificationChannel(
                             CHANNEL_ID,
                             CHANNEL_NAME,
-                            NotificationManager.IMPORTANCE_HIGH  // 重要性设置为HIGH，确保通知能显示
+                            NotificationManager.IMPORTANCE_NONE  // 设置为NONE，完全禁用通知显示
                     );
                     channel.setDescription("接收视频/语音来电通知");
-                    channel.enableVibration(true);
-                    channel.enableLights(true);
-                    channel.setShowBadge(true);
+                    channel.enableVibration(false);
+                    channel.enableLights(false);
+                    channel.setShowBadge(false);
 
                     notificationManager.createNotificationChannel(channel);
                     Log.i(TAG, "✅ 通知渠道已创建: " + CHANNEL_ID);
@@ -83,8 +83,9 @@ public class MyApplication extends Application {
             // 启用通知（重要！）
             JPushInterface.setChannel(this, "developer-default");
 
-            // 确保通知权限已启用
-            JPushInterface.setLatestNotificationNumber(this, 5);
+            // 完全禁用 JPush 系统通知
+            JPushInterface.setLatestNotificationNumber(this, 0);
+            Log.d(TAG, "已设置 JPush 通知数量为 0");
 
             // 检查推送状态
             boolean isPushStopped = JPushInterface.isPushStopped(this);

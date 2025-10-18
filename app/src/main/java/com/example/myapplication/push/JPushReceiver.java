@@ -8,6 +8,7 @@ import android.util.Log;
 import cn.jpush.android.api.JPushInterface;
 import cn.jpush.android.service.JPushMessageReceiver;
 import com.example.myapplication.IncomingCallActivity;
+import com.example.myapplication.utils.AppStateUtils;
 import org.json.JSONObject;
 
 /**
@@ -37,7 +38,7 @@ public class JPushReceiver extends JPushMessageReceiver {
 
     @Override
     public void onNotifyMessageArrived(Context context, cn.jpush.android.api.NotificationMessage notificationMessage) {
-        super.onNotifyMessageArrived(context, notificationMessage);
+        // 完全阻止系统通知显示，不调用super
         try {
             Log.i(TAG, "=== 收到JPush通知消息 ===");
             Log.i(TAG, "通知内容: " + notificationMessage.notificationContent);
@@ -45,22 +46,30 @@ public class JPushReceiver extends JPushMessageReceiver {
             Log.i(TAG, "通知标题: " + notificationMessage.notificationTitle);
             Log.i(TAG, "通知类型: " + notificationMessage.notificationType);
             
-            // 检查应用是否在前台运行
-            boolean isAppInForeground = isAppInForeground(context);
-            Log.i(TAG, "应用状态 - 前台: " + isAppInForeground);
+            // 完全禁用通知栏显示，只处理业务逻辑
+            Log.i(TAG, "完全禁用通知栏显示，只处理业务逻辑");
+            handleNotificationReceived(context, notificationMessage);
             
-            if (isAppInForeground) {
-                // 应用在前台 - 直接处理，不显示通知栏
-                Log.i(TAG, "应用在前台，直接处理通知，不显示通知栏");
-                handleNotificationReceived(context, notificationMessage);
-            } else {
-                // 应用在后台 - 显示通知栏 + 处理
-                Log.i(TAG, "应用在后台，显示通知栏并处理");
-                createCustomNotification(context, notificationMessage.notificationContent, notificationMessage.notificationExtras);
-                handleNotificationReceived(context, notificationMessage);
-            }
+            // 立即清除任何可能显示的通知
+            clearAllNotifications(context);
+            
         } catch (Exception e) {
             Log.e(TAG, "处理通知消息异常", e);
+        }
+    }
+    
+    /**
+     * 清除所有通知
+     */
+    private void clearAllNotifications(Context context) {
+        try {
+            android.app.NotificationManager notificationManager = context.getSystemService(android.app.NotificationManager.class);
+            if (notificationManager != null) {
+                notificationManager.cancelAll();
+                Log.i(TAG, "已清除所有通知");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "清除通知失败", e);
         }
     }
 
@@ -265,11 +274,11 @@ public class JPushReceiver extends JPushMessageReceiver {
                     android.app.NotificationChannel channel = new android.app.NotificationChannel(
                             "fallback_call_channel",
                             "备用通话通知",
-                            android.app.NotificationManager.IMPORTANCE_HIGH
+                            android.app.NotificationManager.IMPORTANCE_NONE
                     );
                     channel.setDescription("当JPush配置失败时的备用通知");
-                    channel.enableVibration(true);
-                    channel.enableLights(true);
+                    channel.enableVibration(false);
+                    channel.enableLights(false);
                     notificationManager.createNotificationChannel(channel);
                 }
             }
@@ -314,125 +323,49 @@ public class JPushReceiver extends JPushMessageReceiver {
 
     /**
      * 显示通话状态通知
+     * 完全禁用通知栏显示
      */
     private void showCallStatusNotification(Context context, String status, String message, String sessionId) {
         try {
-            Log.i(TAG, "显示通话状态通知 - status: " + status + ", message: " + message);
+            Log.i(TAG, "通话状态通知 - status: " + status + ", message: " + message + " (已禁用通知栏显示)");
             
-            // 创建通知渠道（Android 8.0+）
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                android.app.NotificationManager notificationManager = context.getSystemService(android.app.NotificationManager.class);
-                if (notificationManager != null) {
-                    android.app.NotificationChannel channel = new android.app.NotificationChannel(
-                            "call_status_channel",
-                            "通话状态通知",
-                            android.app.NotificationManager.IMPORTANCE_DEFAULT
-                    );
-                    channel.setDescription("通话状态更新通知");
-                    channel.enableVibration(false);
-                    channel.enableLights(false);
-                    notificationManager.createNotificationChannel(channel);
-                }
-            }
-
-            // 创建通知
-            androidx.core.app.NotificationCompat.Builder builder = new androidx.core.app.NotificationCompat.Builder(context, "call_status_channel")
-                    .setSmallIcon(android.R.drawable.ic_dialog_info)
-                    .setContentTitle("通话状态")
-                    .setContentText(message)
-                    .setPriority(androidx.core.app.NotificationCompat.PRIORITY_DEFAULT)
-                    .setAutoCancel(true);
-
-            android.app.NotificationManager notificationManager = context.getSystemService(android.app.NotificationManager.class);
-            if (notificationManager != null) {
-                // 使用不同的通知ID避免覆盖
-                int notificationId = 2000 + (sessionId != null ? sessionId.hashCode() % 1000 : 0);
-                notificationManager.notify(notificationId, builder.build());
-                Log.i(TAG, "通话状态通知已显示 - ID: " + notificationId);
-            }
-
+            // 完全禁用通知栏显示，只记录日志
+            Log.i(TAG, "完全禁用通话状态通知栏显示");
+            
         } catch (Exception e) {
-            Log.e(TAG, "显示通话状态通知失败", e);
+            Log.e(TAG, "处理通话状态通知失败", e);
         }
     }
 
     /**
-     * 检查应用是否在前台运行
+     * 显示自定义通知
+     * 完全禁用通知栏显示
      */
-    private boolean isAppInForeground(Context context) {
+    private void showCustomNotification(Context context, cn.jpush.android.api.NotificationMessage notificationMessage) {
         try {
-            android.app.ActivityManager activityManager = (android.app.ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-            if (activityManager != null) {
-                java.util.List<android.app.ActivityManager.RunningAppProcessInfo> runningProcesses = activityManager.getRunningAppProcesses();
-                if (runningProcesses != null) {
-                    for (android.app.ActivityManager.RunningAppProcessInfo processInfo : runningProcesses) {
-                        if (processInfo.processName.equals(context.getPackageName())) {
-                            boolean isForeground = processInfo.importance == android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND;
-                            Log.i(TAG, "=== 应用前台状态检测 ===");
-                            Log.i(TAG, "进程名: " + processInfo.processName);
-                            Log.i(TAG, "重要性级别: " + processInfo.importance);
-                            Log.i(TAG, "前台级别: " + android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND);
-                            Log.i(TAG, "是否前台: " + isForeground);
-                            Log.i(TAG, "========================");
-                            return isForeground;
-                        }
-                    }
-                }
-            }
+            Log.i(TAG, "自定义通知 - content: " + notificationMessage.notificationContent + " (已禁用通知栏显示)");
+            
+            // 完全禁用通知栏显示，只记录日志
+            Log.i(TAG, "完全禁用自定义通知栏显示");
+
         } catch (Exception e) {
-            Log.e(TAG, "检查应用前台状态失败", e);
+            Log.e(TAG, "处理自定义通知失败", e);
         }
-        
-        // 如果检测失败，默认返回false（后台），避免误判
-        Log.w(TAG, "无法检测应用状态，默认认为在后台");
-        return false;
     }
 
     /**
-     * 手动创建通知，绕过JPush的图标问题
+     * 手动创建通知
+     * 完全禁用通知栏显示
      */
     private void createCustomNotification(Context context, String content, String extras) {
         try {
-            Log.i(TAG, "手动创建通知 - content: " + content);
+            Log.i(TAG, "手动创建通知 - content: " + content + " (已禁用通知栏显示)");
             
-            // 创建通知渠道（Android 8.0+）
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                android.app.NotificationManager notificationManager = context.getSystemService(android.app.NotificationManager.class);
-                if (notificationManager != null) {
-                    android.app.NotificationChannel channel = new android.app.NotificationChannel(
-                            "jpush_custom_channel",
-                            "JPush自定义通知",
-                            android.app.NotificationManager.IMPORTANCE_DEFAULT
-                    );
-                    channel.setDescription("JPush自定义通知渠道");
-                    channel.enableVibration(true);
-                    channel.enableLights(true);
-                    notificationManager.createNotificationChannel(channel);
-                }
-            }
-
-            // 创建通知
-            androidx.core.app.NotificationCompat.Builder builder = new androidx.core.app.NotificationCompat.Builder(context, "jpush_custom_channel")
-                    .setSmallIcon(android.R.drawable.ic_dialog_info)
-                    .setContentTitle("SocialMeet")
-                    .setContentText(content != null ? content : "收到新消息")
-                    .setPriority(androidx.core.app.NotificationCompat.PRIORITY_DEFAULT)
-                    .setAutoCancel(true);
-
-            // 添加额外数据
-            if (extras != null && !extras.isEmpty()) {
-                builder.setStyle(new androidx.core.app.NotificationCompat.BigTextStyle()
-                        .bigText("内容: " + content + "\n额外数据: " + extras));
-            }
-
-            android.app.NotificationManager notificationManager = context.getSystemService(android.app.NotificationManager.class);
-            if (notificationManager != null) {
-                notificationManager.notify(3000, builder.build());
-                Log.i(TAG, "自定义通知已创建并显示");
-            }
+            // 完全禁用通知栏显示，只记录日志
+            Log.i(TAG, "完全禁用手动创建通知栏显示");
 
         } catch (Exception e) {
-            Log.e(TAG, "创建自定义通知失败", e);
+            Log.e(TAG, "处理手动创建通知失败", e);
         }
     }
 }
