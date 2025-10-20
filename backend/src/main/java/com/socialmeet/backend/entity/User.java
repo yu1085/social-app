@@ -36,6 +36,9 @@ public class User {
     private String password;
 
     @Column(length = 50)
+    private String name;
+
+    @Column(length = 50)
     private String nickname;
 
     @Column(length = 100)
@@ -99,6 +102,15 @@ public class User {
     @Column(name = "jpush_registration_id", length = 50)
     private String jpushRegistrationId;
 
+    @Column
+    private Double latitude;
+
+    @Column
+    private Double longitude;
+
+    @Column(name = "last_location_update")
+    private LocalDateTime lastLocationUpdate;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
     private UserStatus status = UserStatus.ACTIVE;
@@ -125,5 +137,21 @@ public class User {
         ACTIVE,     // 活跃
         BANNED,     // 封禁
         DELETED     // 已删除
+    }
+
+    /**
+     * 计算年龄
+     */
+    public Integer getAge() {
+        if (birthday == null) {
+            return null;
+        }
+        LocalDate now = LocalDate.now();
+        int age = now.getYear() - birthday.getYear();
+        if (now.getMonthValue() < birthday.getMonthValue() ||
+            (now.getMonthValue() == birthday.getMonthValue() && now.getDayOfMonth() < birthday.getDayOfMonth())) {
+            age--;
+        }
+        return age;
     }
 }

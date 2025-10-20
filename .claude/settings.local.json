@@ -1,8 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git pull origin main)",
-      "Bash(curl -I -m 10 https://github.com)"
+      "Bash(\"C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysql.exe\" -u root -proot --default-character-set=utf8mb4 socialmeet -e \"\nSELECT p.id, p.content, p.location, p.like_count, p.comment_count, u.nickname\nFROM posts p\nJOIN users u ON p.user_id = u.id\nORDER BY p.created_at DESC;\n\")"
     ],
     "deny": [],
     "ask": []

@@ -294,7 +294,7 @@ public class UserController {
             log.info("用户 {} 上传照片，是否设为头像: {}", userId, isAvatar);
 
             // 上传照片文件
-            String photoUrl = fileUploadService.uploadAvatar(photo, userId);
+            String photoUrl = fileUploadService.uploadImage(photo, userId);
 
             // 保存照片记录
             UserPhoto userPhoto = new UserPhoto();

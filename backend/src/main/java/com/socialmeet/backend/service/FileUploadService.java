@@ -1,128 +1,119 @@
 package com.socialmeet.backend.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 /**
  * 文件上传服务
  */
-@Service
-@RequiredArgsConstructor
 @Slf4j
+@Service
 public class FileUploadService {
 
-    @Value("${file.upload.avatar-path:uploads/avatars/}")
-    private String avatarUploadPath;
+    @Value("${file.upload.base-dir:uploads}")
+    private String baseUploadDir;
 
-    @Value("${server.host:localhost}")
-    private String serverHost;
+    @Value("${file.upload.base-url:http://localhost:8080/uploads}")
+    private String baseUrl;
 
-    @Value("${server.port:8080}")
-    private String serverPort;
-
-    // 允许的图片格式
-    private static final List<String> ALLOWED_IMAGE_EXTENSIONS = Arrays.asList(
-            "jpg", "jpeg", "png", "gif", "bmp", "webp"
-    );
-
-    // 最大文件大小：5MB
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
+    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    private static final String[] ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"};
+    private static final String[] ALLOWED_VIDEO_TYPES = {"video/mp4", "video/mpeg", "video/quicktime"};
 
     /**
-     * 上传头像
+     * 上传图片
+     *
+     * @param file     上传的文件
+     * @param userId   用户ID
+     * @return 图片URL
      */
-    public String uploadAvatar(MultipartFile file, Long userId) throws IOException {
-        // 验证文件
-        validateImageFile(file);
+    public String uploadImage(MultipartFile file, Long userId) throws IOException {
+        return uploadFile(file, userId, "images", ALLOWED_IMAGE_TYPES);
+    }
 
-        // 确保上传目录存在
-        File uploadDir = new File(avatarUploadPath);
-        if (!uploadDir.exists()) {
-            uploadDir.mkdirs();
-        }
+    /**
+     * 上传视频
+     *
+     * @param file     上传的文件
+     * @param userId   用户ID
+     * @return 视频URL
+     */
+    public String uploadVideo(MultipartFile file, Long userId) throws IOException {
+        return uploadFile(file, userId, "videos", ALLOWED_VIDEO_TYPES);
+    }
 
-        // 生成唯一文件名
+    /**
+     * 通用文件上传方法
+     *
+     * @param file         上传的文件
+     * @param userId       用户ID
+     * @param category     分类（images/videos）
+     * @param allowedTypes 允许的文件类型
+     * @return 文件URL
+     */
+    private String uploadFile(MultipartFile file, Long userId, String category, String[] allowedTypes) throws IOException {
+        // 1. 验证文件
+        validateFile(file, allowedTypes);
+
+        // 2. 生成文件名
         String originalFilename = file.getOriginalFilename();
         String extension = getFileExtension(originalFilename);
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-        String newFilename = String.format("avatar_%d_%s_%s.%s", userId, timestamp, uniqueId, extension);
+        String filename = generateFilename(userId, extension);
 
-        // 保存文件
-        Path targetPath = Paths.get(avatarUploadPath, newFilename);
-        Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+        // 3. 创建目录结构: uploads/images/2025/01/15/
+        String dateDir = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        String relativePath = category + "/" + dateDir + "/" + filename;
+        Path uploadPath = Paths.get(baseUploadDir, category, dateDir);
 
-        // 返回访问URL
-        String avatarUrl = String.format("http://%s:%s/uploads/avatars/%s",
-                serverHost, serverPort, newFilename);
+        // 4. 创建目录
+        Files.createDirectories(uploadPath);
 
-        log.info("头像上传成功 - userId: {}, filename: {}, url: {}", userId, newFilename, avatarUrl);
-        return avatarUrl;
+        // 5. 保存文件
+        Path filePath = uploadPath.resolve(filename);
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+        log.info("文件上传成功: userId={}, path={}", userId, relativePath);
+
+        // 6. 返回访问URL
+        return baseUrl + "/" + relativePath;
     }
 
     /**
-     * 删除头像文件
+     * 验证文件
      */
-    public boolean deleteAvatar(String avatarUrl) {
-        try {
-            if (avatarUrl == null || avatarUrl.isEmpty()) {
-                return true;
-            }
-
-            // 从URL中提取文件名
-            String filename = avatarUrl.substring(avatarUrl.lastIndexOf("/") + 1);
-            Path filePath = Paths.get(avatarUploadPath, filename);
-
-            if (Files.exists(filePath)) {
-                Files.delete(filePath);
-                log.info("头像删除成功 - filename: {}", filename);
-                return true;
-            }
-        } catch (Exception e) {
-            log.error("删除头像失败 - url: {}", avatarUrl, e);
-        }
-        return false;
-    }
-
-    /**
-     * 验证图片文件
-     */
-    private void validateImageFile(MultipartFile file) throws IOException {
+    private void validateFile(MultipartFile file, String[] allowedTypes) {
         if (file == null || file.isEmpty()) {
-            throw new IOException("文件不能为空");
+            throw new IllegalArgumentException("文件不能为空");
         }
 
         // 检查文件大小
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IOException("文件大小不能超过5MB");
+            throw new IllegalArgumentException("文件大小不能超过10MB");
         }
 
-        // 检查文件扩展名
-        String filename = file.getOriginalFilename();
-        String extension = getFileExtension(filename);
-        if (!ALLOWED_IMAGE_EXTENSIONS.contains(extension.toLowerCase())) {
-            throw new IOException("不支持的图片格式，仅支持: " + String.join(", ", ALLOWED_IMAGE_EXTENSIONS));
-        }
-
-        // 检查MIME类型
+        // 检查文件类型
         String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new IOException("文件必须是图片格式");
+        boolean typeAllowed = false;
+        for (String allowedType : allowedTypes) {
+            if (allowedType.equalsIgnoreCase(contentType)) {
+                typeAllowed = true;
+                break;
+            }
+        }
+
+        if (!typeAllowed) {
+            throw new IllegalArgumentException("不支持的文件类型: " + contentType);
         }
     }
 
@@ -133,10 +124,37 @@ public class FileUploadService {
         if (filename == null || filename.isEmpty()) {
             return "";
         }
-        int dotIndex = filename.lastIndexOf(".");
-        if (dotIndex > 0 && dotIndex < filename.length() - 1) {
-            return filename.substring(dotIndex + 1);
+
+        int lastDotIndex = filename.lastIndexOf('.');
+        if (lastDotIndex > 0 && lastDotIndex < filename.length() - 1) {
+            return filename.substring(lastDotIndex);
         }
+
         return "";
+    }
+
+    /**
+     * 生成唯一文件名
+     */
+    private String generateFilename(Long userId, String extension) {
+        return userId + "_" + System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
+    }
+
+    /**
+     * 删除文件
+     */
+    public void deleteFile(String fileUrl) {
+        try {
+            // 从URL中提取相对路径
+            String relativePath = fileUrl.replace(baseUrl + "/", "");
+            Path filePath = Paths.get(baseUploadDir, relativePath);
+
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
+                log.info("文件删除成功: {}", relativePath);
+            }
+        } catch (Exception e) {
+            log.error("文件删除失败: {}", fileUrl, e);
+        }
     }
 }

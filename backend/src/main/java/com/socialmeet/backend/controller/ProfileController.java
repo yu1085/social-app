@@ -208,7 +208,7 @@ public class ProfileController {
             Long userId = jwtUtil.getUserIdFromToken(token);
 
             // 上传文件
-            String avatarUrl = fileUploadService.uploadAvatar(file, userId);
+            String avatarUrl = fileUploadService.uploadImage(file, userId);
 
             // 更新用户头像URL
             ProfileUpdateRequest updateRequest = new ProfileUpdateRequest();
