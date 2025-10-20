@@ -1,6 +1,9 @@
 package com.example.myapplication
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -26,30 +29,46 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.lifecycleScope
+import com.example.myapplication.dto.ApiResponse
+import com.example.myapplication.dto.UserDTO
+import com.example.myapplication.network.NetworkConfig
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import retrofit2.awaitResponse
 
 class VideoMatchActivity : ComponentActivity() {
-    
+
+    companion object {
+        private const val TAG = "VideoMatchActivity"
+    }
+
     // 价格区间参数
     private var minPrice: Double = 50.0
     private var maxPrice: Double = 500.0
     private var defaultPrice: Double = 100.0
     private var onlineCount: Int = 13264
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         // 获取传递的参数
         minPrice = intent.getDoubleExtra("min_price", 50.0)
         maxPrice = intent.getDoubleExtra("max_price", 500.0)
         defaultPrice = intent.getDoubleExtra("default_price", 100.0)
         onlineCount = intent.getIntExtra("online_count", 13264)
-        
+
         setContent {
+            val isMatching = remember { mutableStateOf(false) }
+            val matchingStatus = remember { mutableStateOf("") }
+
             VideoMatchScreen(
                 minPrice = minPrice,
                 maxPrice = maxPrice,
                 defaultPrice = defaultPrice,
                 onlineCount = onlineCount,
+                isMatching = isMatching.value,
+                matchingStatus = matchingStatus.value,
                 onBackClick = { finish() },
                 onRechargeClick = {
                     // 跳转到充值页面
@@ -60,15 +79,94 @@ class VideoMatchActivity : ComponentActivity() {
                     ).show()
                 },
                 onMatchClick = { selectedPrice ->
-                    // 开始匹配，传递选择的价格
+                    startMatching(isMatching, matchingStatus, selectedPrice)
+                },
+                onCancelMatch = {
+                    isMatching.value = false
+                    matchingStatus.value = ""
                     android.widget.Toast.makeText(
                         this,
-                        "开始视频匹配，价格区间: $selectedPrice 元/分钟",
-                        android.widget.Toast.LENGTH_LONG
+                        "已取消匹配",
+                        android.widget.Toast.LENGTH_SHORT
                     ).show()
                 }
             )
         }
+    }
+
+    private fun startMatching(
+        isMatching: MutableState<Boolean>,
+        matchingStatus: MutableState<String>,
+        selectedPrice: Double
+    ) {
+        if (isMatching.value) return
+
+        Log.d(TAG, "开始视频匹配，价格: $selectedPrice 元/分钟")
+        isMatching.value = true
+        matchingStatus.value = "正在为您匹配合适的用户..."
+
+        lifecycleScope.launch {
+            try {
+                // 模拟匹配延迟 (2-5秒)
+                val delay = (2000..5000).random().toLong()
+                delay(delay)
+
+                // 调用后端API获取随机女性用户
+                Log.d(TAG, "调用API获取用户列表...")
+                val apiService = NetworkConfig.getApiService()
+                val response = apiService.searchUsers(
+                    null, // keyword
+                    "FEMALE", // gender
+                    null, // location
+                    null, // minAge
+                    null, // maxAge
+                    0, // page
+                    20 // size
+                ).awaitResponse()
+
+                if (response.isSuccessful) {
+                    val apiResponse = response.body()
+                    if (apiResponse?.isSuccess == true && !apiResponse.data.isNullOrEmpty()) {
+                        val users = apiResponse.data
+                        val randomUser = users.random()
+
+                        Log.d(TAG, "匹配成功！用户ID: ${randomUser.id}, 昵称: ${randomUser.nickname}")
+                        matchingStatus.value = "匹配成功！正在连接..."
+
+                        // 延迟1秒后跳转
+                        delay(1000)
+
+                        // 跳转到视频通话界面
+                        val intent = Intent(this@VideoMatchActivity, VideoChatActivity::class.java)
+                        intent.putExtra("userId", randomUser.id)
+                        intent.putExtra("userName", randomUser.nickname)
+                        intent.putExtra("userAvatar", randomUser.avatarUrl)
+                        intent.putExtra("isVoiceOnly", false)
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        Log.w(TAG, "未找到合适的用户")
+                        onMatchFailed(isMatching, matchingStatus, "未找到合适的用户，请稍后重试")
+                    }
+                } else {
+                    Log.e(TAG, "API调用失败: ${response.code()}")
+                    onMatchFailed(isMatching, matchingStatus, "匹配失败，请稍后重试")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "匹配过程出错", e)
+                onMatchFailed(isMatching, matchingStatus, "网络错误：${e.message}")
+            }
+        }
+    }
+
+    private fun onMatchFailed(
+        isMatching: MutableState<Boolean>,
+        matchingStatus: MutableState<String>,
+        message: String
+    ) {
+        isMatching.value = false
+        matchingStatus.value = ""
+        android.widget.Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -78,11 +176,15 @@ fun VideoMatchScreen(
     maxPrice: Double = 500.0,
     defaultPrice: Double = 100.0,
     onlineCount: Int = 13264,
+    isMatching: Boolean = false,
+    matchingStatus: String = "",
     onBackClick: () -> Unit,
     onRechargeClick: () -> Unit,
-    onMatchClick: (Double) -> Unit
+    onMatchClick: (Double) -> Unit,
+    onCancelMatch: () -> Unit = {}
 ) {
     var selectedOption by remember { mutableStateOf(1) } // 默认选择人气女生
+    var selectedPrice by remember { mutableStateOf(275.0) } // 默认人气女生的价格中点
     
     Box(
         modifier = Modifier
@@ -119,9 +221,28 @@ fun VideoMatchScreen(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                MatchAnimationArea()
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    MatchAnimationArea(isMatching = isMatching)
+
+                    if (isMatching && matchingStatus.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = matchingStatus,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.Black
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(32.dp),
+                            color = Color(0xFF2196F3)
+                        )
+                    }
+                }
             }
-            
+
             Spacer(modifier = Modifier.height(24.dp))
             
             // 充值提示
@@ -131,37 +252,40 @@ fun VideoMatchScreen(
             )
             
             Spacer(modifier = Modifier.height(24.dp))
-            
-            // 匹配选项
-            MatchOptions(
-                selectedOption = selectedOption,
-                onOptionSelect = { selectedOption = it }
-            )
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
+
             // 价格区间选择
             PriceRangeSelector(
                 minPrice = minPrice,
                 maxPrice = maxPrice,
                 defaultPrice = defaultPrice,
-                onPriceChange = { /* 价格变化处理 */ }
+                selectedOption = selectedOption,
+                onOptionSelect = { selectedOption = it },
+                onPriceChange = { selectedPrice = it }
             )
             
             Spacer(modifier = Modifier.weight(1f))
             
-            // 立即匹配按钮
-            MatchButton(
-                icon = Icons.Default.CameraAlt,
-                text = "立即匹配",
-                onClick = { onMatchClick(defaultPrice) }
-            )
+            // 立即匹配/取消匹配按钮
+            if (isMatching) {
+                MatchButton(
+                    icon = Icons.Default.CameraAlt,
+                    text = "取消匹配",
+                    onClick = onCancelMatch,
+                    backgroundColor = Color(0xFFFF5722) // 红色表示取消
+                )
+            } else {
+                MatchButton(
+                    icon = Icons.Default.CameraAlt,
+                    text = "立即匹配",
+                    onClick = { onMatchClick(selectedPrice) }
+                )
+            }
         }
     }
 }
 
 @Composable
-fun VideoMatchHeader(onBackClick: () -> Unit) {
+private fun VideoMatchHeader(onBackClick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -188,7 +312,7 @@ fun VideoMatchHeader(onBackClick: () -> Unit) {
 }
 
 @Composable
-fun MatchStatistics(
+private fun MatchStatistics(
     waitingCount: String,
     matchedCount: String
 ) {
@@ -207,7 +331,7 @@ fun MatchStatistics(
 }
 
 @Composable
-fun MatchAnimationArea() {
+private fun MatchAnimationArea(isMatching: Boolean = false) {
     Box(
         modifier = Modifier.size(280.dp)
     ) {
@@ -265,7 +389,7 @@ fun MatchAnimationArea() {
 }
 
 @Composable
-fun FemaleAvatar(
+private fun FemaleAvatar(
     modifier: Modifier = Modifier,
     isTopLeft: Boolean
 ) {
@@ -287,7 +411,7 @@ fun FemaleAvatar(
 }
 
 @Composable
-fun RechargePrompt(
+private fun RechargePrompt(
     coinCount: String,
     onRechargeClick: () -> Unit
 ) {
@@ -326,7 +450,7 @@ fun RechargePrompt(
 }
 
 @Composable
-fun MatchOptions(
+private fun MatchOptions(
     selectedOption: Int,
     onOptionSelect: (Int) -> Unit
 ) {
@@ -384,7 +508,7 @@ fun MatchOptions(
 }
 
 @Composable
-fun MatchOptionItem(
+private fun MatchOptionItem(
     title: String,
     subtitle: String,
     price: String,
@@ -450,10 +574,11 @@ fun MatchOptionItem(
 }
 
 @Composable
-fun MatchButton(
+private fun MatchButton(
     icon: ImageVector,
     text: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    backgroundColor: Color = Color(0xFF2196F3)
 ) {
     Button(
         onClick = onClick,
@@ -461,7 +586,7 @@ fun MatchButton(
             .fillMaxWidth()
             .height(56.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF2196F3)
+            containerColor = backgroundColor
         ),
         shape = RoundedCornerShape(28.dp)
     ) {
@@ -484,13 +609,14 @@ fun MatchButton(
 }
 
 @Composable
-fun PriceRangeSelector(
+private fun PriceRangeSelector(
     minPrice: Double,
     maxPrice: Double,
     defaultPrice: Double,
+    selectedOption: Int,
+    onOptionSelect: (Int) -> Unit,
     onPriceChange: (Double) -> Unit
 ) {
-    var selectedOption by remember { mutableStateOf(1) } // 默认选择人气女生
     
     // 定义价格区间选项
     val priceOptions = listOf(
@@ -526,7 +652,7 @@ fun PriceRangeSelector(
                     color = Color(0xFF666666)
                 )
             }
-            
+
             // 价格区间选项
             priceOptions.forEachIndexed { index, (title, subtitle, priceRange) ->
                 PriceOptionItem(
@@ -535,7 +661,7 @@ fun PriceRangeSelector(
                     priceRange = priceRange,
                     isSelected = selectedOption == index,
                     onClick = {
-                        selectedOption = index
+                        onOptionSelect(index)
                         // 计算选择的价格区间中点
                         val priceMid = when (index) {
                             0 -> 150.0 // 100-200的中点
@@ -556,7 +682,7 @@ fun PriceRangeSelector(
 }
 
 @Composable
-fun PriceOptionItem(
+private fun PriceOptionItem(
     title: String,
     subtitle: String,
     priceRange: String,
