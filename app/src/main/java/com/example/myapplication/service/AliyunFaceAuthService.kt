@@ -29,8 +29,9 @@ class AliyunFaceAuthService private constructor() {
     }
 
     // 阿里云金融级实人认证配置
-    private val accessKeyId = "LTAI5t7auaup8rkscoAf32sZ"  // 您的AccessKey ID
-    private val accessKeySecret = "vjY7tXaV18ZHKpwBINj5qHWj3CMlSN"  // 您的AccessKey Secret
+    // 注意：请将敏感信息配置到环境变量或配置文件中
+    private val accessKeyId = System.getenv("ALIYUN_ACCESS_KEY_ID") ?: "YOUR_ACCESS_KEY_ID"
+    private val accessKeySecret = System.getenv("ALIYUN_ACCESS_KEY_SECRET") ?: "YOUR_ACCESS_KEY_SECRET"
     private val regionId = "cn-shanghai"
     private val sceneId = "1000015106"  // SocialMeet认证场景ID
     private val productCode = "ID_PRO"  // 金融级实人认证产品代码
