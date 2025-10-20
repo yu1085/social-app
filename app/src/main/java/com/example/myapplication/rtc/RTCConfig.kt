@@ -23,7 +23,7 @@ object RTCConfig {
      * 注意：AppKey 是敏感信息，仅用于服务端
      * ⚠️ 生产环境请删除此配置，不要暴露在客户端代码中
      */
-    const val APP_KEY = "d1c4f2e9f9ea496e9c4acc76dc2649bf" // 仅供参考，生产环境请移除
+    const val APP_KEY = "YOUR_APP_KEY_HERE" // 请从环境变量或配置文件获取
 
     // ==================== 测试配置 ====================
 
@@ -44,7 +44,7 @@ object RTCConfig {
      * 注意：此 Token 将于 2025-10-19 19:23 到期
      * 过期后需要重新生成
      */
-    const val TEST_TOKEN = "00168cd650639d78f0174109df1PABxjSsFtY/raDXK9GgDADExMQMAMTExBgAAADXK9GgBADXK9GgCADXK9GgDADXK9GgEADXK9GgFADXK9GggAG5p6vjl1HiCnmXt6IKHjtQbJI6xi92MtPa5ikTk8p38"
+    const val TEST_TOKEN = "YOUR_TEST_TOKEN_HERE" // 请从服务端获取
 
     // ==================== 生产环境说明 ====================
 
