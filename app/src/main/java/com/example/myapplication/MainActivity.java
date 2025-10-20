@@ -15,6 +15,9 @@ import android.widget.Toast;
 import android.util.Log;
 import android.content.SharedPreferences;
 import androidx.appcompat.app.AlertDialog;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.GridLayoutManager;
+import com.example.myapplication.adapter.UserListAdapter;
 import com.example.myapplication.network.NetworkConfig;
 import com.example.myapplication.network.ApiService;
 import com.example.myapplication.dto.ApiResponse;
@@ -44,9 +47,9 @@ public class MainActivity extends AppCompatActivity {
     private ComposeView composeSquare, composeMessage, composeProfile;
     private TextView textActive, textHot, textNearby, textNew, textExclusive;
 
-    // 用户卡片视图的引用
-    private View userCard1, userCard2, userCard3, userCard4;
-    private List<UserDTO> currentUserList;
+    // RecyclerView 和 Adapter - 支持海量用户数据
+    private RecyclerView userRecyclerView;
+    private UserListAdapter userListAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,6 +127,9 @@ public class MainActivity extends AppCompatActivity {
             com.example.myapplication.compose.ProfileComposeHost.attach(composeProfile);
         }
 
+        // 初始化RecyclerView
+        initRecyclerView();
+
         // 初始状态：所有标签保持相同样式与尺寸
         resetAllTabs();
 
@@ -132,6 +138,23 @@ public class MainActivity extends AppCompatActivity {
 
         // 加载用户列表
         loadUsers(null, null, null, null, null);
+    }
+
+    /**
+     * 初始化RecyclerView - 使用GridLayoutManager显示2列
+     */
+    private void initRecyclerView() {
+        userRecyclerView = findViewById(R.id.user_recycler_view);
+        userListAdapter = new UserListAdapter(this);
+
+        // 使用GridLayoutManager显示2列（每行2个用户卡片）
+        // 如果需要3列布局，修改参数为: new GridLayoutManager(this, 3)
+        GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+        userRecyclerView.setLayoutManager(layoutManager);
+        userRecyclerView.setAdapter(userListAdapter);
+
+        Log.d(TAG, "RecyclerView已初始化，使用2列布局（每行2个卡片）");
+        Log.d(TAG, "屏幕同时显示约4-6个卡片，RecyclerView会创建约12-18个ViewHolder用于复用");
     }
 
     /**
@@ -169,14 +192,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 加载用户列表
+     * 加载用户列表 - 使用RecyclerView自动复用，支持海量数据
      */
     private void loadUsers(String keyword, String gender, String location, Integer minAge, Integer maxAge) {
         Log.d(TAG, "开始加载用户列表...");
 
         ApiService apiService = NetworkConfig.getApiService();
+        // 移除size限制，让后端返回更多数据（或者设置一个较大的值，如100）
         Call<ApiResponse<List<UserDTO>>> call = apiService.searchUsers(
-                keyword, gender, location, minAge, maxAge, 0, 6
+                keyword, gender, location, minAge, maxAge, 0, 100
         );
 
         call.enqueue(new Callback<ApiResponse<List<UserDTO>>>() {
@@ -185,18 +209,12 @@ public class MainActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     ApiResponse<List<UserDTO>> apiResponse = response.body();
                     if (apiResponse.isSuccess() && apiResponse.getData() != null) {
-                        currentUserList = apiResponse.getData();
-                        Log.d(TAG, "成功加载 " + currentUserList.size() + " 个用户");
+                        List<UserDTO> userList = apiResponse.getData();
+                        Log.d(TAG, "✅ 成功加载 " + userList.size() + " 个用户");
+                        Log.d(TAG, "RecyclerView将自动复用ViewHolder，只创建约12个UI控件");
 
-                        // 打印所有用户信息
-                        for (int i = 0; i < currentUserList.size(); i++) {
-                            UserDTO u = currentUserList.get(i);
-                            Log.d(TAG, "  用户" + i + " - ID: " + u.getId() +
-                                       ", 昵称: " + u.getNickname() +
-                                       ", 用户名: " + u.getUsername());
-                        }
-
-                        updateUserCards();
+                        // 更新RecyclerView数据
+                        userListAdapter.updateData(userList);
                     } else {
                         Log.e(TAG, "API返回失败: " + apiResponse.getMessage());
                         Toast.makeText(MainActivity.this, "加载用户失败", Toast.LENGTH_SHORT).show();
@@ -213,154 +231,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "加载失败: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    /**
-     * 更新用户卡片UI
-     */
-    private void updateUserCards() {
-        if (currentUserList == null || currentUserList.isEmpty()) {
-            Log.w(TAG, "用户列表为空");
-            return;
-        }
-
-        Log.d(TAG, "═══════════════════════════════════════");
-        Log.d(TAG, "开始更新用户卡片UI");
-        Log.d(TAG, "用户列表大小: " + currentUserList.size());
-        for (int i = 0; i < currentUserList.size(); i++) {
-            UserDTO user = currentUserList.get(i);
-            Log.d(TAG, "  卡片" + i + " - ID: " + user.getId() + 
-                       ", 用户名: " + user.getUsername() + 
-                       ", 昵称: " + user.getNickname());
-        }
-        Log.d(TAG, "═══════════════════════════════════════");
-
-        // 获取用户卡片视图（只有4个）
-        userCard1 = findViewById(R.id.user_card_1);
-        userCard2 = findViewById(R.id.user_card_2);
-        userCard3 = findViewById(R.id.user_card_3);
-        userCard4 = findViewById(R.id.user_card_4);
-
-        View[] userCards = {userCard1, userCard2, userCard3, userCard4};
-
-        for (int i = 0; i < userCards.length; i++) {
-            if (i < currentUserList.size()) {
-                UserDTO user = currentUserList.get(i);
-                Log.d(TAG, "更新卡片" + i + " - 用户: " + user.getUsername() + " (ID: " + user.getId() + ")");
-                updateUserCard(userCards[i], user, i);
-            } else {
-                if (userCards[i] != null) {
-                    userCards[i].setVisibility(View.GONE);
-                }
-            }
-        }
-    }
-
-    /**
-     * 更新单个用户卡片
-     */
-    private void updateUserCard(View cardView, UserDTO user, int index) {
-        if (cardView == null || user == null) return;
-
-        cardView.setVisibility(View.VISIBLE);
-
-        // 根据索引查找卡片内的视图
-        String suffix = "_" + (index + 1);
-        TextView nameView = findTextViewInCard(cardView, "user_name" + suffix);
-        TextView statusView = findTextViewInCard(cardView, "user_status" + suffix);
-        TextView priceView = findTextViewInCard(cardView, "user_price" + suffix);
-        TextView locationView = findTextViewInCard(cardView, "user_location" + suffix);
-        View statusIndicator = findViewInCard(cardView, "status_indicator" + suffix);
-
-        // 更新用户名
-        if (nameView != null) {
-            String displayName = user.getNickname() != null ? user.getNickname() : user.getUsername();
-            nameView.setText(displayName);
-        }
-
-        // 更新状态
-        if (statusView != null && statusIndicator != null) {
-            if (user.getIsOnline() != null && user.getIsOnline()) {
-                statusView.setText("在线");
-                statusIndicator.setBackgroundResource(R.drawable.status_indicator_green);
-            } else {
-                statusView.setText("离线");
-                statusIndicator.setBackgroundResource(R.drawable.status_indicator_red);
-            }
-        }
-
-        // 更新价格（暂时使用默认价格，如果DTO中有价格字段可以使用）
-        if (priceView != null) {
-            int[] prices = {300, 350, 500, 400, 600, 350};
-            priceView.setText(prices[index] + "/分钟");
-        }
-
-        // 更新位置
-        if (locationView != null) {
-            String location = user.getLocation() != null ? user.getLocation() : "未知";
-            locationView.setText(location);
-        }
-
-        // 设置点击事件
-        final UserDTO finalUser = user;
-        final int cardIndex = index;
-        cardView.setOnClickListener(v -> {
-            // 添加详细日志
-            Log.d(TAG, "═══════════════════════════════════════");
-            Log.d(TAG, "点击用户卡片 - 卡片索引: " + cardIndex);
-            Log.d(TAG, "点击用户卡片 - ID: " + finalUser.getId() +
-                       ", 昵称: " + (finalUser.getNickname() != null ? finalUser.getNickname() : finalUser.getUsername()) +
-                       ", 用户名: " + finalUser.getUsername());
-            Log.d(TAG, "═══════════════════════════════════════");
-
-            Intent intent = new Intent(MainActivity.this, UserDetailActivity.class);
-            intent.putExtra("user_id", finalUser.getId());
-            intent.putExtra("user_name", finalUser.getNickname() != null ? finalUser.getNickname() : finalUser.getUsername());
-            intent.putExtra("user_status", finalUser.getIsOnline() ? "在线" : "离线");
-            // 暂时不传年龄,因为UserDTO中没有getAge()方法
-            if (finalUser.getLocation() != null) {
-                intent.putExtra("user_location", finalUser.getLocation());
-            }
-            if (finalUser.getSignature() != null) {
-                intent.putExtra("user_description", finalUser.getSignature());
-            }
-            intent.putExtra("user_avatar", R.drawable.rectangle_411_1);
-            startActivity(intent);
-        });
-    }
-
-    /**
-     * 在卡片中查找TextView
-     */
-    private TextView findTextViewInCard(View cardView, String textViewName) {
-        try {
-            // 使用反射查找资源ID
-            int resId = getResources().getIdentifier(textViewName, "id", getPackageName());
-            if (resId != 0) {
-                View view = cardView.findViewById(resId);
-                if (view instanceof TextView) {
-                    return (TextView) view;
-                }
-            }
-        } catch (Exception e) {
-            Log.w(TAG, "查找TextView失败: " + textViewName, e);
-        }
-        return null;
-    }
-
-    /**
-     * 在卡片中查找View
-     */
-    private View findViewInCard(View cardView, String viewName) {
-        try {
-            int resId = getResources().getIdentifier(viewName, "id", getPackageName());
-            if (resId != 0) {
-                return cardView.findViewById(resId);
-            }
-        } catch (Exception e) {
-            Log.w(TAG, "查找View失败: " + viewName, e);
-        }
-        return null;
     }
 
 
@@ -495,8 +365,7 @@ public class MainActivity extends AppCompatActivity {
         if (composeSquare != null) composeSquare.setVisibility(View.GONE);
         if (composeMessage != null) composeMessage.setVisibility(View.GONE);
         if (composeProfile != null) composeProfile.setVisibility(View.GONE);
-        View scroll = findViewById(R.id.user_cards_scroll);
-        if (scroll != null) scroll.setVisibility(View.GONE);
+        if (userRecyclerView != null) userRecyclerView.setVisibility(View.GONE);
 
         // 隐藏首页顶部两块
         View header1 = findViewById(R.id.function_entry_area);
@@ -506,14 +375,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showHome() {
-        // 仅显示首页：顶部两块 + 滚动内容
+        // 仅显示首页：顶部两块 + RecyclerView用户列表
         hideAllContent();
         View header1 = findViewById(R.id.function_entry_area);
         if (header1 != null) header1.setVisibility(View.VISIBLE);
         View header2 = findViewById(R.id.category_tabs_area);
         if (header2 != null) header2.setVisibility(View.VISIBLE);
-        View scroll = findViewById(R.id.user_cards_scroll);
-        if (scroll != null) scroll.setVisibility(View.VISIBLE);
+        if (userRecyclerView != null) userRecyclerView.setVisibility(View.VISIBLE);
     }
 
     private void showSquare() {

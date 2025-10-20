@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/user_card"
+    android:layout_width="match_parent"
+    android:layout_height="236dp"
+    android:layout_margin="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="?android:attr/selectableItemBackground">
+
+    <!-- 用户照片背景 -->
+    <ImageView
+        android:id="@+id/user_avatar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/rectangle_411_1"
+        android:scaleType="centerCrop"
+        android:clickable="false"
+        android:focusable="false" />
+
+    <!-- 状态标签背景 -->
+    <TextView
+        android:id="@+id/user_status"
+        android:layout_width="36dp"
+        android:layout_height="13dp"
+        android:layout_marginStart="7dp"
+        android:layout_marginTop="7dp"
+        android:background="@drawable/status_badge_bg_design"
+        android:gravity="center_vertical|start"
+        android:paddingStart="16dp"
+        android:text="在线"
+        android:textColor="#FFFFFF"
+        android:textSize="9sp"
+        android:fontFamily="sans-serif"
+        android:lineHeight="12.6sp" />
+
+    <!-- 状态指示器 - 绿色表示在线 -->
+    <View
+        android:id="@+id/status_indicator"
+        android:layout_width="5dp"
+        android:layout_height="5dp"
+        android:layout_marginStart="13dp"
+        android:layout_marginTop="11dp"
+        android:background="@drawable/status_indicator_green" />
+
+    <!-- 左下角用户信息区域 - 垂直排列 -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_gravity="bottom|start"
+        android:orientation="vertical">
+
+        <!-- 用户名 -->
+        <TextView
+            android:id="@+id/user_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="昵称"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif"
+            android:textStyle="bold" />
+
+        <!-- 价格信息 - 紧凑样式 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="#00000000"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp">
+
+            <ImageView
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:src="@drawable/group_3_1"
+                android:layout_marginEnd="3dp" />
+
+            <TextView
+                android:id="@+id/user_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0/分钟"
+                android:textColor="#FFFFFF"
+                android:textSize="8sp"
+                android:fontFamily="sans-serif"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <!-- 位置信息 - 紧凑样式 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="#00000000"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:paddingTop="1dp"
+            android:paddingBottom="1dp">
+
+            <ImageView
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:src="@drawable/vector_3"
+                android:layout_marginEnd="2dp" />
+
+            <TextView
+                android:id="@+id/user_location"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:text="未知"
+                android:textColor="#FFFFFF"
+                android:textSize="7sp"
+                android:fontFamily="sans-serif"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- 右下角头像图标 - 38×38像素白色圆背景 + 中心图标 -->
+    <FrameLayout
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="0dp"
+        android:layout_marginBottom="0dp"
+        android:background="@drawable/ellipse_white_bg">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center"
+            android:src="@drawable/subtract_1" />
+
+    </FrameLayout>
+
+</FrameLayout>
