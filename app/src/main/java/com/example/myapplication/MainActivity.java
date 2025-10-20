@@ -262,11 +262,11 @@ public class MainActivity extends AppCompatActivity {
     }
     
     private void setTabClickListeners() {
-        tabActive.setOnClickListener(v -> selectTab(tabActive, textActive));
-        tabHot.setOnClickListener(v -> selectTab(tabHot, textHot));
-        tabNearby.setOnClickListener(v -> selectTab(tabNearby, textNearby));
-        tabNew.setOnClickListener(v -> selectTab(tabNew, textNew));
-        tabExclusive.setOnClickListener(v -> selectTab(tabExclusive, textExclusive));
+        tabActive.setOnClickListener(v -> selectTab(tabActive, textActive, "active"));
+        tabHot.setOnClickListener(v -> selectTab(tabHot, textHot, "hot"));
+        tabNearby.setOnClickListener(v -> selectTab(tabNearby, textNearby, "nearby"));
+        tabNew.setOnClickListener(v -> selectTab(tabNew, textNew, "new"));
+        tabExclusive.setOnClickListener(v -> selectTab(tabExclusive, textExclusive, "exclusive"));
     }
 
     private void initBottomNav() {
@@ -496,16 +496,56 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     
-    private void selectTab(LinearLayout selectedTab, TextView selectedText) {
+    private void selectTab(LinearLayout selectedTab, TextView selectedText, String category) {
         // 重置所有标签状态
         resetAllTabs();
-        
+
         // 设置选中标签状态
         selectedTab.setSelected(true);
         selectedText.setSelected(true);
         // 仅改变视觉高亮，不改变布局尺寸，避免文字下移
         selectedTab.setBackgroundResource(R.drawable.tab_selected_bg);
         selectedText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+
+        // 根据分类加载对应的用户列表
+        loadUsersByCategory(category);
+    }
+
+    /**
+     * 根据分类加载用户列表
+     */
+    private void loadUsersByCategory(String category) {
+        Log.d(TAG, "加载分类: " + category);
+
+        // 根据不同分类设置不同的筛选条件
+        switch (category) {
+            case "active":
+                // 活跃用户：最近登录的用户
+                loadUsers(null, null, null, null, null);
+                break;
+            case "hot":
+                // 热门用户：可以按照某个热度指标排序（这里简化为所有用户）
+                loadUsers(null, null, null, null, null);
+                break;
+            case "nearby":
+                // 附近用户：需要位置信息（这里简化为所有用户）
+                // TODO: 实现基于位置的筛选
+                loadUsers(null, null, null, null, null);
+                Toast.makeText(this, "附近功能需要开启位置权限", Toast.LENGTH_SHORT).show();
+                break;
+            case "new":
+                // 新人用户：注册时间较短的用户（这里简化为所有用户）
+                loadUsers(null, null, null, null, null);
+                break;
+            case "exclusive":
+                // 专享用户：VIP或特殊用户（这里简化为所有用户）
+                loadUsers(null, null, null, null, null);
+                Toast.makeText(this, "专享用户功能开发中", Toast.LENGTH_SHORT).show();
+                break;
+            default:
+                loadUsers(null, null, null, null, null);
+                break;
+        }
     }
     
     private void resetAllTabs() {

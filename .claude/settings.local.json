@@ -1,12 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(\"C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysql.exe\" -u root -proot --default-character-set=utf8mb4 -e \"SELECT COUNT(*) as total_users FROM socialmeet.users;\")",
-      "Bash(git add app/src/main/java/com/example/myapplication/adapter/UserListAdapter.java app/src/main/res/layout/item_user_card.xml app/src/main/java/com/example/myapplication/MainActivity.java app/src/main/res/layout/activity_main.xml)",
-      "Bash(git commit -m \"$(cat <<''EOF''\n实现首页用户列表RecyclerView动态复用机制\n\n核心改进:\n- 创建UserListAdapter实现RecyclerView适配器模式\n- 新增item_user_card.xml作为单个卡片复用模板\n- 修改MainActivity.java使用RecyclerView替换固定卡片\n- 修改activity_main.xml删除硬编码用户卡片,添加RecyclerView\n\n技术细节:\n- GridLayoutManager 2列布局(屏幕显示6张卡片)\n- 只创建约12-18个ViewHolder实例,支持无限用户数据\n- 滚动时自动复用ViewHolder,仅更新数据绑定\n- 保持与UserDetailActivity的点击跳转功能\n\n性能优化:\n- 从固定4-6个UI元素到动态复用机制\n- 内存使用恒定,不随用户数增加而增长\n- 符合Android官方最佳实践和主流App设计模式\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git push origin main)",
-      "Bash(git add -A)",
-      "Bash(rm -f NUL backend/NUL)"
+      "Bash(git pull origin main)",
+      "Bash(curl -I -m 10 https://github.com)"
     ],
     "deny": [],
     "ask": []

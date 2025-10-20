@@ -241,6 +241,10 @@ public interface ApiService {
     // 获取未读消息数量
     @GET("messages/unread-count")
     Call<ApiResponse<Integer>> getUnreadCount(@Header("Authorization") String authHeader);
+
+    // 获取在线人数统计
+    @GET("users/online-stats")
+    Call<ApiResponse<Map<String, Integer>>> getOnlineStats();
     
     // 钱包相关
     @GET("profile/wallet")

@@ -440,6 +440,28 @@ public class UserController {
     }
 
     /**
+     * 获取在线人数统计
+     */
+    @GetMapping("/online-stats")
+    public ApiResponse<Map<String, Integer>> getOnlineStats() {
+        try {
+            log.info("获取在线人数统计");
+
+            // 模拟在线人数（实际应用中应该基于用户最后活跃时间）
+            Map<String, Integer> stats = new HashMap<>();
+            stats.put("videoOnline", 13264); // 视频速配在线人数
+            stats.put("voiceOnline", 1153);  // 语音速配在线人数
+            stats.put("totalOnline", 14417); // 总在线人数
+
+            return ApiResponse.success(stats);
+
+        } catch (Exception e) {
+            log.error("获取在线人数统计失败", e);
+            return ApiResponse.error("获取在线人数统计失败: " + e.getMessage());
+        }
+    }
+
+    /**
      * 将UserPhoto实体转换为DTO
      */
     private UserPhotoDTO convertToDTO(UserPhoto photo) {
