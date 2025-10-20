@@ -1,9 +1,15 @@
 package com.socialmeet.backend.service;
 
 import com.socialmeet.backend.entity.CallSession;
+import com.socialmeet.backend.entity.Transaction;
 import com.socialmeet.backend.entity.User;
+import com.socialmeet.backend.entity.UserSettings;
+import com.socialmeet.backend.entity.Wallet;
 import com.socialmeet.backend.repository.CallSessionRepository;
+import com.socialmeet.backend.repository.TransactionRepository;
 import com.socialmeet.backend.repository.UserRepository;
+import com.socialmeet.backend.repository.UserSettingsRepository;
+import com.socialmeet.backend.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +31,9 @@ public class CallService {
 
     private final CallSessionRepository callSessionRepository;
     private final UserRepository userRepository;
+    private final UserSettingsRepository userSettingsRepository;
+    private final WalletRepository walletRepository;
+    private final TransactionRepository transactionRepository;
     private final JPushService jPushService;
     private final SignalingService signalingService;
 
@@ -37,17 +46,42 @@ public class CallService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
 
-        Map<String, Object> prices = new HashMap<>();
+        // 从数据库获取用户设置，如果不存在则创建默认设置
+        UserSettings settings = userSettingsRepository.findByUserId(userId)
+                .orElseGet(() -> createDefaultUserSettings(userId));
 
-        // 默认价格（可以从用户设置中获取）
-        prices.put("videoCallPrice", 300.0);
-        prices.put("voiceCallPrice", 150.0);
-        prices.put("messagePrice", 1.0);
-        prices.put("videoCallEnabled", true);
-        prices.put("voiceCallEnabled", true);
-        prices.put("messageChargeEnabled", false);
+        Map<String, Object> prices = new HashMap<>();
+        prices.put("videoCallPrice", settings.getVideoCallPrice().doubleValue());
+        prices.put("voiceCallPrice", settings.getVoiceCallPrice().doubleValue());
+        prices.put("messagePrice", settings.getMessagePrice().doubleValue());
+        prices.put("videoCallEnabled", settings.getVideoCallEnabled());
+        prices.put("voiceCallEnabled", settings.getVoiceCallEnabled());
+        prices.put("messageChargeEnabled", settings.getMessageChargeEnabled());
+
+        log.info("用户价格信息 - userId: {}, videoPrice: {}, voicePrice: {}, videoEnabled: {}, voiceEnabled: {}",
+                userId, settings.getVideoCallPrice(), settings.getVoiceCallPrice(),
+                settings.getVideoCallEnabled(), settings.getVoiceCallEnabled());
 
         return prices;
+    }
+
+    /**
+     * 创建默认用户设置
+     */
+    private UserSettings createDefaultUserSettings(Long userId) {
+        UserSettings settings = new UserSettings();
+        settings.setUserId(userId);
+        settings.setVideoCallEnabled(true);
+        settings.setVoiceCallEnabled(true);
+        settings.setMessageChargeEnabled(false);
+        settings.setVideoCallPrice(BigDecimal.ZERO);
+        settings.setVoiceCallPrice(BigDecimal.ZERO);
+        settings.setMessagePrice(BigDecimal.ZERO);
+
+        UserSettings saved = userSettingsRepository.save(settings);
+        log.info("创建默认用户设置 - userId: {}", userId);
+
+        return saved;
     }
 
     /**
@@ -70,6 +104,46 @@ public class CallService {
             throw new RuntimeException("对方不在线");
         }
 
+        // 获取接收者的通话设置
+        UserSettings receiverSettings = userSettingsRepository.findByUserId(receiverId)
+                .orElseGet(() -> createDefaultUserSettings(receiverId));
+
+        // 检查接收者是否开启了该类型的通话
+        if ("VIDEO".equals(callType) && !receiverSettings.getVideoCallEnabled()) {
+            log.warn("接收者未开启视频通话 - receiverId: {}", receiverId);
+            throw new RuntimeException("对方未开启视频通话功能");
+        }
+
+        if ("VOICE".equals(callType) && !receiverSettings.getVoiceCallEnabled()) {
+            log.warn("接收者未开启语音通话 - receiverId: {}", receiverId);
+            throw new RuntimeException("对方未开启语音通话功能");
+        }
+
+        // 获取通话价格
+        BigDecimal pricePerMinute;
+        if ("VIDEO".equals(callType)) {
+            pricePerMinute = receiverSettings.getVideoCallPrice();
+        } else {
+            pricePerMinute = receiverSettings.getVoiceCallPrice();
+        }
+
+        log.info("通话价格 - receiverId: {}, callType: {}, price: {}", receiverId, callType, pricePerMinute);
+
+        // 如果价格大于0，检查发起者余额（预估1分钟通话费用）
+        if (pricePerMinute.compareTo(BigDecimal.ZERO) > 0) {
+            Wallet callerWallet = walletRepository.findByUserId(callerId)
+                    .orElseThrow(() -> new RuntimeException("发起者钱包不存在"));
+
+            if (callerWallet.getBalance().compareTo(pricePerMinute) < 0) {
+                log.warn("发起者余额不足 - callerId: {}, balance: {}, required: {}",
+                        callerId, callerWallet.getBalance(), pricePerMinute);
+                throw new RuntimeException("余额不足，请先充值");
+            }
+
+            log.info("余额检查通过 - callerId: {}, balance: {}, pricePerMinute: {}",
+                    callerId, callerWallet.getBalance(), pricePerMinute);
+        }
+
         // 创建通话会话
         CallSession callSession = new CallSession();
         callSession.setCallSessionId(generateCallSessionId());
@@ -78,15 +152,11 @@ public class CallService {
         callSession.setCallType(CallSession.CallType.valueOf(callType));
         callSession.setStatus(CallSession.CallStatus.INITIATED);
 
-        // 设置价格
-        if ("VIDEO".equals(callType)) {
-            callSession.setPricePerMinute(BigDecimal.valueOf(300.0));
-        } else {
-            callSession.setPricePerMinute(BigDecimal.valueOf(150.0));
-        }
+        // 设置价格（从接收者设置获取）
+        callSession.setPricePerMinute(pricePerMinute);
 
         callSession = callSessionRepository.save(callSession);
-        log.info("通话会话创建成功 - sessionId: {}", callSession.getCallSessionId());
+        log.info("通话会话创建成功 - sessionId: {}, price: {}", callSession.getCallSessionId(), pricePerMinute);
 
         // 1. 发送WebSocket信令消息（主要方式）
         try {
@@ -260,9 +330,107 @@ public class CallService {
             callSession.setTotalCost(totalCost);
 
             log.info("通话结束 - 时长: {}秒, 费用: {}元", durationSeconds, totalCost);
+
+            // 如果费用大于0，执行扣费和转账
+            if (totalCost.compareTo(BigDecimal.ZERO) > 0) {
+                try {
+                    processCallPayment(callSession, totalCost);
+                } catch (Exception e) {
+                    log.error("通话扣费失败 - sessionId: {}, error: {}", callSessionId, e.getMessage(), e);
+                    // 不影响通话会话的保存，只记录错误
+                }
+            }
         }
 
         return callSessionRepository.save(callSession);
+    }
+
+    /**
+     * 处理通话扣费
+     * @param callSession 通话会话
+     * @param totalCost 总费用
+     */
+    private void processCallPayment(CallSession callSession, BigDecimal totalCost) {
+        Long callerId = callSession.getCallerId();
+        Long receiverId = callSession.getReceiverId();
+
+        log.info("开始处理通话扣费 - callerId: {}, receiverId: {}, amount: {}",
+                callerId, receiverId, totalCost);
+
+        // 获取发起者和接收者的钱包
+        Wallet callerWallet = walletRepository.findByUserId(callerId)
+                .orElseThrow(() -> new RuntimeException("发起者钱包不存在"));
+
+        Wallet receiverWallet = walletRepository.findByUserId(receiverId)
+                .orElseThrow(() -> new RuntimeException("接收者钱包不存在"));
+
+        // 检查发起者余额
+        if (callerWallet.getBalance().compareTo(totalCost) < 0) {
+            log.warn("发起者余额不足 - callerId: {}, balance: {}, required: {}",
+                    callerId, callerWallet.getBalance(), totalCost);
+            throw new RuntimeException("余额不足，无法完成扣费");
+        }
+
+        // 从发起者扣费
+        callerWallet.setBalance(callerWallet.getBalance().subtract(totalCost));
+        callerWallet.setUpdatedAt(LocalDateTime.now());
+        walletRepository.save(callerWallet);
+
+        log.info("发起者扣费成功 - callerId: {}, 扣除: {}, 剩余: {}",
+                callerId, totalCost, callerWallet.getBalance());
+
+        // 同步更新User表的balance字段（向后兼容）
+        User caller = userRepository.findById(callerId).orElse(null);
+        if (caller != null) {
+            caller.setBalance(callerWallet.getBalance());
+            userRepository.save(caller);
+        }
+
+        // 转账给接收者
+        receiverWallet.setBalance(receiverWallet.getBalance().add(totalCost));
+        receiverWallet.setUpdatedAt(LocalDateTime.now());
+        walletRepository.save(receiverWallet);
+
+        log.info("接收者入账成功 - receiverId: {}, 收入: {}, 余额: {}",
+                receiverId, totalCost, receiverWallet.getBalance());
+
+        // 同步更新User表的balance字段（向后兼容）
+        User receiver = userRepository.findById(receiverId).orElse(null);
+        if (receiver != null) {
+            receiver.setBalance(receiverWallet.getBalance());
+            userRepository.save(receiver);
+        }
+
+        // 记录发起者的消费交易
+        Transaction callerTransaction = new Transaction();
+        callerTransaction.setUserId(callerId);
+        callerTransaction.setTransactionType(Transaction.TransactionType.CALL_CHARGE);
+        callerTransaction.setCoinAmount(totalCost.negate()); // 负数表示扣费
+        callerTransaction.setBalanceBefore(callerWallet.getBalance().add(totalCost));
+        callerTransaction.setBalanceAfter(callerWallet.getBalance());
+        callerTransaction.setDescription(String.format("通话扣费 - 会话ID: %s, 时长: %d秒",
+                callSession.getCallSessionId(), callSession.getDurationSeconds()));
+        callerTransaction.setStatus(Transaction.TransactionStatus.SUCCESS);
+        callerTransaction.setCoinSource(Transaction.CoinSource.CONSUMED);
+        callerTransaction.setWealthValue(0); // 消费不增加财富值
+        transactionRepository.save(callerTransaction);
+
+        // 记录接收者的收入交易
+        Transaction receiverTransaction = new Transaction();
+        receiverTransaction.setUserId(receiverId);
+        receiverTransaction.setTransactionType(Transaction.TransactionType.CALL_INCOME);
+        receiverTransaction.setCoinAmount(totalCost);
+        receiverTransaction.setBalanceBefore(receiverWallet.getBalance().subtract(totalCost));
+        receiverTransaction.setBalanceAfter(receiverWallet.getBalance());
+        receiverTransaction.setDescription(String.format("通话收入 - 会话ID: %s, 时长: %d秒",
+                callSession.getCallSessionId(), callSession.getDurationSeconds()));
+        receiverTransaction.setStatus(Transaction.TransactionStatus.SUCCESS);
+        receiverTransaction.setCoinSource(Transaction.CoinSource.EARNED);
+        receiverTransaction.setWealthValue(0); // 收入不增加财富值
+        transactionRepository.save(receiverTransaction);
+
+        log.info("通话扣费完成 - callerId: {}, receiverId: {}, amount: {}",
+                callerId, receiverId, totalCost);
     }
 
     /**

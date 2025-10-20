@@ -1,14 +1,20 @@
 package com.example.myapplication
 
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -18,17 +24,22 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myapplication.ui.theme.MyApplicationTheme
+import coil.compose.AsyncImage
+import com.example.myapplication.auth.AuthManager
+import com.example.myapplication.network.NetworkConfig
+import com.example.myapplication.service.AvatarUploadService
 import com.example.myapplication.service.ProfileService
 import com.example.myapplication.service.UserProfile
-import com.example.myapplication.auth.AuthManager
+import com.example.myapplication.ui.theme.MyApplicationTheme
 import kotlinx.coroutines.launch
 
 /**
@@ -43,8 +54,8 @@ class MyProfileEditActivity : ComponentActivity() {
                 MyProfileEditScreen(
                     onBackClick = { finish() },
                     onSaveClick = { 
-                        Toast.makeText(this, "保存成功", Toast.LENGTH_SHORT).show()
-                        finish()
+                        // 这里需要调用实际的保存函数，但需要在Compose中处理
+                        // 实际的保存逻辑在MyProfileEditScreen内部
                     }
                 )
             }
@@ -60,21 +71,53 @@ fun MyProfileEditScreen(
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     val profileService = remember { ProfileService.getInstance() }
+    val avatarUploadService = remember { AvatarUploadService(context) }
     val scope = rememberCoroutineScope()
-    
+
     // 用户资料状态
     var userProfile by remember { mutableStateOf<UserProfile?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var isSaving by remember { mutableStateOf(false) }
+    var isUploadingAvatar by remember { mutableStateOf(false) }
     var profileData by remember { mutableStateOf(mutableMapOf<String, Any>()) }
     var showSuccessDialog by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
-    
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
     // 获取真实的认证token和用户ID
     val authManager = AuthManager.getInstance(context)
     val token = authManager.getToken()
     val userId = authManager.getUserId()
+
+    // 图片选择器
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            selectedImageUri = uri
+            // 上传头像
+            uploadAvatar(
+                context = context,
+                uri = uri,
+                avatarUploadService = avatarUploadService,
+                authManager = authManager,
+                onUploadStart = { isUploadingAvatar = true },
+                onUploadSuccess = { avatarUrl ->
+                    isUploadingAvatar = false
+                    profileData["avatarUrl"] = avatarUrl
+                    // 更新userProfile
+                    userProfile = userProfile?.copy(avatarUrl = avatarUrl)
+                    Toast.makeText(context, "头像上传成功", Toast.LENGTH_SHORT).show()
+                },
+                onUploadError = { error ->
+                    isUploadingAvatar = false
+                    errorMessage = error
+                    showErrorDialog = true
+                }
+            )
+        }
+    }
     
     // 保存函数
     fun saveProfile() {
@@ -323,9 +366,17 @@ fun MyProfileEditScreen(
                     .fillMaxSize()
                     .verticalScroll(scrollState)
             ) {
-                // 编辑相册按钮
-                EditAlbumButton()
-                
+                // 头像显示和编辑区域
+                AvatarSection(
+                    avatarUrl = userProfile?.avatarUrl ?: "",
+                    isUploading = isUploadingAvatar,
+                    onAvatarClick = {
+                        imagePickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    }
+                )
+
                 // 基本资料区域
                 BasicInfoSection(
                     userProfile = userProfile,
@@ -475,24 +526,146 @@ private fun TopNavigationBar(
 }
 
 @Composable
-private fun EditAlbumButton() {
-    Button(
-        onClick = { 
-            // TODO: 跳转到编辑相册页面
-        },
+private fun AvatarSection(
+    avatarUrl: String,
+    isUploading: Boolean,
+    onAvatarClick: () -> Unit
+) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF2196F3)
-        ),
-        shape = RoundedCornerShape(8.dp)
+            .padding(vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Box(
+            modifier = Modifier.size(120.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            // 头像
+            AsyncImage(
+                model = avatarUrl.ifEmpty { R.drawable.ic_launcher_foreground },
+                contentDescription = "头像",
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .border(3.dp, Color(0xFF2196F3), CircleShape)
+                    .clickable(enabled = !isUploading) { onAvatarClick() },
+                contentScale = ContentScale.Crop
+            )
+
+            // 上传中的遮罩
+            if (isUploading) {
+                Box(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(CircleShape)
+                        .background(Color.Black.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(40.dp),
+                        color = Color.White
+                    )
+                }
+            }
+
+            // 编辑图标
+            if (!isUploading) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF2196F3))
+                        .clickable { onAvatarClick() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "编辑头像",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         Text(
-            text = "编辑相册",
-            fontSize = 16.sp,
-            color = Color.White
+            text = if (isUploading) "上传中..." else "点击修改头像",
+            fontSize = 14.sp,
+            color = Color(0xFF666666)
         )
+    }
+}
+
+/**
+ * 上传头像
+ */
+private fun uploadAvatar(
+    context: android.content.Context,
+    uri: Uri,
+    avatarUploadService: AvatarUploadService,
+    authManager: AuthManager,
+    onUploadStart: () -> Unit,
+    onUploadSuccess: (String) -> Unit,
+    onUploadError: (String) -> Unit
+) {
+    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+        try {
+            onUploadStart()
+            Log.d("AvatarUpload", "开始准备头像文件")
+
+            // 准备图片文件
+            val imageFile = avatarUploadService.prepareImageFile(uri)
+            if (imageFile == null) {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    onUploadError("图片处理失败")
+                }
+                return@launch
+            }
+
+            Log.d("AvatarUpload", "图片文件准备完成，开始上传")
+
+            // 创建Multipart请求体
+            val multipartBody = avatarUploadService.createMultipartBody(imageFile)
+
+            // 获取token
+            val token = authManager.getToken()
+            if (token.isNullOrEmpty()) {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    onUploadError("请先登录")
+                }
+                avatarUploadService.cleanupTempFile(imageFile)
+                return@launch
+            }
+
+            // 调用上传API
+            val apiService = NetworkConfig.getApiService()
+            val response = apiService.uploadAvatar("Bearer $token", multipartBody).execute()
+
+            // 清理临时文件
+            avatarUploadService.cleanupTempFile(imageFile)
+
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                if (response.isSuccessful && response.body()?.isSuccess == true) {
+                    val avatarUrl = response.body()?.data?.get("avatarUrl") ?: ""
+                    Log.d("AvatarUpload", "头像上传成功: $avatarUrl")
+                    onUploadSuccess(avatarUrl)
+                } else {
+                    val errorMsg = response.body()?.message ?: "上传失败"
+                    Log.e("AvatarUpload", "头像上传失败: $errorMsg")
+                    onUploadError(errorMsg)
+                }
+            }
+
+        } catch (e: Exception) {
+            Log.e("AvatarUpload", "头像上传异常", e)
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                onUploadError("上传失败: ${e.message}")
+            }
+        }
     }
 }
 

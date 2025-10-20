@@ -10,10 +10,18 @@ import com.example.myapplication.dto.WalletDTO;
 import com.example.myapplication.dto.TransactionDTO;
 import com.example.myapplication.dto.UserPhotoDTO;
 import com.example.myapplication.dto.UploadPhotoResponse;
+import com.example.myapplication.dto.DeviceInfo;
+import com.example.myapplication.dto.ProfileUpdateRequest;
+import com.example.myapplication.dto.UserSettingsDTO;
+import com.example.myapplication.dto.VipInfoDTO;
+import com.example.myapplication.dto.AlipayOrderResponse;
+import com.example.myapplication.dto.CreateOrderRequest;
+import com.example.myapplication.dto.PaymentOrderDTO;
 import com.example.myapplication.model.VipLevel;
 import com.example.myapplication.model.VipSubscription;
 
 import java.util.List;
+import java.util.Map;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
@@ -41,12 +49,36 @@ public interface ApiService {
     @POST("auth/login-with-code")
     Call<ApiResponse<LoginResponse>> loginWithVerificationCode(@Query("phone") String phone, @Query("code") String code);
 
-    // 上传 JPush Registration ID
+    // 上传 JPush Registration ID (兼容旧版本)
     @POST("auth/update-registration-id")
     Call<ApiResponse<String>> updateRegistrationId(
             @Header("Authorization") String authHeader,
             @Query("registrationId") String registrationId
     );
+
+    // 注册设备 (新版本多设备支持)
+    @POST("device/register")
+    Call<ApiResponse<String>> registerDevice(
+            @Header("Authorization") String authHeader,
+            @Query("registrationId") String registrationId,
+            @Query("deviceName") String deviceName,
+            @Query("deviceType") String deviceType
+    );
+
+    // 获取设备列表
+    @GET("device/list")
+    Call<ApiResponse<List<DeviceInfo>>> getDeviceList(@Header("Authorization") String authHeader);
+
+    // 停用设备
+    @POST("device/deactivate")
+    Call<ApiResponse<String>> deactivateDevice(
+            @Header("Authorization") String authHeader,
+            @Query("registrationId") String registrationId
+    );
+
+    // 获取设备统计信息
+    @GET("device/stats")
+    Call<ApiResponse<java.util.Map<String, Object>>> getDeviceStats(@Header("Authorization") String authHeader);
 
     // 用户登录
     @POST("auth/login")
@@ -59,6 +91,97 @@ public interface ApiService {
     // 更新用户信息
     @PUT("users/profile")
     Call<ApiResponse<UserDTO>> updateProfile(@Header("Authorization") String authHeader, @Body UserDTO user);
+    
+    // ========== 个人资料相关API ==========
+    
+    // 获取用户完整资料信息
+    @GET("profile")
+    Call<ApiResponse<java.util.Map<String, Object>>> getCompleteProfile(@Header("Authorization") String authHeader);
+    
+    // 更新用户资料
+    @PUT("profile")
+    Call<ApiResponse<UserDTO>> updateUserProfile(@Header("Authorization") String authHeader, @Body ProfileUpdateRequest request);
+    
+    // 获取用户设置
+    @GET("profile/settings")
+    Call<ApiResponse<UserSettingsDTO>> getUserSettings(@Header("Authorization") String authHeader);
+    
+    // 更新用户设置
+    @PUT("profile/settings")
+    Call<ApiResponse<UserSettingsDTO>> updateUserSettings(@Header("Authorization") String authHeader, @Body UserSettingsDTO settings);
+    
+    // 获取钱包信息
+    @GET("profile/wallet")
+    Call<ApiResponse<WalletDTO>> getWalletInfo(@Header("Authorization") String authHeader);
+    
+    // 获取VIP信息
+    @GET("profile/vip")
+    Call<ApiResponse<VipInfoDTO>> getVipInfo(@Header("Authorization") String authHeader);
+    
+    // 获取用户统计信息
+    @GET("profile/stats")
+    Call<ApiResponse<java.util.Map<String, Object>>> getUserStats(@Header("Authorization") String authHeader);
+
+    // 上传头像
+    @Multipart
+    @POST("profile/upload-avatar")
+    Call<ApiResponse<java.util.Map<String, String>>> uploadAvatar(
+            @Header("Authorization") String authHeader,
+            @Part MultipartBody.Part file
+    );
+
+    // ========== 道具商城相关API ==========
+
+    // 获取可购买的靓号列表
+    @GET("prop-mall/lucky-numbers")
+    Call<ApiResponse<com.example.myapplication.dto.LuckyNumberPageDTO>> getAvailableLuckyNumbers(
+            @Query("page") int page,
+            @Query("size") int size);
+
+    // 根据等级获取靓号列表
+    @GET("prop-mall/lucky-numbers/tier/{tier}")
+    Call<ApiResponse<com.example.myapplication.dto.LuckyNumberPageDTO>> getLuckyNumbersByTier(
+            @Path("tier") String tier,
+            @Query("page") int page,
+            @Query("size") int size);
+
+    // 根据价格范围获取靓号列表
+    @GET("prop-mall/lucky-numbers/price-range")
+    Call<ApiResponse<com.example.myapplication.dto.LuckyNumberPageDTO>> getLuckyNumbersByPriceRange(
+            @Query("minPrice") double minPrice,
+            @Query("maxPrice") double maxPrice,
+            @Query("page") int page,
+            @Query("size") int size);
+
+    // 获取特殊靓号列表
+    @GET("prop-mall/lucky-numbers/special")
+    Call<ApiResponse<com.example.myapplication.dto.LuckyNumberPageDTO>> getSpecialLuckyNumbers(
+            @Query("page") int page,
+            @Query("size") int size);
+
+    // 购买靓号
+    @POST("prop-mall/lucky-numbers/purchase")
+    Call<ApiResponse<com.example.myapplication.dto.LuckyNumberDTO>> purchaseLuckyNumber(
+            @Header("Authorization") String authHeader,
+            @Body com.example.myapplication.dto.PurchaseRequest request);
+
+    // 获取用户拥有的靓号
+    @GET("prop-mall/my-lucky-numbers")
+    Call<ApiResponse<java.util.List<com.example.myapplication.dto.LuckyNumberDTO>>> getUserLuckyNumbers(
+            @Header("Authorization") String authHeader);
+
+    // 获取靓号详情
+    @GET("prop-mall/lucky-numbers/{id}")
+    Call<ApiResponse<com.example.myapplication.dto.LuckyNumberDTO>> getLuckyNumberDetail(@Path("id") Long id);
+
+    // 检查靓号是否可用
+    @GET("prop-mall/lucky-numbers/check-availability")
+    Call<ApiResponse<Boolean>> checkLuckyNumberAvailability(@Query("number") String number);
+
+    // 获取用户靓号统计
+    @GET("prop-mall/my-lucky-numbers/stats")
+    Call<ApiResponse<com.example.myapplication.dto.LuckyNumberStatsDTO>> getUserLuckyNumberStats(
+            @Header("Authorization") String authHeader);
     
     // 搜索用户
     @GET("users/search")
@@ -120,14 +243,24 @@ public interface ApiService {
     Call<ApiResponse<Integer>> getUnreadCount(@Header("Authorization") String authHeader);
     
     // 钱包相关
-    @GET("wallet/balance")
+    @GET("profile/wallet")
     Call<ApiResponse<WalletDTO>> getWalletBalance(@Header("Authorization") String authHeader);
     
-    @POST("wallet/recharge")
-    Call<ApiResponse<WalletDTO>> rechargeWallet(@Header("Authorization") String authHeader, @Body RechargeRequest rechargeRequest);
+    // 支付相关
+    @POST("payment/alipay/create")
+    Call<ApiResponse<AlipayOrderResponse>> createAlipayOrder(@Header("Authorization") String authHeader, @Body CreateOrderRequest request);
     
-    @GET("wallet/transactions")
-    Call<ApiResponse<List<TransactionDTO>>> getWalletTransactions(@Header("Authorization") String authHeader);
+    @GET("payment/orders")
+    Call<ApiResponse<List<PaymentOrderDTO>>> getOrderList(@Header("Authorization") String authHeader, @Query("status") String status);
+    
+    @GET("payment/orders/{orderId}")
+    Call<ApiResponse<PaymentOrderDTO>> getOrderDetail(@Header("Authorization") String authHeader, @Path("orderId") String orderId);
+    
+    @POST("payment/orders/{orderId}/cancel")
+    Call<ApiResponse<String>> cancelOrder(@Header("Authorization") String authHeader, @Path("orderId") String orderId);
+    
+    @GET("payment/statistics")
+    Call<ApiResponse<Map<String, Object>>> getPaymentStatistics(@Header("Authorization") String authHeader);
     
     // 充值请求类
     class RechargeRequest {
@@ -172,12 +305,7 @@ public interface ApiService {
     @GET("stats/views")
     Call<ApiResponse<List<Object>>> getMyVisitors(@Header("Authorization") String authHeader);
     
-    // 用户设置相关
-    @GET("users/settings")
-    Call<ApiResponse<Object>> getUserSettings(@Header("Authorization") String authHeader);
-    
-    @PUT("users/settings")
-    Call<ApiResponse<Object>> updateUserSettings(@Header("Authorization") String authHeader, @Body Object settings);
+    // 用户设置相关（已在上面的个人资料API中定义）
     
     @GET("users/settings/call")
     Call<ApiResponse<Object>> getCallSettings(@Header("Authorization") String authHeader);
@@ -276,8 +404,10 @@ public interface ApiService {
     );
     
         // 靓号相关API
-        @GET("lucky-numbers/items")
-        Call<ApiResponse<java.util.List<com.example.myapplication.model.LuckyNumber>>> getLuckyNumbers();
+        @GET("prop-mall/lucky-numbers")
+        Call<ApiResponse<com.example.myapplication.dto.LuckyNumberPageDTO>> getLuckyNumbers(
+                @Query("page") int page,
+                @Query("size") int size);
     
     @POST("lucky-numbers/purchase")
     Call<ApiResponse<com.example.myapplication.model.LuckyNumber>> purchaseLuckyNumber(

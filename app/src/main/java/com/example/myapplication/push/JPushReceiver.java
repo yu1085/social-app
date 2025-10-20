@@ -101,8 +101,92 @@ public class JPushReceiver extends JPushMessageReceiver {
     private void handleRegistration(Context context, String registrationId) {
         try {
             Log.i(TAG, "JPush注册成功 - registrationId: " + registrationId);
+            
+            // 自动上传Registration ID到后端（多设备支持）
+            uploadRegistrationIdToServer(context, registrationId);
         } catch (Exception e) {
             Log.e(TAG, "处理注册成功失败", e);
+        }
+    }
+    
+    /**
+     * 上传Registration ID到后端
+     */
+    private void uploadRegistrationIdToServer(Context context, String registrationId) {
+        new Thread(() -> {
+            try {
+                Log.d(TAG, "开始上传Registration ID: " + registrationId);
+                
+                // 检查用户是否已登录
+                com.example.myapplication.auth.AuthManager authManager = 
+                        com.example.myapplication.auth.AuthManager.getInstance(context);
+                String token = authManager.getToken();
+                if (token == null) {
+                    Log.w(TAG, "用户未登录，跳过Registration ID上传");
+                    return;
+                }
+
+                // 获取详细设备信息
+                String deviceName = getDeviceName();
+                String deviceType = "ANDROID";
+                String appVersion = getAppVersion(context);
+                String osVersion = android.os.Build.VERSION.RELEASE;
+                
+                Log.i(TAG, "设备信息 - 名称: " + deviceName + ", 类型: " + deviceType + 
+                      ", 应用版本: " + appVersion + ", 系统版本: " + osVersion);
+                
+                // 使用新的多设备API
+                retrofit2.Call<com.example.myapplication.dto.ApiResponse<String>> call = 
+                        com.example.myapplication.network.NetworkConfig.getApiService()
+                                .registerDevice("Bearer " + token, registrationId, deviceName, deviceType);
+
+                retrofit2.Response<com.example.myapplication.dto.ApiResponse<String>> response = call.execute();
+
+                if (response.isSuccessful() && response.body() != null) {
+                    if (response.body().isSuccess()) {
+                        Log.i(TAG, "✅ 设备注册成功: " + registrationId + " (" + deviceName + ")");
+                    } else {
+                        Log.w(TAG, "⚠️ 设备注册失败: " + response.body().getMessage());
+                    }
+                } else {
+                    Log.w(TAG, "⚠️ 设备注册请求失败: " + response.code());
+                }
+
+            } catch (Exception e) {
+                Log.e(TAG, "上传Registration ID异常", e);
+            }
+        }).start();
+    }
+    
+    /**
+     * 获取设备名称
+     */
+    private String getDeviceName() {
+        try {
+            String manufacturer = android.os.Build.MANUFACTURER;
+            String model = android.os.Build.MODEL;
+            String version = android.os.Build.VERSION.RELEASE;
+            
+            if (model.startsWith(manufacturer)) {
+                return model + " (" + version + ")";
+            } else {
+                return manufacturer + " " + model + " (" + version + ")";
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "获取设备名称失败", e);
+            return "Android设备 (" + android.os.Build.VERSION.RELEASE + ")";
+        }
+    }
+
+    /**
+     * 获取应用版本
+     */
+    private String getAppVersion(Context context) {
+        try {
+            return context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
+        } catch (Exception e) {
+            Log.e(TAG, "获取应用版本失败", e);
+            return "1.0.0";
         }
     }
 

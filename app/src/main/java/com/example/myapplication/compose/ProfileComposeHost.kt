@@ -12,6 +12,9 @@ import androidx.compose.runtime.LaunchedEffect
 import com.example.myapplication.SettingsActivity
 import com.example.myapplication.network.NetworkService
 import com.example.myapplication.dto.UserDTO
+import com.example.myapplication.dto.WalletDTO
+import com.example.myapplication.dto.VipInfoDTO
+import com.example.myapplication.dto.UserSettingsDTO
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.example.myapplication.VipCenterActivity
@@ -163,41 +166,119 @@ object ProfileComposeHost {
             android.util.Log.d("ProfileComposeHost", "Token: ${authManager.getToken()}")
             android.util.Log.d("ProfileComposeHost", "UserID: ${authManager.getUserId()}")
             
-            // 先设置一个测试值，看看UI是否会更新
-            viewModel.updateUserInfo(
-                nickname = "测试用户123",
-                id = 12345678L,
-                avatarUrl = ""
-            )
-            
-            android.util.Log.d("ProfileComposeHost", "已设置测试用户信息")
-            
-            // 然后尝试从API获取真实数据
+            // 使用新的个人资料API获取完整信息
             withContext(Dispatchers.IO) {
                 try {
                     val apiService = com.example.myapplication.network.NetworkConfig.getApiService()
-                    val call = apiService.getProfile(authManager.getAuthHeader() ?: "")
+                    val call = apiService.getCompleteProfile(authManager.getAuthHeader() ?: "")
                     val response = call.execute()
                     
                     if (response.isSuccessful && response.body() != null) {
                         val apiResponse = response.body()
                         if (apiResponse?.isSuccess() == true) {
-                            val user = apiResponse.data
-                            android.util.Log.d("ProfileComposeHost", "获取用户信息成功: ${user?.nickname}")
+                            val profileData = apiResponse.data
+
+                            android.util.Log.d("ProfileComposeHost", "API响应数据: $profileData")
+
+                            // 从 Map 中提取用户信息
+                            val userMap = profileData?.get("user") as? Map<*, *>
+                            android.util.Log.d("ProfileComposeHost", "用户数据Map: $userMap")
+
+                            val nickname = userMap?.get("nickname") as? String ?: "用户"
+                            val userId = when (val id = userMap?.get("id")) {
+                                is Number -> id.toLong()
+                                else -> 0L
+                            }
+                            val avatarUrl = userMap?.get("avatarUrl") as? String ?: ""
+
+                            android.util.Log.d("ProfileComposeHost", "解析后的用户信息: nickname=$nickname, id=$userId")
+
                             // 更新ViewModel中的用户信息
                             viewModel.updateUserInfo(
-                                nickname = user?.nickname ?: "用户",
-                                id = user?.id ?: 0L,
-                                avatarUrl = user?.avatarUrl ?: ""
+                                nickname = nickname,
+                                id = userId,
+                                avatarUrl = avatarUrl
                             )
+
+                            // 更新钱包信息
+                            val walletMap = profileData?.get("wallet") as? Map<*, *>
+                            if (walletMap != null) {
+                                val balance = when (val bal = walletMap["balance"]) {
+                                    is Number -> bal.toDouble()
+                                    is String -> bal.toDoubleOrNull() ?: 0.0
+                                    else -> 0.0
+                                }
+
+                                android.util.Log.d("ProfileComposeHost", "钱包余额: $balance")
+
+                                // 暂时只更新余额，其他字段后续添加
+                                viewModel.updateWalletInfo(
+                                    balance = balance,
+                                    totalRecharge = 0.0,
+                                    totalConsume = 0.0
+                                )
+                            }
+
+                            // 更新VIP信息
+                            val vipInfoMap = profileData?.get("vipInfo") as? Map<*, *>
+                            if (vipInfoMap != null) {
+                                val isVip = vipInfoMap["isVip"] as? Boolean ?: false
+                                val vipLevel = when (val level = vipInfoMap["vipLevel"]) {
+                                    is Number -> level.toInt()
+                                    else -> 0
+                                }
+                                val remainingDays = when (val days = vipInfoMap["remainingDays"]) {
+                                    is Number -> days.toLong()
+                                    else -> 0L
+                                }
+
+                                viewModel.updateVipInfo(
+                                    isVip = isVip,
+                                    vipLevel = vipLevel,
+                                    remainingDays = remainingDays
+                                )
+                            }
+
+                            // 更新设置信息
+                            val settingsMap = profileData?.get("settings") as? Map<*, *>
+                            if (settingsMap != null) {
+                                val voiceCallEnabled = settingsMap["voiceCallEnabled"] as? Boolean ?: true
+                                val videoCallEnabled = settingsMap["videoCallEnabled"] as? Boolean ?: true
+                                val messageChargeEnabled = settingsMap["messageChargeEnabled"] as? Boolean ?: false
+
+                                viewModel.updateSettingsInfo(
+                                    voiceCallEnabled = voiceCallEnabled,
+                                    videoCallEnabled = videoCallEnabled,
+                                    messageChargeEnabled = messageChargeEnabled
+                                )
+                            }
+                            
                         } else {
                             android.util.Log.e("ProfileComposeHost", "API返回失败: ${apiResponse?.message}")
+                            // 使用测试数据
+                            viewModel.updateUserInfo(
+                                nickname = "测试用户${System.currentTimeMillis() % 10000}",
+                                id = 12345678L,
+                                avatarUrl = ""
+                            )
                         }
                     } else {
                         android.util.Log.e("ProfileComposeHost", "网络请求失败: ${response.code()}")
+                        // 使用测试数据
+                        viewModel.updateUserInfo(
+                            nickname = "测试用户${System.currentTimeMillis() % 10000}",
+                            id = 12345678L,
+                            avatarUrl = ""
+                        )
                     }
                 } catch (e: Exception) {
                     android.util.Log.e("ProfileComposeHost", "网络请求异常: ${e.message}")
+                    // 使用测试数据
+                    viewModel.updateUserInfo(
+                        nickname = "测试用户${System.currentTimeMillis() % 10000}",
+                        id = 12345678L,
+                        avatarUrl = ""
+                    )
                 }
             }
         } catch (e: Exception) {

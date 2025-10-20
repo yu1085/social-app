@@ -20,9 +20,17 @@ public class MyApplication extends Application {
     private static final String CHANNEL_ID = "jpush_default_channel";
     private static final String CHANNEL_NAME = "来电通知";
 
+    public MyApplication() {
+        super();
+        Log.e(TAG, "🔧🔧🔧 MyApplication 构造函数被调用 🔧🔧🔧");
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
+        
+        // 添加明显的调试日志
+        Log.e(TAG, "🚀🚀🚀 MyApplication.onCreate() 开始执行 🚀🚀🚀");
 
         // 创建通知渠道（Android 8.0+）
         createNotificationChannel();
@@ -145,7 +153,7 @@ public class MyApplication extends Application {
     }
 
     /**
-     * 自动上传Registration ID到后端
+     * 自动上传Registration ID到后端 (多设备支持)
      */
     private void uploadRegistrationIdToServer(String registrationId) {
         new Thread(() -> {
@@ -160,7 +168,41 @@ public class MyApplication extends Application {
                     return;
                 }
 
-                // 调用后端API上传
+                // 生成唯一设备标识
+                String uniqueDeviceId = generateUniqueDeviceId(registrationId);
+                
+                // 获取详细设备信息
+                String deviceName = getDeviceName();
+                String deviceType = "ANDROID";
+                String appVersion = getAppVersion();
+                String osVersion = android.os.Build.VERSION.RELEASE;
+                
+                Log.i(TAG, "设备信息 - 名称: " + deviceName + ", 类型: " + deviceType + 
+                      ", 应用版本: " + appVersion + ", 系统版本: " + osVersion);
+                Log.i(TAG, "唯一设备ID: " + uniqueDeviceId + " (基于: " + registrationId + ")");
+                
+                // 优先使用新的多设备API
+                try {
+                    retrofit2.Call<ApiResponse<String>> call = 
+                        NetworkConfig.getApiService().registerDevice(token, registrationId, deviceName, deviceType);
+
+                    retrofit2.Response<ApiResponse<String>> response = call.execute();
+
+                    if (response.isSuccessful() && response.body() != null) {
+                        if (response.body().isSuccess()) {
+                            Log.i(TAG, "✅ 设备注册成功: " + registrationId + " (" + deviceName + ")");
+                            return;
+                        } else {
+                            Log.w(TAG, "⚠️ 设备注册失败，尝试兼容模式: " + response.body().getMessage());
+                        }
+                    } else {
+                        Log.w(TAG, "⚠️ 设备注册请求失败，尝试兼容模式: " + response.code());
+                    }
+                } catch (Exception e) {
+                    Log.w(TAG, "⚠️ 设备注册异常，尝试兼容模式", e);
+                }
+
+                // 兼容模式：使用旧的API
                 retrofit2.Call<ApiResponse<String>> call = 
                     NetworkConfig.getApiService().updateRegistrationId(token, registrationId);
 
@@ -168,18 +210,50 @@ public class MyApplication extends Application {
 
                 if (response.isSuccessful() && response.body() != null) {
                     if (response.body().isSuccess()) {
-                        Log.i(TAG, "✅ 自动上传Registration ID成功: " + registrationId);
+                        Log.i(TAG, "✅ 兼容模式上传Registration ID成功: " + registrationId);
                     } else {
-                        Log.e(TAG, "❌ 自动上传Registration ID失败: " + response.body().getMessage());
+                        Log.e(TAG, "❌ 兼容模式上传Registration ID失败: " + response.body().getMessage());
                     }
                 } else {
-                    Log.e(TAG, "❌ 自动上传Registration ID请求失败: " + response.code());
+                    Log.e(TAG, "❌ 兼容模式上传Registration ID请求失败: " + response.code());
                 }
 
             } catch (Exception e) {
-                Log.e(TAG, "自动上传Registration ID异常", e);
+                Log.e(TAG, "上传Registration ID异常", e);
             }
         }).start();
+    }
+
+    /**
+     * 获取设备名称
+     */
+    private String getDeviceName() {
+        try {
+            String manufacturer = android.os.Build.MANUFACTURER;
+            String model = android.os.Build.MODEL;
+            String version = android.os.Build.VERSION.RELEASE;
+            
+            if (model.startsWith(manufacturer)) {
+                return model + " (" + version + ")";
+            } else {
+                return manufacturer + " " + model + " (" + version + ")";
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "获取设备名称失败", e);
+            return "Android设备 (" + android.os.Build.VERSION.RELEASE + ")";
+        }
+    }
+
+    /**
+     * 获取应用版本
+     */
+    private String getAppVersion() {
+        try {
+            return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (Exception e) {
+            Log.e(TAG, "获取应用版本失败", e);
+            return "1.0.0";
+        }
     }
 
     /**
@@ -213,5 +287,17 @@ public class MyApplication extends Application {
         } catch (Exception e) {
             Log.e(TAG, "JPush 别名删除失败", e);
         }
+    }
+    
+    /**
+     * 生成唯一设备标识
+     */
+    private String generateUniqueDeviceId(String registrationId) {
+        // 使用设备ID和注册ID的组合生成唯一标识
+        String deviceId = android.provider.Settings.Secure.getString(
+            getContentResolver(), 
+            android.provider.Settings.Secure.ANDROID_ID
+        );
+        return deviceId + "_" + registrationId.substring(0, Math.min(8, registrationId.length()));
     }
 }

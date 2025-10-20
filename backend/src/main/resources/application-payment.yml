@@ -1,0 +1,55 @@
+# 支付宝支付配置
+alipay:
+  # 应用ID - 使用您的实际应用ID
+  app-id: 2021005195696348
+  # 商户私钥 - 需要替换为您的实际私钥
+  private-key: |
+    -----BEGIN PRIVATE KEY-----
+    YOUR_PRIVATE_KEY_HERE
+    -----END PRIVATE KEY-----
+  # 支付宝公钥 - 需要替换为支付宝的公钥
+  public-key: |
+    -----BEGIN PUBLIC KEY-----
+    YOUR_ALIPAY_PUBLIC_KEY_HERE
+    -----END PUBLIC KEY-----
+  # 支付宝网关地址
+  gateway-url: https://openapi.alipay.com/gateway.do
+  # 沙箱环境网关地址（开发测试用）
+  sandbox-gateway-url: https://openapi.alipaydev.com/gateway.do
+  # 异步通知地址
+  notify-url: http://your-domain.com/api/payment/alipay/callback
+  # 同步返回地址
+  return-url: http://your-domain.com/api/payment/alipay/return
+  # 签名方式
+  sign-type: RSA2
+  # 字符编码
+  charset: utf-8
+  # 数据格式
+  format: json
+  # 版本号
+  version: 1.0
+  # 是否使用沙箱环境
+  sandbox: true
+
+# 支付订单配置
+payment:
+  # 订单过期时间（分钟）
+  order-expire-minutes: 30
+  # 最大重试次数
+  max-retry-count: 3
+  # 回调超时时间（秒）
+  callback-timeout-seconds: 30
+  # 最小支付金额
+  min-amount: 0.01
+  # 最大支付金额
+  max-amount: 10000.00
+  # 是否启用防重放攻击
+  enable-replay-attack-prevention: true
+  # 是否启用频率限制
+  enable-rate-limit: true
+  # 频率限制窗口时间（秒）
+  rate-limit-window-seconds: 60
+  # 订单创建频率限制（每分钟最大次数）
+  order-create-rate-limit: 5
+  # 支付频率限制（每分钟最大次数）
+  payment-rate-limit: 10

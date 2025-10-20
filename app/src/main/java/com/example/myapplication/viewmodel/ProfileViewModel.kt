@@ -23,6 +23,12 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     var balance by mutableStateOf(0.0)
         private set
     
+    var totalRecharge by mutableStateOf(0.0)
+        private set
+    
+    var totalConsume by mutableStateOf(0.0)
+        private set
+    
     var isBalanceLoading by mutableStateOf(true)
         private set
     
@@ -30,6 +36,75 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         // 立即加载钱包数据，不延迟
         android.util.Log.d("ProfileViewModel", "=== ProfileViewModel初始化开始 ===")
         loadBalanceDirectly()
+        
+        // 加载用户设置数据
+        loadUserSettings()
+    }
+    
+    /**
+     * 加载用户设置数据
+     */
+    private fun loadUserSettings() {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                // 从后端API获取用户设置 - 使用enqueue异步调用
+                val authHeader = com.example.myapplication.auth.AuthManager.getInstance(getApplication()).getAuthHeader()
+                
+                // 使用suspend函数进行异步调用
+                val settings = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    com.example.myapplication.network.NetworkConfig.getApiService()
+                        .getUserSettings(authHeader)
+                        .execute()
+                }
+                
+                // 切换回主线程更新UI状态
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    if (settings.isSuccessful && settings.body() != null) {
+                        val settingsData = settings.body()!!.data
+                        updateSettingsInfo(
+                            voiceCallEnabled = settingsData.voiceCallEnabled ?: false,
+                            videoCallEnabled = settingsData.videoCallEnabled ?: false,
+                            messageChargeEnabled = settingsData.messageChargeEnabled ?: false
+                        )
+                        
+                        updatePriceInfo(
+                            voiceCallPrice = settingsData.voiceCallPrice ?: 0.0,
+                            videoCallPrice = settingsData.videoCallPrice ?: 0.0,
+                            messagePrice = settingsData.messagePrice ?: 0.0
+                        )
+                        
+                        android.util.Log.d("ProfileViewModel", "用户设置加载成功")
+                    } else {
+                        android.util.Log.e("ProfileViewModel", "用户设置加载失败: ${settings.code()}")
+                        // 设置默认值
+                        setDefaultSettings()
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("ProfileViewModel", "加载用户设置异常", e)
+                // 切换回主线程设置默认值
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    setDefaultSettings()
+                }
+            }
+        }
+    }
+    
+    /**
+     * 设置默认值
+     */
+    private fun setDefaultSettings() {
+        updateSettingsInfo(
+            voiceCallEnabled = true,
+            videoCallEnabled = true,
+            messageChargeEnabled = false
+        )
+        
+        updatePriceInfo(
+            voiceCallPrice = 0.0,
+            videoCallPrice = 0.0,
+            messagePrice = 0.0
+        )
     }
     
     // 用户信息 - 从后端API获取
@@ -68,6 +143,16 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         private set
     
     var messageChargeEnabled by mutableStateOf(false)
+        private set
+    
+    // 通话价格设置 - 从后端API获取
+    var voiceCallPrice by mutableStateOf(0.0)
+        private set
+    
+    var videoCallPrice by mutableStateOf(0.0)
+        private set
+    
+    var messagePrice by mutableStateOf(0.0)
         private set
     
     // 通知数量 - 从后端API获取
@@ -257,5 +342,171 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     fun refreshWalletDataImmediately() {
         android.util.Log.d("ProfileViewModel", "=== 刷新按钮被点击 ===")
         loadBalanceDirectly()
+    }
+    
+    /**
+     * 更新钱包信息
+     */
+    fun updateWalletInfo(balance: Double, totalRecharge: Double, totalConsume: Double) {
+        this.balance = balance
+        this.totalRecharge = totalRecharge
+        this.totalConsume = totalConsume
+        android.util.Log.d("ProfileViewModel", "钱包信息更新 - 余额: $balance, 总充值: $totalRecharge, 总消费: $totalConsume")
+    }
+    
+    /**
+     * 更新VIP信息
+     */
+    fun updateVipInfo(isVip: Boolean, vipLevel: Int, remainingDays: Long) {
+        this.isVip = isVip
+        this.vipLevel = vipLevel
+        android.util.Log.d("ProfileViewModel", "VIP信息更新 - 是否VIP: $isVip, 等级: $vipLevel, 剩余天数: $remainingDays")
+    }
+    
+    /**
+     * 更新设置信息
+     */
+    fun updateSettingsInfo(voiceCallEnabled: Boolean, videoCallEnabled: Boolean, messageChargeEnabled: Boolean) {
+        this.voiceCallEnabled = voiceCallEnabled
+        this.videoCallEnabled = videoCallEnabled
+        this.messageChargeEnabled = messageChargeEnabled
+        android.util.Log.d("ProfileViewModel", "设置信息更新 - 语音: $voiceCallEnabled, 视频: $videoCallEnabled, 私信收费: $messageChargeEnabled")
+    }
+    
+    /**
+     * 更新设置到后端
+     */
+    fun updateSettingsToBackend(voiceCallEnabled: Boolean, videoCallEnabled: Boolean, messageChargeEnabled: Boolean) {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val settingsDTO = com.example.myapplication.dto.UserSettingsDTO().apply {
+                    this.voiceCallEnabled = voiceCallEnabled
+                    this.videoCallEnabled = videoCallEnabled
+                    this.messageChargeEnabled = messageChargeEnabled
+                    this.voiceCallPrice = this@ProfileViewModel.voiceCallPrice
+                    this.videoCallPrice = this@ProfileViewModel.videoCallPrice
+                    this.messagePrice = this@ProfileViewModel.messagePrice
+                }
+                
+                val authHeader = com.example.myapplication.auth.AuthManager.getInstance(getApplication()).getAuthHeader()
+                
+                val response = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    com.example.myapplication.network.NetworkConfig.getApiService()
+                        .updateUserSettings(authHeader, settingsDTO)
+                        .execute()
+                }
+                
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    if (response.isSuccessful && response.body() != null) {
+                        val updatedSettings = response.body()!!.data
+                        updateSettingsInfo(
+                            voiceCallEnabled = updatedSettings.voiceCallEnabled ?: false,
+                            videoCallEnabled = updatedSettings.videoCallEnabled ?: false,
+                            messageChargeEnabled = updatedSettings.messageChargeEnabled ?: false
+                        )
+                        
+                        updatePriceInfo(
+                            voiceCallPrice = updatedSettings.voiceCallPrice ?: 0.0,
+                            videoCallPrice = updatedSettings.videoCallPrice ?: 0.0,
+                            messagePrice = updatedSettings.messagePrice ?: 0.0
+                        )
+                        
+                        android.util.Log.d("ProfileViewModel", "设置更新到后端成功")
+                    } else {
+                        android.util.Log.e("ProfileViewModel", "设置更新到后端失败: ${response.code()}")
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("ProfileViewModel", "更新设置到后端异常", e)
+            }
+        }
+    }
+    
+    /**
+     * 更新价格到后端
+     */
+    fun updatePriceToBackend(voiceCallPrice: Double, videoCallPrice: Double, messagePrice: Double) {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val settingsDTO = com.example.myapplication.dto.UserSettingsDTO().apply {
+                    this.voiceCallEnabled = this@ProfileViewModel.voiceCallEnabled
+                    this.videoCallEnabled = this@ProfileViewModel.videoCallEnabled
+                    this.messageChargeEnabled = this@ProfileViewModel.messageChargeEnabled
+                    this.voiceCallPrice = voiceCallPrice
+                    this.videoCallPrice = videoCallPrice
+                    this.messagePrice = messagePrice
+                }
+                
+                val authHeader = com.example.myapplication.auth.AuthManager.getInstance(getApplication()).getAuthHeader()
+                
+                val response = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    com.example.myapplication.network.NetworkConfig.getApiService()
+                        .updateUserSettings(authHeader, settingsDTO)
+                        .execute()
+                }
+                
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    if (response.isSuccessful && response.body() != null) {
+                        val updatedSettings = response.body()!!.data
+                        updateSettingsInfo(
+                            voiceCallEnabled = updatedSettings.voiceCallEnabled ?: false,
+                            videoCallEnabled = updatedSettings.videoCallEnabled ?: false,
+                            messageChargeEnabled = updatedSettings.messageChargeEnabled ?: false
+                        )
+                        
+                        updatePriceInfo(
+                            voiceCallPrice = updatedSettings.voiceCallPrice ?: 0.0,
+                            videoCallPrice = updatedSettings.videoCallPrice ?: 0.0,
+                            messagePrice = updatedSettings.messagePrice ?: 0.0
+                        )
+                        
+                        android.util.Log.d("ProfileViewModel", "价格更新到后端成功")
+                    } else {
+                        android.util.Log.e("ProfileViewModel", "价格更新到后端失败: ${response.code()}")
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("ProfileViewModel", "更新价格到后端异常", e)
+            }
+        }
+    }
+    
+    /**
+     * 更新价格信息
+     */
+    fun updatePriceInfo(voiceCallPrice: Double, videoCallPrice: Double, messagePrice: Double) {
+        this.voiceCallPrice = voiceCallPrice
+        this.videoCallPrice = videoCallPrice
+        this.messagePrice = messagePrice
+        android.util.Log.d("ProfileViewModel", "价格信息更新 - 语音: $voiceCallPrice, 视频: $videoCallPrice, 私信: $messagePrice")
+    }
+    
+    /**
+     * 获取语音通话显示文本
+     */
+    fun getVoiceCallDisplayText(): String {
+        return if (voiceCallEnabled) {
+            "${voiceCallPrice.toInt()}/分钟"
+        } else {
+            "关闭语音"
+        }
+    }
+
+    /**
+     * 获取视频通话显示文本
+     */
+    fun getVideoCallDisplayText(): String {
+        return if (videoCallEnabled) {
+            "${videoCallPrice.toInt()}/分钟"
+        } else {
+            "关闭视频"
+        }
+    }
+    
+    /**
+     * 获取私信收费显示文本
+     */
+    fun getMessageChargeDisplayText(): String {
+        return if (messageChargeEnabled) "收费" else "免费"
     }
 }

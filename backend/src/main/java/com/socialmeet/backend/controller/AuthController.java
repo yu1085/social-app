@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
  * 处理登录、注册、验证码等认证相关请求
  */
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

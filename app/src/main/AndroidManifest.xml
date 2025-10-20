@@ -2,12 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- 网络权限 -->
+    <!-- 基础网络权限 -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-    
-    <!-- 如果需要访问WiFi状态 -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     
@@ -15,8 +13,16 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     
-    <!-- 相机和存储权限 -->
+    <!-- 相机和媒体权限 -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    
+    <!-- 存储权限 - Android 12及以下版本 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="32" />
 
     <!-- 视频通话所需权限 -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -27,25 +33,6 @@
     
     <!-- 支付宝身份验证SDK所需权限 -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    
-    <!-- ByteRTC SDK 所需权限 -->
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    
-    <!-- Android 13+ 新的媒体权限 -->
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    
-    <!-- Android 12 及以下版本的存储权限 -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
 
     <!-- JPush 极光推送权限 -->
     <uses-permission android:name="android.permission.RECEIVE_USER_PRESENT" />
@@ -707,6 +694,14 @@
                 android:theme="@style/Theme.MyApplication"
                 android:screenOrientation="portrait"
                 android:label="我的资料" />
+                
+        <!-- 价格设置页面 -->
+        <activity
+                android:name=".PriceSettingsActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MyApplication"
+                android:screenOrientation="portrait"
+                android:label="设置通话价格" />
 
 
         <!-- JPush 通知 Activity (必需) -->

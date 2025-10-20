@@ -14,7 +14,7 @@ import java.util.List;
  * 消息控制器
  */
 @RestController
-@RequestMapping("/messages")
+@RequestMapping("/api/messages")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

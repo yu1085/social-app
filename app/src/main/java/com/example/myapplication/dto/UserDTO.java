@@ -27,6 +27,10 @@ public class UserDTO {
     private String createdAt;
     private String updatedAt;
 
+    // 价格设置字段
+    private Double voiceCallPrice;
+    private Double videoCallPrice;
+
     public UserDTO() {}
 
     // Getters and Setters
@@ -228,5 +232,21 @@ public class UserDTO {
 
     public void setUpdatedAt(String updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Double getVoiceCallPrice() {
+        return voiceCallPrice;
+    }
+
+    public void setVoiceCallPrice(Double voiceCallPrice) {
+        this.voiceCallPrice = voiceCallPrice;
+    }
+
+    public Double getVideoCallPrice() {
+        return videoCallPrice;
+    }
+
+    public void setVideoCallPrice(Double videoCallPrice) {
+        this.videoCallPrice = videoCallPrice;
     }
 }

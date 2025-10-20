@@ -46,6 +46,8 @@ public class UserDetailActivity extends AppCompatActivity {
     private LinearLayout llGiftsSection; // Added for gifts section
     private LinearLayout llGiftHeart, llGiftRose, llGiftCake; // Added for individual gift items
     private LinearLayout llGuardianSection; // Added for guardian section
+    private TextView tvVideoPrice; // 视频通话价格显示
+    private TextView tvVoicePrice; // 语音通话价格显示
     
     // 通话相关
     private CallService callService;
@@ -239,6 +241,32 @@ public class UserDetailActivity extends AppCompatActivity {
         llGiftRose = findViewById(R.id.ll_gift_rose); // Initialize rose gift
         llGiftCake = findViewById(R.id.ll_gift_cake); // Initialize cake gift
         llGuardianSection = findViewById(R.id.ll_guardian_section); // Initialize guardian section
+
+        // 初始化价格TextView - 通过遍历按钮布局找到价格TextView
+        tvVideoPrice = findPriceTextView(llVideoButton);
+        tvVoicePrice = findPriceTextView(llVoiceButton);
+    }
+
+    /**
+     * 递归查找布局中的价格TextView(显示"X/分钟"的TextView)
+     */
+    private TextView findPriceTextView(ViewGroup parent) {
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            View child = parent.getChildAt(i);
+            if (child instanceof TextView) {
+                TextView tv = (TextView) child;
+                String text = tv.getText().toString();
+                if (text.contains("/分钟")) {
+                    return tv;
+                }
+            } else if (child instanceof ViewGroup) {
+                TextView result = findPriceTextView((ViewGroup) child);
+                if (result != null) {
+                    return result;
+                }
+            }
+        }
+        return null;
     }
     
 
@@ -515,20 +543,35 @@ public class UserDetailActivity extends AppCompatActivity {
                     currentCallPrices = successResult.getPrices();
                     Log.d("UserDetailActivity", "通话价格获取成功: " + currentCallPrices.toString());
 
-                    // 显示价格信息
-                    Toast.makeText(UserDetailActivity.this,
-                        "视频: " + currentCallPrices.getVideoCallPrice() + "元/分钟\n" +
-                        "语音: " + currentCallPrices.getVoiceCallPrice() + "元/分钟",
-                        Toast.LENGTH_SHORT).show();
+                    // 更新UI显示价格
+                    if (tvVideoPrice != null) {
+                        String videoPriceText = currentCallPrices.getVideoCallPrice() > 0
+                            ? String.format("%.0f元/分钟", currentCallPrices.getVideoCallPrice())
+                            : "免费";
+                        tvVideoPrice.setText(videoPriceText);
+                    }
+
+                    if (tvVoicePrice != null) {
+                        String voicePriceText = currentCallPrices.getVoiceCallPrice() > 0
+                            ? String.format("%.0f元/分钟", currentCallPrices.getVoiceCallPrice())
+                            : "免费";
+                        tvVoicePrice.setText(voicePriceText);
+                    }
+
                 } else if (result instanceof CallPricesResult.Error) {
                     CallPricesResult.Error errorResult = (CallPricesResult.Error) result;
                     Log.e("UserDetailActivity", "获取通话价格失败: " + errorResult.getMessage());
-                    Toast.makeText(UserDetailActivity.this,
-                        "获取价格失败: " + errorResult.getMessage(),
-                        Toast.LENGTH_SHORT).show();
 
                     // 即使失败也设置默认价格，让按钮可以使用
                     currentCallPrices = new CallPrices(300.0, 150.0, 1.0, true, true, true);
+
+                    // 显示默认价格
+                    if (tvVideoPrice != null) {
+                        tvVideoPrice.setText("300元/分钟");
+                    }
+                    if (tvVoicePrice != null) {
+                        tvVoicePrice.setText("150元/分钟");
+                    }
                 }
             }
         }.execute();

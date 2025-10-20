@@ -27,6 +27,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final VerificationCodeRepository verificationCodeRepository;
     private final JwtUtil jwtUtil;
+    private final com.socialmeet.backend.repository.UserSettingsRepository userSettingsRepository;
 
     @Value("${verification.code-length:6}")
     private int codeLength;
@@ -152,7 +153,32 @@ public class AuthService {
     public UserDTO getUserProfile(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
-        return UserDTO.fromEntity(user);
+        UserDTO userDTO = UserDTO.fromEntity(user);
+
+        // 查询并填充价格信息
+        fillPriceInfo(userDTO, userId);
+
+        return userDTO;
+    }
+
+    /**
+     * 填充价格信息到UserDTO
+     */
+    private void fillPriceInfo(UserDTO userDTO, Long userId) {
+        userSettingsRepository.findByUserId(userId).ifPresent(settings -> {
+            userDTO.setVoiceCallPrice(settings.getVoiceCallPrice() != null ?
+                    settings.getVoiceCallPrice().doubleValue() : 0.0);
+            userDTO.setVideoCallPrice(settings.getVideoCallPrice() != null ?
+                    settings.getVideoCallPrice().doubleValue() : 0.0);
+        });
+
+        // 如果没有设置，使用默认值 0.0
+        if (userDTO.getVoiceCallPrice() == null) {
+            userDTO.setVoiceCallPrice(0.0);
+        }
+        if (userDTO.getVideoCallPrice() == null) {
+            userDTO.setVideoCallPrice(0.0);
+        }
     }
 
     /**
@@ -191,11 +217,13 @@ public class AuthService {
     }
 
     /**
-     * 更新用户的 JPush Registration ID
+     * 更新用户的 JPush Registration ID (兼容旧版本)
+     * @deprecated 建议使用 UserDeviceService.registerOrUpdateDevice
      */
+    @Deprecated
     @Transactional
     public void updateRegistrationId(Long userId, String registrationId) {
-        log.info("更新用户 Registration ID - userId: {}, registrationId: {}", userId, registrationId);
+        log.info("更新用户 Registration ID (兼容模式) - userId: {}, registrationId: {}", userId, registrationId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
@@ -203,7 +231,7 @@ public class AuthService {
         user.setJpushRegistrationId(registrationId);
         userRepository.save(user);
 
-        log.info("Registration ID 更新成功 - userId: {}", userId);
+        log.info("Registration ID 更新成功 (兼容模式) - userId: {}", userId);
     }
 
     /**
@@ -272,8 +300,55 @@ public class AuthService {
 
         java.util.List<User> pagedUsers = filteredUsers.subList(start, end);
 
-        return pagedUsers.stream()
+        // 转换为 UserDTO
+        java.util.List<UserDTO> userDTOs = pagedUsers.stream()
                 .map(UserDTO::fromEntity)
                 .collect(java.util.stream.Collectors.toList());
+
+        // 批量查询价格信息并填充
+        fillPriceInfoBatch(userDTOs);
+
+        return userDTOs;
+    }
+
+    /**
+     * 批量填充价格信息到UserDTO列表
+     */
+    private void fillPriceInfoBatch(java.util.List<UserDTO> userDTOs) {
+        if (userDTOs.isEmpty()) {
+            return;
+        }
+
+        // 获取所有用户ID
+        java.util.List<Long> userIds = userDTOs.stream()
+                .map(UserDTO::getId)
+                .collect(java.util.stream.Collectors.toList());
+
+        // 批量查询用户设置
+        java.util.List<com.socialmeet.backend.entity.UserSettings> settingsList =
+                userSettingsRepository.findByUserIdIn(userIds);
+
+        // 创建 userId -> settings 的映射
+        java.util.Map<Long, com.socialmeet.backend.entity.UserSettings> settingsMap =
+                settingsList.stream()
+                        .collect(java.util.stream.Collectors.toMap(
+                                com.socialmeet.backend.entity.UserSettings::getUserId,
+                                settings -> settings
+                        ));
+
+        // 填充价格信息
+        for (UserDTO userDTO : userDTOs) {
+            com.socialmeet.backend.entity.UserSettings settings = settingsMap.get(userDTO.getId());
+            if (settings != null) {
+                userDTO.setVoiceCallPrice(settings.getVoiceCallPrice() != null ?
+                        settings.getVoiceCallPrice().doubleValue() : 0.0);
+                userDTO.setVideoCallPrice(settings.getVideoCallPrice() != null ?
+                        settings.getVideoCallPrice().doubleValue() : 0.0);
+            } else {
+                // 使用默认值
+                userDTO.setVoiceCallPrice(0.0);
+                userDTO.setVideoCallPrice(0.0);
+            }
+        }
     }
 }

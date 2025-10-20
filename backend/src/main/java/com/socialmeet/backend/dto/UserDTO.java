@@ -48,6 +48,10 @@ public class UserDTO {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastActiveAt;
 
+    // 价格设置字段
+    private Double voiceCallPrice;
+    private Double videoCallPrice;
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 

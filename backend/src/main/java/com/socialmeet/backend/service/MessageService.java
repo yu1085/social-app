@@ -170,10 +170,9 @@ public class MessageService {
             extras.put("messageType", message.getMessageType().toString());
             extras.put("timestamp", String.valueOf(System.currentTimeMillis()));
             
-            // 发送推送
+            // 发送推送（多设备支持）
             boolean sent = jPushService.sendNotification(
                     receiver.getId(),
-                    receiver.getJpushRegistrationId(),
                     title,
                     content,
                     extras

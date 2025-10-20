@@ -118,7 +118,7 @@ fun PropPurchaseScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = luckyNumber.icon,
+                            text = luckyNumber.tier.icon,
                             fontSize = 24.sp,
                             color = Color(0xFF1A1A2E),
                             fontWeight = FontWeight.Bold

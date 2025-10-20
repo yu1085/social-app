@@ -5,6 +5,10 @@ import com.example.myapplication.dto.ApiResponse
 import com.example.myapplication.dto.WalletDTO
 import com.example.myapplication.dto.UserPhotoDTO
 import com.example.myapplication.dto.UploadPhotoResponse
+import com.example.myapplication.dto.AlipayOrderResponse
+import com.example.myapplication.dto.CreateOrderRequest
+import com.example.myapplication.dto.PaymentOrderDTO
+import com.example.myapplication.dto.UserSettingsDTO
 import retrofit2.Response
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -25,12 +29,102 @@ object NetworkService {
             }
         }
     }
-    
-    suspend fun rechargeWallet(token: String, amount: java.math.BigDecimal, paymentMethod: String): Response<ApiResponse<WalletDTO>> {
+
+    // 用户设置相关方法
+
+    /**
+     * 获取用户设置
+     */
+    suspend fun getUserSettings(token: String): Response<ApiResponse<UserSettingsDTO>> {
         return withContext(Dispatchers.IO) {
             try {
-                val request = com.example.myapplication.network.ApiService.RechargeRequest(amount, paymentMethod)
-                val call = NetworkConfig.getApiService().rechargeWallet("Bearer $token", request)
+                val call = NetworkConfig.getApiService().getUserSettings("Bearer $token")
+                call.execute()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+    }
+
+    /**
+     * 更新用户设置
+     */
+    suspend fun updateUserSettings(token: String, settings: UserSettingsDTO): Response<ApiResponse<UserSettingsDTO>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val call = NetworkConfig.getApiService().updateUserSettings("Bearer $token", settings)
+                call.execute()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+    }
+    
+    // 支付相关方法
+    
+    /**
+     * 创建支付宝订单
+     */
+    suspend fun createAlipayOrder(token: String, request: CreateOrderRequest): Response<ApiResponse<AlipayOrderResponse>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val call = NetworkConfig.getApiService().createAlipayOrder("Bearer $token", request)
+                call.execute()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+    }
+    
+    /**
+     * 获取订单列表
+     */
+    suspend fun getOrderList(token: String, status: String? = null): Response<ApiResponse<List<PaymentOrderDTO>>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val call = NetworkConfig.getApiService().getOrderList("Bearer $token", status)
+                call.execute()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+    }
+    
+    /**
+     * 获取订单详情
+     */
+    suspend fun getOrderDetail(token: String, orderId: String): Response<ApiResponse<PaymentOrderDTO>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val call = NetworkConfig.getApiService().getOrderDetail("Bearer $token", orderId)
+                call.execute()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+    }
+    
+    /**
+     * 取消订单
+     */
+    suspend fun cancelOrder(token: String, orderId: String): Response<ApiResponse<String>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val call = NetworkConfig.getApiService().cancelOrder("Bearer $token", orderId)
+                call.execute()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+    }
+    
+    /**
+     * 获取支付统计
+     */
+    suspend fun getPaymentStatistics(token: String): Response<ApiResponse<Map<String, Any>>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val call = NetworkConfig.getApiService().getPaymentStatistics("Bearer $token")
                 call.execute()
             } catch (e: Exception) {
                 throw e

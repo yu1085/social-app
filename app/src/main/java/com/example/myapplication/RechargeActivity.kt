@@ -61,7 +61,8 @@ class RechargeActivity : ComponentActivity() {
                     onRechargeSuccess = {
                         Toast.makeText(this, "充值成功！", Toast.LENGTH_SHORT).show()
                         finish()
-                    }
+                    },
+                    activity = this@RechargeActivity
                 )
             }
         }
@@ -73,7 +74,8 @@ class RechargeActivity : ComponentActivity() {
 fun RechargeScreen(
     viewModel: RechargeViewModel,
     onBackClick: () -> Unit,
-    onRechargeSuccess: () -> Unit
+    onRechargeSuccess: () -> Unit,
+    activity: ComponentActivity
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
@@ -179,16 +181,60 @@ fun RechargeScreen(
             }
         }
         
-        // 支付方式弹窗
+                // 支付方式弹窗
         if (showPaymentDialog && selectedPackage != null) {
             PaymentMethodDialog(
                 rechargePackage = selectedPackage!!,
                 onDismiss = { showPaymentDialog = false },
                 onPaymentConfirm = { paymentMethod ->
-                    viewModel.processPayment(selectedPackage!!, paymentMethod)
-                    showPaymentDialog = false
+                    when (paymentMethod) {
+                        PaymentMethod.ALIPAY -> {
+                            // 创建支付宝订单
+                            viewModel.createAlipayOrder(selectedPackage!!)
+                            showPaymentDialog = false
+                        }
+                        PaymentMethod.WECHAT -> {
+                            // 微信支付
+                            viewModel.processPayment(selectedPackage!!, paymentMethod)
+                            showPaymentDialog = false
+                        }
+                    }
                 }
             )
+        }
+        
+        // 支付宝支付处理
+        uiState.alipayOrderResponse?.let { orderResponse ->
+            LaunchedEffect(orderResponse) {
+                // 在协程中调用支付宝SDK进行支付
+                try {
+                    com.example.myapplication.payment.AlipayManager.pay(
+                        activity = activity,
+                        payInfo = orderResponse.alipayOrderInfo,
+                        listener = object : com.example.myapplication.payment.AlipayManager.PayResultListener {
+                            override fun onPaySuccess(result: com.example.myapplication.payment.AlipayManager.PayResult) {
+                                // 支付成功，刷新钱包余额
+                                viewModel.refreshWalletBalance()
+                                onRechargeSuccess()
+                            }
+                            
+                            override fun onPayFailed(result: com.example.myapplication.payment.AlipayManager.PayResult) {
+                                // 支付失败
+                                android.util.Log.e("RechargeActivity", "支付宝支付失败: ${result.result}")
+                            }
+                            
+                            override fun onPayCancel(result: com.example.myapplication.payment.AlipayManager.PayResult) {
+                                // 支付取消
+                                android.util.Log.d("RechargeActivity", "支付宝支付取消")
+                            }
+                        }
+                    )
+                } catch (e: Exception) {
+                    android.util.Log.e("RechargeActivity", "支付宝支付异常", e)
+                }
+                // 清除订单响应，避免重复调用
+                viewModel.clearAlipayOrderResponse()
+            }
         }
         
         // 加载状态

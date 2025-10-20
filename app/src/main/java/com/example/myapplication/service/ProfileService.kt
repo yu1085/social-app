@@ -228,7 +228,7 @@ class ProfileService private constructor() {
             }
             
             val requestBuilder = Request.Builder()
-                .url("$BASE_URL/test-token")
+                .url(BASE_URL)
                 .addHeader("Content-Type", "application/json")
                 .addHeader("Authorization", "Bearer $token")
             
@@ -344,7 +344,7 @@ class ProfileService private constructor() {
             Log.d(TAG, "请求体长度: ${requestBody.contentLength()}")
             
             val requestBuilder = Request.Builder()
-                .url("$BASE_URL/$userId")
+                .url(BASE_URL)
                 .addHeader("Content-Type", "application/json")
                 .put(requestBody)
             

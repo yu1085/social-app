@@ -27,9 +27,9 @@ class PropPurchaseViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(
             luckyNumber = luckyNumber,
             token = token,
-            originalPrice = luckyNumber.price,
-            discountAmount = calculateDiscount(luckyNumber.price),
-            finalPrice = calculateFinalPrice(luckyNumber.price)
+            originalPrice = luckyNumber.price.toLong(),
+            discountAmount = calculateDiscount(luckyNumber.price.toLong()),
+            finalPrice = calculateFinalPrice(luckyNumber.price.toLong())
         )
     }
     

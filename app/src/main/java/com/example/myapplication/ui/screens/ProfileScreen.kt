@@ -138,13 +138,16 @@ private fun SettingSwitchRow(
     title: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    trailingText: String
+    trailingText: String,
+    showPrice: Boolean = false,
+    onPriceClick: (() -> Unit)? = null,
+    context: android.content.Context? = null,
+    alwaysShowText: Boolean = false  // 新增参数：是否总是显示文本（用于私信收费）
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 36.dp)
-            .clickable { onCheckedChange(!checked) },
+            .heightIn(min = 36.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -157,14 +160,6 @@ private fun SettingSwitchRow(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        Text(
-            text = trailingText,
-            fontSize = 11.sp,
-            color = Color(0xFF666666)
-        )
-
-        Spacer(modifier = Modifier.width(6.dp))
-
         // 使用Material3自带的Switch，带滑动动画
         Switch(
             checked = checked,
@@ -176,6 +171,32 @@ private fun SettingSwitchRow(
                 uncheckedTrackColor = Color(0xFFECEDF2)
             )
         )
+
+        // 价格显示区域 - 根据alwaysShowText参数决定是否总是显示
+        if (checked || alwaysShowText) {
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = trailingText,
+                    fontSize = 12.sp,
+                    color = Color(0xFF666666)
+                )
+
+                // 金币图标 - 只在有具体价格时显示
+                if (trailingText.contains("/分钟")) {
+                    Spacer(modifier = Modifier.width(2.dp))
+                    androidx.compose.foundation.Image(
+                        painter = painterResource(id = R.drawable.ic_coin),
+                        contentDescription = "金币",
+                        modifier = Modifier.size(14.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -843,11 +864,12 @@ private fun WalletSection(
  */
 @Composable
 private fun FunctionSettingsSection(viewModel: ProfileViewModel) {
+    val context = LocalContext.current
     var isExpanded by remember { mutableStateOf(false) }
     val voiceCallEnabled = viewModel.voiceCallEnabled
     val videoCallEnabled = viewModel.videoCallEnabled
     val messageChargeEnabled = viewModel.messageChargeEnabled
-    
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -857,7 +879,7 @@ private fun FunctionSettingsSection(viewModel: ProfileViewModel) {
             .padding(6.dp) // 调大一点：卡片内所有内容距离边框四周6dp
     ) {
         Column {
-            // 设置标题 - 添加通话设置图标和展开/收起按钮
+            // 设置标题 - 添加通话设置图标、设置按钮和展开/收起按钮
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -870,9 +892,9 @@ private fun FunctionSettingsSection(viewModel: ProfileViewModel) {
                     modifier = Modifier.size(18.dp),
                     contentScale = ContentScale.Fit
                 )
-                
+
                 Spacer(modifier = Modifier.width(5.dp))
-                
+
                 Text(
                     text = "设置来电及价格",
                     fontSize = 14.sp,
@@ -880,9 +902,26 @@ private fun FunctionSettingsSection(viewModel: ProfileViewModel) {
                     fontWeight = FontWeight.Medium,
                     color = Color(0xFF333333)
                 )
-                
+
                 Spacer(modifier = Modifier.weight(1f))
-                
+
+                // 设置按钮 - 跳转到详细设置页面
+                TextButton(
+                    onClick = {
+                        android.util.Log.d("ProfileScreen", "点击设置按钮，跳转到PriceSettingsActivity")
+                        val intent = android.content.Intent(context, com.example.myapplication.PriceSettingsActivity::class.java)
+                        context.startActivity(intent)
+                    },
+                    modifier = Modifier.height(28.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+                ) {
+                    Text(
+                        text = "设置",
+                        fontSize = 12.sp,
+                        color = Color(0xFF498AFE)
+                    )
+                }
+
                 // 展开/收起按钮
                 IconButton(
                     onClick = { isExpanded = !isExpanded },
@@ -896,35 +935,104 @@ private fun FunctionSettingsSection(viewModel: ProfileViewModel) {
                     )
                 }
             }
-            
+
             // 展开时显示详细设置
             if (isExpanded) {
                 Spacer(modifier = Modifier.height(8.dp))
-                // 三个滑动开关
+
+                // 语音接听设置
                 SettingSwitchRow(
                     title = "语音接听",
                     checked = voiceCallEnabled,
-                    onCheckedChange = { /* TODO: 调用后端API */ },
-                    trailingText = if (voiceCallEnabled) "免费" else "关闭"
+                    onCheckedChange = {
+                        // 调用后端API更新语音接听状态
+                        viewModel.updateSettingsToBackend(it, videoCallEnabled, messageChargeEnabled)
+                    },
+                    trailingText = viewModel.getVoiceCallDisplayText(),
+                    showPrice = voiceCallEnabled,
+                    onPriceClick = {},
+                    context = context
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                // 语音价格选择器 - 仅在开启时显示
+                if (voiceCallEnabled) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PriceSelector(
+                        selectedPrice = viewModel.voiceCallPrice.toInt(),
+                        onPriceSelected = { price ->
+                            viewModel.updatePriceToBackend(price.toDouble(), viewModel.videoCallPrice, viewModel.messagePrice)
+                        }
+                    )
+                }
 
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // 视频接听设置
                 SettingSwitchRow(
                     title = "视频接听",
                     checked = videoCallEnabled,
-                    onCheckedChange = { /* TODO: 调用后端API */ },
-                    trailingText = if (videoCallEnabled) "免费" else "关闭"
+                    onCheckedChange = {
+                        // 调用后端API更新视频接听状态
+                        viewModel.updateSettingsToBackend(voiceCallEnabled, it, messageChargeEnabled)
+                    },
+                    trailingText = viewModel.getVideoCallDisplayText(),
+                    showPrice = videoCallEnabled,
+                    onPriceClick = {},
+                    context = context
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                // 视频价格选择器 - 仅在开启时显示
+                if (videoCallEnabled) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PriceSelector(
+                        selectedPrice = viewModel.videoCallPrice.toInt(),
+                        onPriceSelected = { price ->
+                            viewModel.updatePriceToBackend(viewModel.voiceCallPrice, price.toDouble(), viewModel.messagePrice)
+                        }
+                    )
+                }
 
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // 私信收费设置
                 SettingSwitchRow(
                     title = "私信收费",
                     checked = messageChargeEnabled,
-                    onCheckedChange = { /* TODO: 调用后端API */ },
-                    trailingText = if (messageChargeEnabled) "收费" else "免费"
+                    onCheckedChange = {
+                        // 调用后端API更新私信收费状态
+                        viewModel.updateSettingsToBackend(voiceCallEnabled, videoCallEnabled, it)
+                    },
+                    trailingText = viewModel.getMessageChargeDisplayText(),
+                    showPrice = false,
+                    onPriceClick = null,
+                    context = context,
+                    alwaysShowText = true  // 私信收费固定显示"免费"
                 )
+                
+                // 免费接听时长信息
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "免费接听时长: 0分钟",
+                        fontSize = 11.sp,
+                        color = Color(0xFF666666)
+                    )
+                    
+                    Spacer(modifier = Modifier.weight(1f))
+                    
+                    Text(
+                        text = "规则",
+                        fontSize = 11.sp,
+                        color = Color(0xFF498AFE),
+                        modifier = Modifier.clickable {
+                            // TODO: 跳转到规则说明页面
+                            android.util.Log.d("ProfileScreen", "点击查看规则")
+                        }
+                    )
+                }
             }
         }
     }
@@ -1037,6 +1145,50 @@ private fun FunctionMenuItems(onMenuClick: (String) -> Unit) {
                 onMenuClick = onMenuClick,
                 showDivider = index != allMenuItems.lastIndex
             )
+        }
+    }
+}
+
+/**
+ * 价格选择器组件
+ */
+@Composable
+private fun PriceSelector(
+    selectedPrice: Int,
+    onPriceSelected: (Int) -> Unit
+) {
+    val priceOptions = listOf(0, 100, 200, 300, 400, 500)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        priceOptions.forEach { price ->
+            val isSelected = price == selectedPrice
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(32.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(
+                        if (isSelected) Color(0xFF498AFE) else Color(0xFFF5F5F5)
+                    )
+                    .clickable {
+                        android.util.Log.d("PriceSelector", "选择价格: $price")
+                        onPriceSelected(price)
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "$price",
+                    fontSize = 11.sp,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    color = if (isSelected) Color.White else Color(0xFF666666)
+                )
+            }
         }
     }
 }

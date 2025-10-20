@@ -51,7 +51,7 @@ class RechargeViewModel(private val context: Context) : ViewModel() {
         }
     }
     
-    private suspend fun loadWalletBalance() {
+    suspend fun loadWalletBalance() {
         try {
             val token = authManager.getToken()
             if (token == null) {
@@ -100,6 +100,12 @@ class RechargeViewModel(private val context: Context) : ViewModel() {
                 earnBalance = 0,
                 error = "加载钱包余额失败: ${e.message}"
             )
+        }
+    }
+    
+    fun refreshWalletBalance() {
+        viewModelScope.launch {
+            loadWalletBalance()
         }
     }
     
@@ -218,6 +224,56 @@ class RechargeViewModel(private val context: Context) : ViewModel() {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = "支付失败：${e.message}"
+                )
+            }
+        }
+    }
+    
+    /**
+     * 创建支付宝订单
+     */
+    fun createAlipayOrder(rechargePackage: RechargePackage) {
+        viewModelScope.launch {
+            try {
+                _uiState.value = _uiState.value.copy(isLoading = true)
+                
+                val token = authManager.getToken()
+                if (token == null) {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = "用户未登录"
+                    )
+                    return@launch
+                }
+                
+                val request = com.example.myapplication.dto.CreateOrderRequest(
+                    rechargePackage.id,
+                    rechargePackage.coins.toInt(),
+                    rechargePackage.price,
+                    "alipay",
+                    "充值${rechargePackage.coins}金币"
+                )
+                
+                val response = com.example.myapplication.network.NetworkService.createAlipayOrder(token, request)
+                if (response.isSuccessful) {
+                    val apiResponse = response.body()
+                    if (apiResponse?.isSuccess() == true) {
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            alipayOrderResponse = apiResponse.data
+                        )
+                    } else {
+                        throw Exception(apiResponse?.message ?: "创建订单失败")
+                    }
+                } else {
+                    throw Exception("HTTP错误: ${response.code()}")
+                }
+                
+            } catch (e: Exception) {
+                android.util.Log.e("RechargeViewModel", "创建支付宝订单失败", e)
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = "创建订单失败: ${e.message}"
                 )
             }
         }
@@ -384,6 +440,10 @@ class RechargeViewModel(private val context: Context) : ViewModel() {
     fun clearPaymentSuccess() {
         _uiState.value = _uiState.value.copy(paymentSuccess = false)
     }
+    
+    fun clearAlipayOrderResponse() {
+        _uiState.value = _uiState.value.copy(alipayOrderResponse = null)
+    }
 }
 
 /**
@@ -407,5 +467,8 @@ data class RechargeUiState(
     val maxLevelProgress: Int = 1000,
     
     // 充值套餐
-    val rechargePackages: List<RechargePackage> = emptyList()
+    val rechargePackages: List<RechargePackage> = emptyList(),
+    
+    // 支付宝订单响应
+    val alipayOrderResponse: com.example.myapplication.dto.AlipayOrderResponse? = null
 )

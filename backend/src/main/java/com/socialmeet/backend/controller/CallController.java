@@ -16,7 +16,7 @@ import java.util.Map;
  * 处理视频/语音通话相关的请求
  */
 @RestController
-@RequestMapping("/call")
+@RequestMapping("/api/call")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

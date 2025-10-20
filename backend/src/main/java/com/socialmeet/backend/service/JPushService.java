@@ -9,12 +9,14 @@ import cn.jiguang.sdk.bean.push.options.Options;
 import cn.jiguang.sdk.enums.platform.Platform;
 import com.socialmeet.backend.entity.User;
 import com.socialmeet.backend.repository.UserRepository;
+// import com.socialmeet.backend.service.UserDeviceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,6 +34,7 @@ public class JPushService {
 
     private final PushApi pushApi;
     private final UserRepository userRepository;
+    // private final UserDeviceService userDeviceService;
 
     /**
      * 发送来电通知
@@ -51,20 +54,17 @@ public class JPushService {
             log.info("发送来电通知 - receiverId: {}, callerId: {}, callType: {}, sessionId: {}",
                     receiverId, callerId, callType, sessionId);
 
-            // 从数据库获取接收方的 Registration ID
-            User receiver = userRepository.findById(receiverId)
-                    .orElseThrow(() -> new RuntimeException("接收方用户不存在"));
-
-            String registrationId = receiver.getJpushRegistrationId();
-            log.info("数据库中的Registration ID - receiverId: {}, registrationId: {}", receiverId, registrationId);
-            
-            if (registrationId == null || registrationId.trim().isEmpty() || "0".equals(registrationId)) {
-                log.warn("接收方未上传有效 Registration ID - receiverId: {}，跳过推送通知", receiverId);
-                return false; // 返回false而不是抛出异常
+            // 获取接收方的Registration ID（单设备模式）
+            User receiver = userRepository.findById(receiverId).orElse(null);
+            if (receiver == null || receiver.getJpushRegistrationId() == null) {
+                log.warn("接收方不存在或没有Registration ID - receiverId: {}", receiverId);
+                return false;
             }
+            List<String> registrationIds = Arrays.asList(receiver.getJpushRegistrationId());
+            log.info("接收方设备 - receiverId: {}, registrationId: {}", receiverId, receiver.getJpushRegistrationId());
 
-            log.info("使用 Registration ID 发送推送 - receiverId: {}, registrationId: {}",
-                    receiverId, registrationId);
+            log.info("向 {} 个设备发送推送 - receiverId: {}, registrationIds: {}",
+                    registrationIds.size(), receiverId, registrationIds);
 
             // 构建自定义数据
             Map<String, Object> extras = new HashMap<>();
@@ -107,9 +107,9 @@ public class JPushService {
             // 构建推送参数
             PushSendParam param = new PushSendParam();
 
-            // 设置目标受众 - 使用 Registration ID
+            // 设置目标受众 - 使用多个 Registration ID
             Audience audience = new Audience();
-            audience.setRegistrationIdList(Arrays.asList(registrationId));
+            audience.setRegistrationIdList(registrationIds);
             param.setAudience(audience);
 
             // 设置平台 - 只推送Android
@@ -124,20 +124,20 @@ public class JPushService {
             options.setTimeToLive(30L); // 消息保留30秒
             param.setOptions(options);
 
-            log.info("推送参数构建完成 - audience: {}, platform: android", registrationId);
+            log.info("推送参数构建完成 - audience: {}, platform: android", registrationIds);
 
             // 发送推送
-            log.info("开始发送JPush推送 - receiverId: {}, registrationId: {}", receiverId, registrationId);
+            log.info("开始发送JPush推送 - receiverId: {}, deviceCount: {}", receiverId, registrationIds.size());
             PushSendResult result = pushApi.send(param);
 
             if (result != null) {
-                log.info("✅ 来电通知发送成功 - receiverId: {}, registrationId: {}", receiverId, registrationId);
+                log.info("✅ 来电通知发送成功 - receiverId: {}, deviceCount: {}", receiverId, registrationIds.size());
                 log.info("推送结果详情: {}", result);
                 log.info("═══════════════════════════════════════");
                 return true;
             } else {
-                log.error("❌ 来电通知发送失败 - receiverId: {}, registrationId: {}, result: {}",
-                        receiverId, registrationId, result);
+                log.error("❌ 来电通知发送失败 - receiverId: {}, deviceCount: {}, result: {}",
+                        receiverId, registrationIds.size(), result);
                 log.info("═══════════════════════════════════════");
                 return false;
             }
@@ -150,7 +150,7 @@ public class JPushService {
     }
 
     /**
-     * 发送通话状态更新通知
+     * 发送通话状态更新通知（多设备支持）
      *
      * @param userId    用户ID
      * @param sessionId 会话ID
@@ -163,15 +163,13 @@ public class JPushService {
             log.info("发送通话状态通知 - userId: {}, sessionId: {}, status: {}",
                     userId, sessionId, status);
 
-            // 从数据库获取用户的 Registration ID
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("用户不存在"));
-
-            String registrationId = user.getJpushRegistrationId();
-            if (registrationId == null || registrationId.trim().isEmpty()) {
-                log.error("用户未上传 Registration ID - userId: {}", userId);
-                throw new RuntimeException("用户未注册推送服务");
+            // 获取用户Registration ID（单设备模式）
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null || user.getJpushRegistrationId() == null) {
+                log.warn("用户不存在或没有Registration ID - userId: {}", userId);
+                return false;
             }
+            List<String> registrationIds = Arrays.asList(user.getJpushRegistrationId());
 
             // 构建自定义数据
             Map<String, Object> extras = new HashMap<>();
@@ -197,9 +195,9 @@ public class JPushService {
             // 构建推送参数
             PushSendParam param = new PushSendParam();
 
-            // 设置目标受众 - 使用 Registration ID
+            // 设置目标受众 - 使用多个 Registration ID
             Audience audience = new Audience();
-            audience.setRegistrationIdList(Arrays.asList(registrationId));
+            audience.setRegistrationIdList(registrationIds);
             param.setAudience(audience);
 
             // 设置平台
@@ -215,15 +213,16 @@ public class JPushService {
             param.setOptions(options);
 
             // 发送推送
+            log.info("开始发送通话状态通知 - userId: {}, deviceCount: {}", userId, registrationIds.size());
             PushSendResult result = pushApi.send(param);
 
             if (result != null) {
-                log.info("通话状态通知发送成功 - userId: {}, registrationId: {}, result: {}",
-                        userId, registrationId, result);
+                log.info("✅ 通话状态通知发送成功 - userId: {}, deviceCount: {}, result: {}",
+                        userId, registrationIds.size(), result);
                 return true;
             } else {
-                log.error("通话状态通知发送失败 - userId: {}, registrationId: {}, result: {}",
-                        userId, registrationId, result);
+                log.error("❌ 通话状态通知发送失败 - userId: {}, deviceCount: {}, result: {}",
+                        userId, registrationIds.size(), result);
                 return false;
             }
 
@@ -249,25 +248,25 @@ public class JPushService {
     }
 
     /**
-     * 发送通用推送通知
+     * 发送通用推送通知（多设备支持）
      *
      * @param userId         用户ID
-     * @param registrationId 设备注册ID
      * @param title          通知标题
      * @param content        通知内容
      * @param extras         自定义数据
      * @return 是否发送成功
      */
-    public boolean sendNotification(Long userId, String registrationId, String title, 
-                                   String content, Map<String, Object> extras) {
+    public boolean sendNotification(Long userId, String title, String content, Map<String, Object> extras) {
         try {
-            log.info("发送通用推送通知 - userId: {}, registrationId: {}, title: {}, content: {}",
-                    userId, registrationId, title, content);
+            log.info("发送通用推送通知 - userId: {}, title: {}, content: {}", userId, title, content);
 
-            if (registrationId == null || registrationId.trim().isEmpty()) {
-                log.warn("Registration ID 为空 - userId: {}，跳过推送通知", userId);
+            // 获取用户Registration ID（单设备模式）
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null || user.getJpushRegistrationId() == null) {
+                log.warn("用户不存在或没有Registration ID - userId: {}", userId);
                 return false;
             }
+            List<String> registrationIds = Arrays.asList(user.getJpushRegistrationId());
 
             // 构建 Android 通知
             NotificationMessage.Android android = new NotificationMessage.Android();
@@ -287,9 +286,9 @@ public class JPushService {
             // 构建推送参数
             PushSendParam param = new PushSendParam();
 
-            // 设置目标受众
+            // 设置目标受众 - 使用多个 Registration ID
             Audience audience = new Audience();
-            audience.setRegistrationIdList(Arrays.asList(registrationId));
+            audience.setRegistrationIdList(registrationIds);
             param.setAudience(audience);
 
             // 设置平台
@@ -303,15 +302,16 @@ public class JPushService {
             param.setOptions(options);
 
             // 发送推送
+            log.info("开始发送通用推送通知 - userId: {}, deviceCount: {}", userId, registrationIds.size());
             PushSendResult result = pushApi.send(param);
 
             if (result != null) {
-                log.info("✅ 通用推送通知发送成功 - userId: {}, registrationId: {}, result: {}",
-                        userId, registrationId, result);
+                log.info("✅ 通用推送通知发送成功 - userId: {}, deviceCount: {}, result: {}",
+                        userId, registrationIds.size(), result);
                 return true;
             } else {
-                log.error("❌ 通用推送通知发送失败 - userId: {}, registrationId: {}, result: {}",
-                        userId, registrationId, result);
+                log.error("❌ 通用推送通知发送失败 - userId: {}, deviceCount: {}, result: {}",
+                        userId, registrationIds.size(), result);
                 return false;
             }
 
@@ -323,11 +323,19 @@ public class JPushService {
 
 
     /**
-     * 发送简单测试推送
+     * 发送简单测试推送（多设备支持）
      */
-    public boolean sendTestNotification(Long userId, String registrationId) {
+    public boolean sendTestNotification(Long userId) {
         try {
-            log.info("发送测试推送 - userId: {}, registrationId: {}", userId, registrationId);
+            log.info("发送测试推送 - userId: {}", userId);
+            
+            // 获取用户Registration ID（单设备模式）
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null || user.getJpushRegistrationId() == null) {
+                log.warn("用户不存在或没有Registration ID - userId: {}", userId);
+                return false;
+            }
+            List<String> registrationIds = Arrays.asList(user.getJpushRegistrationId());
             
             // 构建简单的推送内容
             String title = "测试推送";
@@ -354,9 +362,9 @@ public class JPushService {
             // 构建推送参数
             PushSendParam param = new PushSendParam();
             
-            // 设置目标受众
+            // 设置目标受众 - 使用多个 Registration ID
             Audience audience = new Audience();
-            audience.setRegistrationIdList(Arrays.asList(registrationId));
+            audience.setRegistrationIdList(registrationIds);
             param.setAudience(audience);
             
             // 设置平台
@@ -370,13 +378,16 @@ public class JPushService {
             param.setOptions(options);
             
             // 发送推送
+            log.info("开始发送测试推送 - userId: {}, deviceCount: {}", userId, registrationIds.size());
             PushSendResult result = pushApi.send(param);
             
             if (result != null) {
-                log.info("✅ 测试推送发送成功 - userId: {}, result: {}", userId, result);
+                log.info("✅ 测试推送发送成功 - userId: {}, deviceCount: {}, result: {}", 
+                        userId, registrationIds.size(), result);
                 return true;
             } else {
-                log.error("❌ 测试推送发送失败 - userId: {}, result: {}", userId, result);
+                log.error("❌ 测试推送发送失败 - userId: {}, deviceCount: {}, result: {}", 
+                        userId, registrationIds.size(), result);
                 return false;
             }
             
