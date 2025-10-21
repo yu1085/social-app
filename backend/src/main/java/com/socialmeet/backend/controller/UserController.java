@@ -462,6 +462,121 @@ public class UserController {
     }
 
     /**
+     * 获取推荐用户列表
+     * 用于首页推荐卡片
+     */
+    @GetMapping("/recommended")
+    public ApiResponse<List<UserDTO>> getRecommendedUsers(
+            @RequestParam(defaultValue = "4") int size,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            log.info("获取推荐用户列表 - size: {}", size);
+
+            // 简单实现：返回最新注册的用户（排除当前用户）
+            Long currentUserId = null;
+            if (authHeader != null) {
+                try {
+                    String token = jwtUtil.extractTokenFromHeader(authHeader);
+                    if (token != null) {
+                        currentUserId = jwtUtil.getUserIdFromToken(token);
+                    }
+                } catch (Exception e) {
+                    log.warn("解析token失败，继续返回推荐用户", e);
+                }
+            }
+
+            // 获取用户列表（排除当前用户，按创建时间倒序）
+            List<UserDTO> users = authService.searchUsers(null, null, null, null, null, 0, size + 1);
+
+            // 过滤掉当前用户
+            final Long finalCurrentUserId = currentUserId;
+            List<UserDTO> recommendedUsers = users.stream()
+                    .filter(user -> finalCurrentUserId == null || !user.getId().equals(finalCurrentUserId))
+                    .limit(size)
+                    .collect(Collectors.toList());
+
+            log.info("推荐用户列表获取成功 - 返回 {} 个用户", recommendedUsers.size());
+            return ApiResponse.success(recommendedUsers);
+
+        } catch (Exception e) {
+            log.error("获取推荐用户列表失败", e);
+            return ApiResponse.error("获取推荐用户列表失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取知友列表
+     */
+    @GetMapping("/acquaintances")
+    public ApiResponse<List<UserDTO>> getAcquaintances(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            log.info("获取知友列表 - page: {}, size: {}", page, size);
+
+            // 简单实现：返回随机用户列表
+            // TODO: 实际应用中应该基于好友关系表
+            List<UserDTO> users = authService.searchUsers(null, null, null, null, null, page, size);
+
+            log.info("知友列表获取成功 - 返回 {} 个用户", users.size());
+            return ApiResponse.success(users);
+
+        } catch (Exception e) {
+            log.error("获取知友列表失败", e);
+            return ApiResponse.error("获取知友列表失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取喜欢列表
+     */
+    @GetMapping("/likes")
+    public ApiResponse<List<UserDTO>> getLikes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            log.info("获取喜欢列表 - page: {}, size: {}", page, size);
+
+            // 简单实现：返回女性用户列表
+            // TODO: 实际应用中应该基于喜欢关系表
+            List<UserDTO> users = authService.searchUsers(null, "FEMALE", null, null, null, page, size);
+
+            log.info("喜欢列表获取成功 - 返回 {} 个用户", users.size());
+            return ApiResponse.success(users);
+
+        } catch (Exception e) {
+            log.error("获取喜欢列表失败", e);
+            return ApiResponse.error("获取喜欢列表失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取亲密列表
+     */
+    @GetMapping("/intimate")
+    public ApiResponse<List<UserDTO>> getIntimate(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            log.info("获取亲密列表 - page: {}, size: {}", page, size);
+
+            // 简单实现：返回用户列表
+            // TODO: 实际应用中应该基于聊天频率统计
+            List<UserDTO> users = authService.searchUsers(null, null, null, null, null, page, size);
+
+            log.info("亲密列表获取成功 - 返回 {} 个用户", users.size());
+            return ApiResponse.success(users);
+
+        } catch (Exception e) {
+            log.error("获取亲密列表失败", e);
+            return ApiResponse.error("获取亲密列表失败: " + e.getMessage());
+        }
+    }
+
+    /**
      * 将UserPhoto实体转换为DTO
      */
     private UserPhotoDTO convertToDTO(UserPhoto photo) {
