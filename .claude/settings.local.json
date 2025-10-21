@@ -1,36 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(\"C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysql.exe\" -u root -proot --default-character-set=utf8mb4 socialmeet -e \"\nSELECT p.id, p.content, p.location, p.like_count, p.comment_count, u.nickname\nFROM posts p\nJOIN users u ON p.user_id = u.id\nORDER BY p.created_at DESC;\n\")",
-      "Read(//c/Users/Administrator/Documents/xwechat_files/wxid_vqy43jbmojyd12_63bf/temp/RWTemp/2025-10/9e20f478899dc29eb19741386f9343c8/**)",
-      "Bash(../gradlew clean build -x test)",
-      "Bash(../gradlew bootRun)",
-      "Bash(timeout /t 10)",
-      "Bash(powershell -ExecutionPolicy Bypass -File test_message_api.ps1)",
-      "Bash(curl -X GET \"http://localhost:8080/api/message/conversations?userId=1\")",
-      "Bash(curl -X GET \"http://localhost:8080/api/message/call-records?userId=1\")",
-      "Bash(curl -X POST \"http://localhost:8080/api/message/send?senderId=1&receiverId=2&content=Hello&type=TEXT\")",
-      "Bash(gradlew :app:assembleDebug)",
-      "Bash(./gradlew :app:assembleDebug)",
-      "Bash(dir buildoutputsapkdebugapp-debug.apk)",
-      "Bash(dir appbuildoutputsapkdebugapp-debug.apk)",
-      "Bash(.gradlew :app:assembleDebug)",
-      "Bash(../gradlew :backend:compileJava)",
-      "Bash(\"C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysql.exe\" -u root -proot --default-character-set=utf8mb4 socialmeet -e \"SELECT id, nickname, phone FROM users LIMIT 5;\")",
-      "Bash(\"C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysql.exe\" -u root -proot --default-character-set=utf8mb4 socialmeet -e \"SELECT COUNT(*) as message_count FROM messages; SELECT COUNT(*) as call_count FROM call_records; SELECT COUNT(*) as relationship_count FROM user_relationships;\")",
-      "Bash(timeout /t 15)",
-      "Bash(netstat -ano)",
-      "Bash(findstr :8080)",
-      "Bash(taskkill /F /PID 83608)",
-      "Bash(taskkill //F //PID 83608)",
-      "Bash(curl -X GET \"http://localhost:8080/api/message/conversations?userId=22491729\")",
-      "Bash(curl -X GET \"http://localhost:8080/api/message/call-records?userId=22491729\")",
-      "Bash(curl -X POST \"http://localhost:8080/api/message/send?senderId=22491729&receiverId=23820512&content=Hello&type=TEXT\")",
-      "Bash(curl -X GET \"http://localhost:8080/api/message/chat-history?userId1=22491729&userId2=23820512\")",
-      "Bash(git add .)",
-      "Bash(git commit -m \"feat: 实现消息系统 - 会话列表、通话记录、聊天功能\n\n- 新增MessageController的conversations和call-records端点\n- 实现ConversationDTO和CallRecordDTO\n- 新增CallRecord、UserRelationship、MessageQuota实体\n- 添加对应的Repository和Service层\n- 插入测试数据到数据库\n- 所有API测试通过\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\")"
+      "**",
+      "Bash(git add .claude/settings.local.json)",
+      "Bash(git commit -m \"config: 配置Claude Code最高权限\n\n- 设置 defaultMode 为 bypassPermissions\n- 允许所有操作 (allow: **)\n- 移除所有限制\n\n⚠️ 警告：这是完全信任模式，请确保在安全的项目环境中使用\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\")"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "defaultMode": "bypassPermissions"
   }
 }
