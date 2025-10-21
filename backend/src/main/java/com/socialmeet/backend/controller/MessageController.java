@@ -1,8 +1,11 @@
 package com.socialmeet.backend.controller;
 
 import com.socialmeet.backend.dto.ApiResponse;
+import com.socialmeet.backend.dto.CallRecordDTO;
+import com.socialmeet.backend.dto.ConversationDTO;
 import com.socialmeet.backend.dto.MessageDTO;
 import com.socialmeet.backend.entity.Message;
+import com.socialmeet.backend.service.CallRecordService;
 import com.socialmeet.backend.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,13 +17,14 @@ import java.util.List;
  * 消息控制器
  */
 @RestController
-@RequestMapping("/api/messages")
+@RequestMapping("/api/message")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
 public class MessageController {
-    
+
     private final MessageService messageService;
+    private final CallRecordService callRecordService;
     
     /**
      * 发送消息
@@ -120,17 +124,57 @@ public class MessageController {
     }
     
     /**
+     * 获取会话列表
+     */
+    @GetMapping("/conversations")
+    public ApiResponse<List<ConversationDTO>> getConversations(@RequestParam Long userId) {
+        try {
+            log.info("获取会话列表 - userId: {}", userId);
+            List<ConversationDTO> conversations = messageService.getConversations(userId);
+            return ApiResponse.success(conversations);
+        } catch (Exception e) {
+            log.error("获取会话列表失败", e);
+            return ApiResponse.error("获取会话列表失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取通话记录
+     */
+    @GetMapping("/call-records")
+    public ApiResponse<List<CallRecordDTO>> getCallRecords(@RequestParam Long userId) {
+        try {
+            log.info("获取通话记录 - userId: {}", userId);
+            List<CallRecordDTO> callRecords = callRecordService.getCallRecords(userId);
+            return ApiResponse.success(callRecords);
+        } catch (Exception e) {
+            log.error("获取通话记录失败", e);
+            return ApiResponse.error("获取通话记录失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取聊天记录（增加别名）
+     */
+    @GetMapping("/chat-history")
+    public ApiResponse<List<MessageDTO>> getChatHistoryAlias(
+            @RequestParam Long userId1,
+            @RequestParam Long userId2) {
+        return getChatHistory(userId1, userId2);
+    }
+
+    /**
      * 测试JPush推送
      */
     @PostMapping("/test-push")
     public ApiResponse<String> testPush(@RequestParam Long userId, @RequestParam String registrationId) {
-        
+
         try {
             log.info("收到测试推送请求 - userId: {}, registrationId: {}", userId, registrationId);
-            
+
             // 这里需要注入JPushService，暂时返回提示
             return ApiResponse.success("测试推送功能已添加，请检查后端日志");
-            
+
         } catch (Exception e) {
             log.error("测试推送失败", e);
             return ApiResponse.error("测试推送失败: " + e.getMessage());

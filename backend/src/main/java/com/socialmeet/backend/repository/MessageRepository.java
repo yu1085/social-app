@@ -59,7 +59,13 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
            "(m.senderId = :userId2 AND m.receiverId = :userId1)) AND " +
            "m.createdAt > :since " +
            "ORDER BY m.createdAt ASC")
-    List<Message> findMessagesSince(@Param("userId1") Long userId1, 
-                                   @Param("userId2") Long userId2, 
+    List<Message> findMessagesSince(@Param("userId1") Long userId1,
+                                   @Param("userId2") Long userId2,
                                    @Param("since") LocalDateTime since);
+
+    /**
+     * 获取用户所有相关的消息（发送或接收）
+     */
+    @Query("SELECT m FROM Message m WHERE m.senderId = :userId OR m.receiverId = :userId ORDER BY m.createdAt DESC")
+    List<Message> findUserMessages(@Param("userId") Long userId);
 }
