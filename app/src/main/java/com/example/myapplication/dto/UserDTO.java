@@ -23,6 +23,8 @@ public class UserDTO {
     private Integer wealthLevel;
     private Double balance;
     private Boolean isOnline;
+    private String status;    // 用户状态：ONLINE/OFFLINE/BUSY
+    private Integer age;      // 年龄
     private String lastActiveAt;
     private String createdAt;
     private String updatedAt;
@@ -208,6 +210,22 @@ public class UserDTO {
 
     public void setIsOnline(Boolean isOnline) {
         this.isOnline = isOnline;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
     }
 
     public String getLastActiveAt() {

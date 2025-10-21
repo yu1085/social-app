@@ -28,8 +28,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // 注册WebSocket端点
+        // 注册WebSocket端点（原生WebSocket，用于Android客户端）
         registry.addEndpoint("/ws")
+                .setAllowedOriginPatterns("*")
+                .addInterceptors(handshakeInterceptor);
+
+        // 注册WebSocket端点（SockJS，用于Web浏览器）
+        registry.addEndpoint("/ws-sockjs")
                 .setAllowedOriginPatterns("*")
                 .addInterceptors(handshakeInterceptor)
                 .withSockJS();

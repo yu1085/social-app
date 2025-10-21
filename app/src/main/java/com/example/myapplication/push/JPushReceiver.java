@@ -291,6 +291,38 @@ public class JPushReceiver extends JPushMessageReceiver {
 
                     // 显示状态通知
                     showCallStatusNotification(context, status, statusMessage, sessionId);
+
+                } else if ("MESSAGE".equals(type)) {
+                    // 处理聊天消息通知
+                    String messageId = extrasJson.optString("messageId");
+                    String senderId = extrasJson.optString("senderId");
+                    String senderName = extrasJson.optString("senderName");
+                    String messageType = extrasJson.optString("messageType");
+                    String timestamp = extrasJson.optString("timestamp");
+
+                    Log.i(TAG, "═══════════════════════════════════════");
+                    Log.i(TAG, "收到聊天消息通知");
+                    Log.i(TAG, "  messageId: " + messageId);
+                    Log.i(TAG, "  senderId: " + senderId);
+                    Log.i(TAG, "  senderName: " + senderName);
+                    Log.i(TAG, "  content: " + notificationContent);
+                    Log.i(TAG, "  messageType: " + messageType);
+                    Log.i(TAG, "  timestamp: " + timestamp);
+
+                    // 使用显式广播（指定包名），避免Android 8.0+的隐式广播限制
+                    Intent messageIntent = new Intent("com.example.myapplication.NEW_MESSAGE");
+                    messageIntent.setPackage(context.getPackageName()); // 设置包名，变成显式广播
+                    messageIntent.putExtra("messageId", messageId);
+                    messageIntent.putExtra("senderId", senderId);
+                    messageIntent.putExtra("senderName", senderName);
+                    messageIntent.putExtra("content", notificationContent);
+                    messageIntent.putExtra("messageType", messageType);
+                    messageIntent.putExtra("timestamp", timestamp);
+
+                    Log.i(TAG, "准备发送广播，包名: " + context.getPackageName());
+                    context.sendBroadcast(messageIntent);
+                    Log.i(TAG, "✅ 已发送新消息广播 - messageId: " + messageId + ", sender: " + senderName);
+                    Log.i(TAG, "═══════════════════════════════════════");
                 }
             }
         } catch (Exception e) {

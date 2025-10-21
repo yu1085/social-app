@@ -1,52 +1,54 @@
-# 测试消息系统API
+# 测试消息API功能
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "  测试消息系统 - 用户间消息发送功能" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host ""
+
 $baseUrl = "http://localhost:8080/api"
+$user1Id = 23820512
+$user2Id = 23820513
 
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  测试消息系统API" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "📋 测试场景：用户1 (ID: $user1Id) ↔ 用户2 (ID: $user2Id)" -ForegroundColor Yellow
+Write-Host ""
 
-# 测试1: 获取会话列表
-Write-Host "`n[测试1] 获取用户22491729的会话列表..." -ForegroundColor Yellow
+# 1. 用户1发送消息给用户2
+Write-Host "1️⃣  用户1 发送消息给 用户2" -ForegroundColor Green
+$sendUrl1 = "$baseUrl/message/send?senderId=$user1Id&receiverId=$user2Id&content=你好，我是用户1！&messageType=TEXT"
 try {
-    $response = Invoke-RestMethod -Uri "$baseUrl/message/conversations?userId=22491729" -Method GET
-    Write-Host "✅ 成功" -ForegroundColor Green
-    Write-Host ($response | ConvertTo-Json -Depth 10)
+    $response1 = Invoke-RestMethod -Uri $sendUrl1 -Method Post
+    if ($response1.success) {
+        Write-Host "   ✅ 发送成功！消息ID: $($response1.data.id)" -ForegroundColor Green
+    }
 } catch {
-    Write-Host "❌ 失败: $_" -ForegroundColor Red
+    Write-Host "   ❌ 失败: $_" -ForegroundColor Red
 }
+Write-Host ""
 
-# 测试2: 获取通话记录
-Write-Host "`n[测试2] 获取用户22491729的通话记录..." -ForegroundColor Yellow
+# 2. 用户2发送消息给用户1
+Write-Host "2️⃣  用户2 发送消息给 用户1" -ForegroundColor Green
+$sendUrl2 = "$baseUrl/message/send?senderId=$user2Id&receiverId=$user1Id&content=你好，我是用户2！&messageType=TEXT"
 try {
-    $response = Invoke-RestMethod -Uri "$baseUrl/message/call-records?userId=22491729" -Method GET
-    Write-Host "✅ 成功" -ForegroundColor Green
-    Write-Host ($response | ConvertTo-Json -Depth 10)
+    $response2 = Invoke-RestMethod -Uri $sendUrl2 -Method Post
+    if ($response2.success) {
+        Write-Host "   ✅ 发送成功！消息ID: $($response2.data.id)" -ForegroundColor Green
+    }
 } catch {
-    Write-Host "❌ 失败: $_" -ForegroundColor Red
+    Write-Host "   ❌ 失败: $_" -ForegroundColor Red
 }
+Write-Host ""
 
-# 测试3: 发送消息
-Write-Host "`n[测试3] 发送测试消息..." -ForegroundColor Yellow
+# 3. 获取聊天记录
+Write-Host "3️⃣  获取聊天记录" -ForegroundColor Green
+$historyUrl = "$baseUrl/message/history?userId1=$user1Id&userId2=$user2Id"
 try {
-    $response = Invoke-RestMethod -Uri "$baseUrl/message/send?senderId=22491729&receiverId=23820512&content=测试消息&type=TEXT" -Method POST
-    Write-Host "✅ 成功" -ForegroundColor Green
-    Write-Host ($response | ConvertTo-Json -Depth 10)
+    $history = Invoke-RestMethod -Uri $historyUrl -Method Get
+    if ($history.success) {
+        Write-Host "   ✅ 共 $($history.data.Count) 条消息" -ForegroundColor Green
+        foreach ($msg in $history.data) {
+            $senderLabel = if ($msg.senderId -eq $user1Id) { "用户1" } else { "用户2" }
+            Write-Host "   💬 $senderLabel : $($msg.content)" -ForegroundColor White
+        }
+    }
 } catch {
-    Write-Host "❌ 失败: $_" -ForegroundColor Red
+    Write-Host "   ❌ 失败: $_" -ForegroundColor Red
 }
-
-# 测试4: 获取聊天记录
-Write-Host "`n[测试4] 获取用户22491729和23820512的聊天记录..." -ForegroundColor Yellow
-try {
-    $response = Invoke-RestMethod -Uri "$baseUrl/message/chat-history?userId1=22491729&userId2=23820512" -Method GET
-    Write-Host "✅ 成功" -ForegroundColor Green
-    Write-Host "共 $($response.data.Count) 条消息"
-    Write-Host ($response | ConvertTo-Json -Depth 10)
-} catch {
-    Write-Host "❌ 失败: $_" -ForegroundColor Red
-}
-
-Write-Host "`n========================================" -ForegroundColor Cyan
-Write-Host "  测试完成" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
-

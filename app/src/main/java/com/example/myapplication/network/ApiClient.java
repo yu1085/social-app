@@ -58,16 +58,10 @@ public class ApiClient {
                 callback.onError("无法获取用户ID");
                 return;
             }
-            
-            // 创建MessageDTO
-            MessageDTO messageDTO = new MessageDTO();
-            messageDTO.setSenderId(senderId);
-            messageDTO.setReceiverId(receiverId);
-            messageDTO.setContent(content);
-            messageDTO.setMessageType(messageType);
-            
+
+            // 直接传递参数，而不是MessageDTO对象
             String authHeader = "Bearer " + token;
-            Call<ApiResponse<MessageDTO>> call = apiService.sendMessage(authHeader, messageDTO);
+            Call<ApiResponse<MessageDTO>> call = apiService.sendMessage(authHeader, senderId, receiverId, content, messageType);
             
             call.enqueue(new Callback<ApiResponse<MessageDTO>>() {
                 @Override

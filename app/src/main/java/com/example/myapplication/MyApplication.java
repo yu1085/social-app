@@ -9,6 +9,7 @@ import cn.jpush.android.api.JPushInterface;
 import com.example.myapplication.auth.AuthManager;
 import com.example.myapplication.network.NetworkConfig;
 import com.example.myapplication.dto.ApiResponse;
+import com.example.myapplication.websocket.MessageWebSocketManager;
 
 /**
  * 应用程序主类
@@ -20,15 +21,25 @@ public class MyApplication extends Application {
     private static final String CHANNEL_ID = "jpush_default_channel";
     private static final String CHANNEL_NAME = "来电通知";
 
+    // WebSocket管理器（全局单例）
+    private static MessageWebSocketManager webSocketManager;
+
     public MyApplication() {
         super();
         Log.e(TAG, "🔧🔧🔧 MyApplication 构造函数被调用 🔧🔧🔧");
     }
 
+    /**
+     * 获取全局WebSocket管理器
+     */
+    public static MessageWebSocketManager getWebSocketManager() {
+        return webSocketManager;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
-        
+
         // 添加明显的调试日志
         Log.e(TAG, "🚀🚀🚀 MyApplication.onCreate() 开始执行 🚀🚀🚀");
 
@@ -37,6 +48,9 @@ public class MyApplication extends Application {
 
         // 初始化 JPush
         initJPush();
+
+        // 初始化 WebSocket
+        initWebSocket();
     }
 
     /**
@@ -65,6 +79,33 @@ public class MyApplication extends Application {
                     Log.d(TAG, "通知渠道已存在: " + CHANNEL_ID);
                 }
             }
+        }
+    }
+
+    /**
+     * 初始化WebSocket管理器
+     */
+    private void initWebSocket() {
+        try {
+            Log.d(TAG, "═══════════════════════════════════════");
+            Log.d(TAG, "开始初始化WebSocket管理器...");
+
+            AuthManager authManager = AuthManager.getInstance(this);
+            webSocketManager = new MessageWebSocketManager(authManager);
+
+            // 如果用户已登录，立即连接WebSocket
+            if (authManager.isLoggedIn()) {
+                Long userId = authManager.getUserId();
+                Log.i(TAG, "用户已登录 - userId: " + userId + "，自动连接WebSocket");
+                webSocketManager.connect();
+                Log.i(TAG, "✅ WebSocket管理器初始化成功并已连接");
+            } else {
+                Log.i(TAG, "✅ WebSocket管理器初始化成功（用户未登录，待登录后连接）");
+            }
+
+            Log.d(TAG, "═══════════════════════════════════════");
+        } catch (Exception e) {
+            Log.e(TAG, "❌ WebSocket管理器初始化失败", e);
         }
     }
 

@@ -258,15 +258,19 @@ public class JPushService {
      */
     public boolean sendNotification(Long userId, String title, String content, Map<String, Object> extras) {
         try {
+            log.info("═══════════════════════════════════════");
             log.info("发送通用推送通知 - userId: {}, title: {}, content: {}", userId, title, content);
+            log.info("自定义数据: {}", extras);
 
             // 获取用户Registration ID（单设备模式）
             User user = userRepository.findById(userId).orElse(null);
             if (user == null || user.getJpushRegistrationId() == null) {
-                log.warn("用户不存在或没有Registration ID - userId: {}", userId);
+                log.warn("❌ 用户不存在或没有Registration ID - userId: {}", userId);
+                log.info("═══════════════════════════════════════");
                 return false;
             }
             List<String> registrationIds = Arrays.asList(user.getJpushRegistrationId());
+            log.info("接收方设备 - userId: {}, registrationId: {}", userId, user.getJpushRegistrationId());
 
             // 构建 Android 通知
             NotificationMessage.Android android = new NotificationMessage.Android();
@@ -308,15 +312,18 @@ public class JPushService {
             if (result != null) {
                 log.info("✅ 通用推送通知发送成功 - userId: {}, deviceCount: {}, result: {}",
                         userId, registrationIds.size(), result);
+                log.info("═══════════════════════════════════════");
                 return true;
             } else {
                 log.error("❌ 通用推送通知发送失败 - userId: {}, deviceCount: {}, result: {}",
                         userId, registrationIds.size(), result);
+                log.info("═══════════════════════════════════════");
                 return false;
             }
 
         } catch (Exception e) {
-            log.error("❌ 发送通用推送通知异常 - userId: {}", userId, e);
+            log.error("❌ 发送通用推送通知异常 - userId: {}, error: {}", userId, e.getMessage(), e);
+            log.info("═══════════════════════════════════════");
             return false;
         }
     }

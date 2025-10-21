@@ -12,7 +12,7 @@ interface PostApiService {
     /**
      * 获取增强的动态列表
      */
-    @GET("api/posts/enhanced")
+    @GET("posts/enhanced")
     suspend fun getEnhancedPosts(
         @Header("Authorization") token: String,
         @Query("filter") filter: String = "nearby",
@@ -20,51 +20,51 @@ interface PostApiService {
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 10
     ): Response<ApiResponse<PageResponse<EnhancedPostDTO>>>
-    
+
     /**
      * 点赞/取消点赞动态
      */
-    @POST("api/posts/{id}/toggle-like")
+    @POST("posts/{id}/toggle-like")
     suspend fun toggleLikePost(
         @Header("Authorization") token: String,
         @Path("id") postId: Long
     ): Response<ApiResponse<EnhancedPostDTO>>
-    
+
     /**
      * 添加评论
      */
-    @POST("api/posts/{id}/comments")
+    @POST("posts/{id}/comments")
     suspend fun addComment(
         @Header("Authorization") token: String,
         @Path("id") postId: Long,
         @Query("content") content: String,
         @Query("parentId") parentId: Long? = null
     ): Response<ApiResponse<EnhancedPostDTO>>
-    
+
     /**
      * 获取动态评论
      */
-    @GET("api/posts/{id}/comments")
+    @GET("posts/{id}/comments")
     suspend fun getPostComments(
         @Header("Authorization") token: String,
         @Path("id") postId: Long,
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 20
     ): Response<ApiResponse<List<EnhancedPostDTO.CommentDTO>>>
-    
+
     /**
      * 删除评论
      */
-    @DELETE("api/posts/comments/{commentId}")
+    @DELETE("posts/comments/{commentId}")
     suspend fun deleteComment(
         @Header("Authorization") token: String,
         @Path("commentId") commentId: Long
     ): Response<ApiResponse<String>>
-    
+
     /**
      * 创建动态
      */
-    @POST("api/posts")
+    @POST("posts")
     suspend fun createPost(
         @Header("Authorization") token: String,
         @Body postData: Map<String, String>

@@ -31,6 +31,7 @@ public class MessageService {
     private final UserRepository userRepository;
     private final UserSettingsRepository userSettingsRepository;
     private final JPushService jPushService;
+    private final SignalingService signalingService;
     
     /**
      * 发送消息
@@ -58,22 +59,43 @@ public class MessageService {
         
         message = messageRepository.save(message);
         log.info("消息保存成功 - messageId: {}", message.getId());
-        
-        // 发送推送通知给接收者
-        try {
-            sendMessagePushNotification(receiver, sender, message);
-        } catch (Exception e) {
-            log.error("发送消息推送失败", e);
-            // 推送失败不影响消息发送
-        }
-        
-        // 转换为DTO并返回
+
+        // 转换为DTO
         MessageDTO messageDTO = MessageDTO.fromEntity(message);
         messageDTO.setSenderName(sender.getNickname());
         messageDTO.setSenderAvatar(sender.getAvatarUrl());
         messageDTO.setReceiverName(receiver.getNickname());
         messageDTO.setReceiverAvatar(receiver.getAvatarUrl());
-        
+
+        // 混合推送策略：优先WebSocket，降级JPush
+        try {
+            log.info("═══════════════════════════════════════");
+            log.info("准备发送消息推送 - messageId: {}, senderId: {}, receiverId: {}",
+                    message.getId(), sender.getId(), receiver.getId());
+
+            // 尝试通过WebSocket发送（如果用户在线）
+            boolean sentViaWebSocket = signalingService.sendChatMessage(receiver.getId(), messageDTO);
+
+            if (sentViaWebSocket) {
+                log.info("✅ 消息通过WebSocket发送成功 - messageId: {}, receiverId: {} (在线)",
+                        message.getId(), receiver.getId());
+                log.info("跳过JPush推送（用户在线）");
+            } else {
+                log.info("⚠️ 用户离线，降级到JPush推送 - messageId: {}, receiverId: {}",
+                        message.getId(), receiver.getId());
+                // 用户离线，降级到JPush推送
+                sendMessagePushNotification(receiver, sender, message);
+            }
+
+            log.info("═══════════════════════════════════════");
+
+        } catch (Exception e) {
+            log.error("❌ 发送消息推送失败 - messageId: {}, senderId: {}, receiverId: {}, error: {}",
+                    message.getId(), sender.getId(), receiver.getId(), e.getMessage(), e);
+            // 推送失败不影响消息发送
+        }
+
+        // 返回DTO
         return messageDTO;
     }
     

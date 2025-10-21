@@ -85,10 +85,23 @@ logging:
   level:
     root: INFO
     com.example.myapplication: DEBUG
-    org.springframework.web: DEBUG
-    org.springframework.security: DEBUG
+    org.springframework.web: WARN
+    org.springframework.security: WARN
     org.hibernate.SQL: WARN
     org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    # 隐藏控制器映射信息
+    org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: WARN
+    org.springframework.web.servlet.handler.SimpleUrlHandlerMapping: WARN
+    org.springframework.web.socket.messaging.SubProtocolWebSocketHandler: WARN
+    # 隐藏所有控制器类的映射日志
+    com.socialmeet.backend.controller: WARN
+    # 隐藏Spring Boot自动配置的控制器映射日志
+    org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration: WARN
+    org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration: WARN
+    org.springframework.web.servlet.DispatcherServlet: WARN
+    # 隐藏WebSocket相关映射日志
+    org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer: WARN
+    org.springframework.messaging.simp.config.MessageBrokerRegistry: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
@@ -108,8 +121,12 @@ cors:
 # 文件上传配置
 file:
   upload:
-    path: uploads/
+    path: uploads/images/
     avatar-path: uploads/avatars/
+
+# 静态资源配置
+spring.web.resources:
+  static-locations: file:uploads/,classpath:/static/
 
 # 应用配置
 app:

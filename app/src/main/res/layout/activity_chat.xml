@@ -240,22 +240,22 @@
     </LinearLayout>
 
     <!-- 聊天内容区域 -->
-    <LinearLayout
+    <ScrollView
+        android:id="@+id/sv_messages"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="vertical"
         android:paddingHorizontal="16dp">
 
-        <!-- 这里可以添加聊天消息列表 -->
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/ll_message_container"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="聊天记录将在这里显示"
-            android:textColor="#999999"
-            android:textSize="14sp" />
-    </LinearLayout>
+            android:orientation="vertical">
+
+            <!-- 消息将动态添加到这里 -->
+        </LinearLayout>
+    </ScrollView>
 
     <!-- 底部输入区域 -->
     <LinearLayout
@@ -365,6 +365,7 @@
 
              <!-- 文本输入框 -->
              <EditText
+                 android:id="@+id/et_message_input"
                  android:layout_width="0dp"
                  android:layout_height="36dp"
                  android:layout_weight="1"
@@ -388,6 +389,26 @@
                      android:layout_width="20dp"
                      android:layout_height="20dp"
                      android:src="@drawable/ic_emoji" />
+             </LinearLayout>
+
+             <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+
+             <!-- 发送按钮 -->
+             <LinearLayout
+                 android:id="@+id/ll_send_button"
+                 android:layout_width="60dp"
+                 android:layout_height="32dp"
+                 android:background="@drawable/button_primary_bg"
+                 android:gravity="center"
+                 android:clickable="true"
+                 android:focusable="true">
+
+                 <TextView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:text="发送"
+                     android:textColor="#FFFFFF"
+                     android:textSize="12sp" />
              </LinearLayout>
          </LinearLayout>
 

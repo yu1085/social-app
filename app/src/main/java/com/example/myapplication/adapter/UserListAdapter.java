@@ -105,14 +105,25 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserVi
             String displayName = user.getNickname() != null ? user.getNickname() : user.getUsername();
             nameView.setText(displayName);
 
-            // 更新在线状态
-            if (user.getIsOnline() != null && user.getIsOnline()) {
-                statusView.setText("在线");
-                statusIndicator.setBackgroundResource(R.drawable.status_indicator_green);
+            // ✅ 更新在线状态 - 优先使用status字段，兜底使用isOnline
+            String statusText;
+            boolean isOnline;
+            if (user.getStatus() != null) {
+                // 使用新的status字段
+                statusText = "ONLINE".equals(user.getStatus()) ? "在线" : "离线";
+                isOnline = "ONLINE".equals(user.getStatus());
+            } else if (user.getIsOnline() != null) {
+                // 兜底：使用旧的isOnline字段
+                statusText = user.getIsOnline() ? "在线" : "离线";
+                isOnline = user.getIsOnline();
             } else {
-                statusView.setText("离线");
-                statusIndicator.setBackgroundResource(R.drawable.status_indicator_red);
+                statusText = "离线";
+                isOnline = false;
             }
+            statusView.setText(statusText);
+            statusIndicator.setBackgroundResource(
+                isOnline ? R.drawable.status_indicator_green : R.drawable.status_indicator_red
+            );
 
             // 更新价格
             Double videoPrice = user.getVideoCallPrice();
@@ -134,10 +145,17 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserVi
                 Intent intent = new Intent(context, UserDetailActivity.class);
                 intent.putExtra("user_id", user.getId());
                 intent.putExtra("user_name", displayName);
-                intent.putExtra("user_status", user.getIsOnline() ? "在线" : "离线");
+
+                // ✅ 优先使用status字段，兜底使用isOnline字段
+                String status = user.getStatus() != null ? user.getStatus() :
+                                (user.getIsOnline() != null && user.getIsOnline() ? "ONLINE" : "OFFLINE");
+                intent.putExtra("user_status", status);
 
                 if (user.getLocation() != null) {
                     intent.putExtra("user_location", user.getLocation());
+                }
+                if (user.getAge() != null) {
+                    intent.putExtra("user_age", String.valueOf(user.getAge()));
                 }
                 if (user.getSignature() != null) {
                     intent.putExtra("user_description", user.getSignature());

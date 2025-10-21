@@ -9,31 +9,51 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.widget.Toast;
 import android.content.Intent;
 import androidx.appcompat.app.AlertDialog;
+import android.util.Log;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import java.util.List;
 import java.util.ArrayList;
+import com.example.myapplication.dto.UserDTO;
+import com.example.myapplication.dto.ApiResponse;
+import com.example.myapplication.network.ApiService;
+import com.example.myapplication.network.RetrofitClient;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class LikesActivity extends AppCompatActivity {
-    
+
+    private static final String TAG = "LikesActivity";
+
     private ImageView ivBack;
     private ImageView ivSettings;
     private TextView tvTitle;
     private LinearLayout llViewWhoLikesMe;
     private LinearLayout llCancelLikeButton;
-    
+
     // 选择模式相关
     private boolean isSelectionMode = false;
     private List<LinearLayout> likeItems = new ArrayList<>();
     private List<Boolean> selectedItems = new ArrayList<>();
+
+    // API数据
+    private List<UserDTO> likeUsers = new ArrayList<>();
+    private ApiService apiService;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_likes);
-        
+
+        // 初始化API服务
+        apiService = RetrofitClient.INSTANCE.create(ApiService.class);
+
         initViews();
         initLikeItems();
         setupClickListeners();
+
+        // 加载喜欢列表
+        loadLikes();
     }
     
     private void initViews() {
@@ -267,27 +287,63 @@ public class LikesActivity extends AppCompatActivity {
             .show();
     }
     
+    private void loadLikes() {
+        Log.d(TAG, "开始加载喜欢列表");
+
+        apiService.getLikes(0, 20).enqueue(new Callback<ApiResponse<List<UserDTO>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<UserDTO>>> call, Response<ApiResponse<List<UserDTO>>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    likeUsers = response.body().getData();
+                    Log.d(TAG, "成功加载 " + likeUsers.size() + " 个喜欢用户");
+
+                    // 重新设置点击事件
+                    runOnUiThread(() -> setupLikeItemClickListeners());
+                } else {
+                    Log.e(TAG, "加载喜欢列表失败: " + (response.body() != null ? response.body().getMessage() : "Unknown error"));
+                    Toast.makeText(LikesActivity.this, "加载喜欢列表失败", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<UserDTO>>> call, Throwable t) {
+                Log.e(TAG, "加载喜欢列表异常", t);
+                Toast.makeText(LikesActivity.this, "网络错误", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void setupLikeItemClickListeners() {
         // 为每个喜欢项目设置点击事件
         for (int i = 1; i <= 10; i++) {
             LinearLayout item = findViewById(getLikeItemId(i));
             if (item != null) {
-                final int index = i;
+                final int index = i - 1;  // 转换为0-based index
                 item.setOnClickListener(v -> {
                     // 跳转到用户详情页
                     Intent intent = new Intent(LikesActivity.this, UserDetailActivity.class);
 
-                    // ✅ 修复：添加 user_id 传递（使用测试用户ID）
-                    // 使用现有测试用户：23820512, 23820513, 23820516, 23820517
-                    long userId = 23820512L + (index % 4);  // 循环使用4个测试用户
-                    intent.putExtra("user_id", userId);
+                    // ✅ 使用API返回的真实user_id和属性（不再硬编码）
+                    if (index < likeUsers.size()) {
+                        UserDTO user = likeUsers.get(index);
+                        intent.putExtra("user_id", user.getId() != null ? user.getId() : 0L);
+                        intent.putExtra("user_name", user.getNickname() != null ? user.getNickname() : user.getUsername());
+                        intent.putExtra("user_status", user.getStatus() != null ? user.getStatus() : "OFFLINE");
+                        intent.putExtra("user_age", user.getAge() != null ? String.valueOf(user.getAge()) : "");
+                        intent.putExtra("user_location", user.getLocation() != null ? user.getLocation() : "未知");
+                        intent.putExtra("user_description", user.getSignature() != null ? user.getSignature() : "这是一个可爱的用户");
+                        intent.putExtra("user_avatar", R.drawable.group_27); // TODO: 后续使用user.getAvatarUrl()
+                    } else {
+                        // 如果API数据不足，使用默认值
+                        intent.putExtra("user_id", 0L);
+                        intent.putExtra("user_name", "喜欢用户" + (index + 1));
+                        intent.putExtra("user_status", "在线");
+                        intent.putExtra("user_age", "25");
+                        intent.putExtra("user_location", "北京");
+                        intent.putExtra("user_description", "这是一个可爱的用户");
+                        intent.putExtra("user_avatar", R.drawable.group_27);
+                    }
 
-                    intent.putExtra("user_name", "喜欢用户" + index);
-                    intent.putExtra("user_status", index % 2 == 0 ? "在线" : "忙碌");
-                    intent.putExtra("user_age", (20 + index) + "岁");
-                    intent.putExtra("user_location", index % 2 == 0 ? "北京" : "上海");
-                    intent.putExtra("user_description", "这是一个可爱的用户");
-                    intent.putExtra("user_avatar", index % 2 == 0 ? R.drawable.group_28 : R.drawable.group_27);
                     startActivity(intent);
                 });
             }

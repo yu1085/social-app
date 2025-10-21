@@ -44,6 +44,8 @@ public class UserDTO {
     private Integer wealthLevel;
     private Double balance;
     private Boolean isOnline;
+    private String status;  // 用户状态：ONLINE/OFFLINE/BUSY
+    private Integer age;    // 根据生日计算的年龄
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastActiveAt;
@@ -89,6 +91,26 @@ public class UserDTO {
         dto.setWealthLevel(user.getWealthLevel());
         dto.setBalance(user.getBalance() != null ? user.getBalance().doubleValue() : 0.0);
         dto.setIsOnline(user.getIsOnline());
+
+        // 设置用户状态
+        if (user.getIsOnline() != null && user.getIsOnline()) {
+            dto.setStatus("ONLINE");
+        } else {
+            dto.setStatus("OFFLINE");
+        }
+
+        // 计算年龄
+        if (user.getBirthday() != null) {
+            LocalDate now = LocalDate.now();
+            int age = now.getYear() - user.getBirthday().getYear();
+            if (now.getMonthValue() < user.getBirthday().getMonthValue() ||
+                (now.getMonthValue() == user.getBirthday().getMonthValue() &&
+                 now.getDayOfMonth() < user.getBirthday().getDayOfMonth())) {
+                age--;
+            }
+            dto.setAge(age);
+        }
+
         dto.setLastActiveAt(user.getLastActiveAt());
         dto.setCreatedAt(user.getCreatedAt());
         dto.setUpdatedAt(user.getUpdatedAt());

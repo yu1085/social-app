@@ -10,8 +10,8 @@ import java.util.concurrent.TimeUnit
  * Retrofit客户端
  */
 object RetrofitClient {
-    
-    private const val BASE_URL = "http://10.0.2.2:8080/" // Android模拟器访问本地服务器
+
+    private const val BASE_URL = "http://10.0.2.2:8080/api/" // Android模拟器访问本地服务器
     
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(HttpLoggingInterceptor().apply {
