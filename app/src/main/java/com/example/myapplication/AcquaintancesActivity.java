@@ -257,6 +257,12 @@ public class AcquaintancesActivity extends AppCompatActivity {
                 item.setOnClickListener(v -> {
                     // 跳转到用户详情页
                     Intent intent = new Intent(AcquaintancesActivity.this, UserDetailActivity.class);
+
+                    // ✅ 修复：添加 user_id 传递（使用测试用户ID）
+                    // 使用现有测试用户：23820512, 23820513, 23820516, 23820517
+                    long userId = 23820512L + (index % 4);  // 循环使用4个测试用户
+                    intent.putExtra("user_id", userId);
+
                     intent.putExtra("user_name", "知友" + index);
                     intent.putExtra("user_status", "在线");
                     intent.putExtra("user_age", "25");

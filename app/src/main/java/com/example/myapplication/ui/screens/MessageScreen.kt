@@ -145,6 +145,8 @@ private fun RecommendedUsersSection() {
                 modifier = Modifier.weight(1f),
                 onClick = {
                     val intent = Intent(context, UserDetailActivity::class.java)
+                    // ✅ 修复：添加 user_id 传递
+                    intent.putExtra("user_id", 23820512L)
                     intent.putExtra("user_name", "小雅")
                     intent.putExtra("user_status", "空闲")
                     intent.putExtra("user_age", "24岁")
@@ -161,6 +163,8 @@ private fun RecommendedUsersSection() {
                 modifier = Modifier.weight(1f),
                 onClick = {
                     val intent = Intent(context, UserDetailActivity::class.java)
+                    // ✅ 修复：添加 user_id 传递
+                    intent.putExtra("user_id", 23820513L)
                     intent.putExtra("user_name", "小雨")
                     intent.putExtra("user_status", "忙碌")
                     intent.putExtra("user_age", "22岁")
@@ -177,6 +181,8 @@ private fun RecommendedUsersSection() {
                 modifier = Modifier.weight(1f),
                 onClick = {
                     val intent = Intent(context, UserDetailActivity::class.java)
+                    // ✅ 修复：添加 user_id 传递
+                    intent.putExtra("user_id", 23820516L)
                     intent.putExtra("user_name", "小美")
                     intent.putExtra("user_status", "空闲")
                     intent.putExtra("user_age", "25岁")
@@ -193,6 +199,8 @@ private fun RecommendedUsersSection() {
                 modifier = Modifier.weight(1f),
                 onClick = {
                     val intent = Intent(context, UserDetailActivity::class.java)
+                    // ✅ 修复：添加 user_id 传递
+                    intent.putExtra("user_id", 23820517L)
                     intent.putExtra("user_name", "小琳")
                     intent.putExtra("user_status", "忙碌")
                     intent.putExtra("user_age", "23岁")
@@ -407,6 +415,16 @@ private fun CallListSection() {
                     onClick = {
                         // 跳转到用户详情页面
                         val intent = Intent(context, UserDetailActivity::class.java).apply {
+                            // ✅ 修复：添加 user_id 传递（基于通话列表数据映射到真实用户）
+                            val userId = when (call.name) {
+                                "你的小可爱512" -> 23820512L
+                                "漫步的美人鱼" -> 23820513L
+                                "小雅" -> 23820516L
+                                "小雨" -> 23820517L
+                                "小美" -> 23820518L
+                                else -> 23820512L + (callList.indexOf(call) % 4)  // 默认使用索引映射
+                            }
+                            putExtra("user_id", userId)
                             putExtra("user_name", call.name)
                             putExtra("user_status", if (call.isMissed) "未接" else "已接通话")
                             putExtra("user_age", "25") // 默认年龄
