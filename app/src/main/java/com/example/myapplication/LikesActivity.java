@@ -276,12 +276,18 @@ public class LikesActivity extends AppCompatActivity {
                 item.setOnClickListener(v -> {
                     // 跳转到用户详情页
                     Intent intent = new Intent(LikesActivity.this, UserDetailActivity.class);
+
+                    // ✅ 修复：添加 user_id 传递（使用测试用户ID）
+                    // 使用现有测试用户：23820512, 23820513, 23820516, 23820517
+                    long userId = 23820512L + (index % 4);  // 循环使用4个测试用户
+                    intent.putExtra("user_id", userId);
+
                     intent.putExtra("user_name", "喜欢用户" + index);
-                    intent.putExtra("user_status", "在线");
-                    intent.putExtra("user_age", "25");
-                    intent.putExtra("user_location", "北京");
+                    intent.putExtra("user_status", index % 2 == 0 ? "在线" : "忙碌");
+                    intent.putExtra("user_age", (20 + index) + "岁");
+                    intent.putExtra("user_location", index % 2 == 0 ? "北京" : "上海");
                     intent.putExtra("user_description", "这是一个可爱的用户");
-                    intent.putExtra("user_avatar", R.drawable.group_28);
+                    intent.putExtra("user_avatar", index % 2 == 0 ? R.drawable.group_28 : R.drawable.group_27);
                     startActivity(intent);
                 });
             }

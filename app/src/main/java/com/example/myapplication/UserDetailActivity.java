@@ -92,16 +92,68 @@ public class UserDetailActivity extends AppCompatActivity {
 
         // 从后端加载用户详细信息
         if (currentUserId != null && currentUserId != -1L) {
+            // 有用户ID，从后端API加载
             loadUserDetail(currentUserId);
         } else {
-            // 如果没有传递用户ID,显示错误并关闭页面
-            Toast.makeText(this, "用户信息错误", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
+            // ✅ 修复：没有用户ID时，使用Intent传递的数据显示（兜底方案）
+            Log.w("UserDetailActivity", "未传递用户ID，使用Intent中的数据显示");
+            loadUserFromIntent();
         }
 
         // 加载用户通话价格信息
         loadUserCallPrices();
+    }
+
+    /**
+     * ✅ 新增：从Intent加载用户信息（兜底方案）
+     */
+    private void loadUserFromIntent() {
+        Log.d("UserDetailActivity", "从Intent加载用户信息");
+
+        // 从Intent获取传递的数据
+        String userName = getIntent().getStringExtra("user_name");
+        String userStatus = getIntent().getStringExtra("user_status");
+        String userAge = getIntent().getStringExtra("user_age");
+        String userLocation = getIntent().getStringExtra("user_location");
+        String userDescription = getIntent().getStringExtra("user_description");
+
+        // 显示用户信息
+        if (userName != null && !userName.isEmpty()) {
+            tvUserName.setText(userName);
+        } else {
+            tvUserName.setText("未知用户");
+        }
+
+        if (userStatus != null && !userStatus.isEmpty()) {
+            tvUserStatus.setText(userStatus);
+        } else {
+            tvUserStatus.setText("离线");
+        }
+
+        if (userAge != null && !userAge.isEmpty()) {
+            tvUserAge.setText(userAge);
+            tvUserAge.setVisibility(View.VISIBLE);
+        } else {
+            tvUserAge.setVisibility(View.GONE);
+        }
+
+        if (userLocation != null && !userLocation.isEmpty()) {
+            tvUserLocation.setText(userLocation);
+        } else {
+            tvUserLocation.setText("未知");
+        }
+
+        if (userDescription != null && !userDescription.isEmpty()) {
+            tvUserDescription.setText(userDescription);
+        } else {
+            tvUserDescription.setText("这个人很懒，什么都没写");
+        }
+
+        // 显示默认ID
+        tvUserId.setText("ID: " + (receiverUserId != null ? receiverUserId : "未知"));
+
+        Log.d("UserDetailActivity", "Intent数据加载完成 - " +
+                "姓名: " + userName + ", 状态: " + userStatus + ", 位置: " + userLocation);
     }
 
     /**
@@ -193,9 +245,10 @@ public class UserDetailActivity extends AppCompatActivity {
                     tvUserId.setText("ID: " + user.getId());
                     Log.d("UserDetailActivity", "设置用户ID显示: ID: " + user.getId());
                 } else {
-                    Log.e("UserDetailActivity", "加载用户详情失败 - 用户数据为null");
-                    Toast.makeText(UserDetailActivity.this, "加载用户信息失败", Toast.LENGTH_SHORT).show();
-                    finish();
+                    // ✅ 修复：API加载失败时，使用Intent传递的数据（兜底方案）
+                    Log.e("UserDetailActivity", "加载用户详情失败 - 用户数据为null，使用Intent数据");
+                    Toast.makeText(UserDetailActivity.this, "无法从服务器加载用户信息，显示本地数据", Toast.LENGTH_SHORT).show();
+                    loadUserFromIntent();
                 }
             }
         }.execute();
