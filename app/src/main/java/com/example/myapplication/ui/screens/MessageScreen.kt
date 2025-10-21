@@ -26,12 +26,31 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.platform.LocalContext
 import android.content.Intent
+import android.util.Log
 import com.example.myapplication.ui.theme.*
 import com.example.myapplication.UserDetailActivity
 import com.example.myapplication.ChatActivity
 import com.example.myapplication.AcquaintancesActivity
 import com.example.myapplication.LikesActivity
 import com.example.myapplication.IntimacyActivity
+import com.example.myapplication.network.RetrofitClient
+import com.example.myapplication.network.ApiService
+import com.example.myapplication.dto.UserDTO
+import com.example.myapplication.dto.ApiResponse
+import com.example.myapplication.dto.MessageDTO
+import com.example.myapplication.dto.ConversationDTO
+import com.example.myapplication.auth.AuthManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.IntentFilter
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 
 @Composable
 fun MessageScreen(
@@ -39,61 +58,207 @@ fun MessageScreen(
 ) {
     // 添加状态管理来跟踪当前选中的标签
     var selectedTab by remember { mutableStateOf(0) } // 0: 消息, 1: 通话, 2: 关系
-    
+
     // 消息搜索状态
     var searchQuery by remember { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
-    
-    // 过滤后的消息列表
-    val filteredMessages = remember(searchQuery) {
+
+    // 推荐用户状态管理
+    var recommendedUsers by remember { mutableStateOf<List<UserDTO>>(emptyList()) }
+    var isLoadingUsers by remember { mutableStateOf(false) }
+    var refreshTrigger by remember { mutableStateOf(0) }
+
+    // 真实会话状态管理
+    var realConversations by remember { mutableStateOf<List<ConversationDTO>>(emptyList()) }
+    var isLoadingMessages by remember { mutableStateOf(false) }
+    var messageRefreshTrigger by remember { mutableStateOf(0) }
+
+    val scope = rememberCoroutineScope()
+    val apiService = remember { RetrofitClient.create(ApiService::class.java) }
+
+    // ✅ 注册广播接收器监听新消息，收到后自动刷新会话列表
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(context, lifecycleOwner) {
+        val newMessageReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent?) {
+                if (intent?.action == "com.example.myapplication.NEW_MESSAGE") {
+                    Log.d("MessageScreen", "收到新消息广播，准备刷新会话列表")
+                    // 使用scope.launch在Compose协程作用域中更新状态
+                    scope.launch {
+                        messageRefreshTrigger++
+                    }
+                }
+            }
+        }
+
+        val filter = IntentFilter("com.example.myapplication.NEW_MESSAGE")
+        context.registerReceiver(newMessageReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        Log.d("MessageScreen", "已注册新消息广播接收器")
+
+        val lifecycleObserver = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                // 当页面恢复时也刷新会话列表
+                Log.d("MessageScreen", "页面恢复，刷新会话列表")
+                // 使用scope.launch在Compose协程作用域中更新状态
+                scope.launch {
+                    messageRefreshTrigger++
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+
+        onDispose {
+            context.unregisterReceiver(newMessageReceiver)
+            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
+            Log.d("MessageScreen", "已注销新消息广播接收器")
+        }
+    }
+
+    // 加载推荐用户
+    LaunchedEffect(refreshTrigger) {
+        isLoadingUsers = true
+        try {
+            val response = withContext(Dispatchers.IO) {
+                apiService.getRecommendedUsers(4).execute()
+            }
+            if (response.isSuccessful && response.body()?.isSuccess == true) {
+                recommendedUsers = response.body()?.data ?: emptyList()
+                Log.d("MessageScreen", "成功加载 ${recommendedUsers.size} 个推荐用户")
+            } else {
+                Log.e("MessageScreen", "加载推荐用户失败: ${response.message()}")
+            }
+        } catch (e: Exception) {
+            Log.e("MessageScreen", "加载推荐用户异常", e)
+        } finally {
+            isLoadingUsers = false
+        }
+    }
+
+    // 加载真实消息
+    LaunchedEffect(messageRefreshTrigger) {
+        isLoadingMessages = true
+        try {
+            val authManager = AuthManager.getInstance(context)
+            val token = authManager.getToken()
+
+            if (token != null) {
+                // ✅ 使用真实的当前登录用户ID
+                val currentUserId = authManager.getUserId()
+                if (currentUserId != null) {
+                    val response = withContext(Dispatchers.IO) {
+                        apiService.getConversations(currentUserId).execute()
+                    }
+                    if (response.isSuccessful && response.body()?.isSuccess == true) {
+                        realConversations = response.body()?.data ?: emptyList()
+                        Log.d("MessageScreen", "成功加载 ${realConversations.size} 个会话")
+                    } else {
+                        Log.e("MessageScreen", "加载会话列表失败: ${response.message()}")
+                    }
+                } else {
+                    Log.e("MessageScreen", "当前用户ID为null，无法加载会话")
+                }
+            } else {
+                Log.e("MessageScreen", "用户未登录，无法加载消息")
+            }
+        } catch (e: Exception) {
+            // 协程取消异常是正常的，表示页面已离开
+            if (e.javaClass.simpleName.contains("Cancellation")) {
+                Log.d("MessageScreen", "页面已离开，取消消息加载")
+            } else {
+                Log.e("MessageScreen", "加载真实消息异常", e)
+            }
+        } finally {
+            isLoadingMessages = false
+        }
+    }
+
+    // 格式化时间（需要先定义，因为convertConversationToMessage会使用它）
+    fun formatTime(timeString: String): String {
+        return try {
+            // 简单的时间格式化，可以根据需要调整
+            if (timeString.contains("刚刚") || timeString.contains("Just now")) "刚刚"
+            else if (timeString.contains("小时前") || timeString.contains("hours ago")) "1小时前"
+            else if (timeString.contains("天前") || timeString.contains("days ago")) "1天前"
+            else "刚刚"
+        } catch (e: Exception) {
+            "刚刚"
+        }
+    }
+
+    // 将ConversationDTO转换为Message的函数
+    fun convertConversationToMessage(conversation: ConversationDTO): Message {
+        return Message(
+            name = conversation.nickname ?: "Unknown",
+            content = conversation.lastMessage ?: "",
+            time = formatTime(conversation.lastMessageTime?.toString() ?: ""),
+            avatarImage = "group_27", // 使用默认头像
+            unreadCount = conversation.unreadCount?.toInt() ?: 0,
+            isOnline = conversation.isOnline ?: false,
+            userId = conversation.userId  // ✅ 传递对方用户ID
+        )
+    }
+
+    // 过滤后的消息列表 - 使用真实会话
+    val filteredMessages = remember(searchQuery, realConversations) {
+        val convertedMessages = realConversations.map { convertConversationToMessage(it) }
         if (searchQuery.isEmpty()) {
-            messageList
+            convertedMessages
         } else {
-            messageList.filter { message ->
+            convertedMessages.filter { message ->
                 message.name.contains(searchQuery, ignoreCase = true) ||
                 message.content.contains(searchQuery, ignoreCase = true)
             }
         }
     }
-    
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
         // 顶部区域
-        TopSection()
-        
+        TopSection(
+            onRefreshClick = {
+                refreshTrigger++
+                messageRefreshTrigger++
+            }
+        )
+
         // 推荐用户区域
-        RecommendedUsersSection()
-        
+        RecommendedUsersSection(
+            users = recommendedUsers,
+            isLoading = isLoadingUsers
+        )
+
         // 标签栏
         TabBarSection(
             selectedTab = selectedTab,
             onTabSelected = { selectedTab = it },
             onSearchClick = onSearchClick
         )
-        
+
         // 根据选中的标签显示不同的内容
         when (selectedTab) {
             0 -> MessageListSection(filteredMessages = filteredMessages) // 消息页面
             1 -> CallListSection()    // 通话页面
             2 -> RelationshipSection() // 关系页面
         }
-        
+
 
     }
 }
 
 @Composable
-private fun TopSection() {
+private fun TopSection(onRefreshClick: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
     ) {
         Spacer(modifier = Modifier.height(20.dp))
-        
+
         // 标题区域
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -108,110 +273,128 @@ private fun TopSection() {
                     color = Color(0xFFFE62AC)
                 )
             }
-            
+
             Text(
                 text = "换一批",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color(0xFF5289ED),
-                modifier = Modifier.clickable { }
+                modifier = Modifier.clickable { onRefreshClick() }
             )
         }
-        
+
 
     }
 }
 
 @Composable
-private fun RecommendedUsersSection() {
+private fun RecommendedUsersSection(
+    users: List<UserDTO>,
+    isLoading: Boolean
+) {
     val context = LocalContext.current
-    
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
     ) {
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         // 推荐用户卡片
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            RecommendedUserCard(
-                name = "小雅",
-                status = UserStatus.IDLE,
-                iconRes = "group_27",
-                modifier = Modifier.weight(1f),
-                onClick = {
-                    val intent = Intent(context, UserDetailActivity::class.java)
-                    // ✅ 修复：添加 user_id 传递
-                    intent.putExtra("user_id", 23820512L)
-                    intent.putExtra("user_name", "小雅")
-                    intent.putExtra("user_status", "空闲")
-                    intent.putExtra("user_age", "24岁")
-                    intent.putExtra("user_location", "北京")
-                    intent.putExtra("user_description", "温柔可爱的女孩，喜欢听音乐和看电影。希望能找到志同道合的朋友。")
-                    intent.putExtra("user_avatar", com.example.myapplication.R.drawable.group_27)
-                    context.startActivity(intent)
+        if (isLoading) {
+            // 加载中显示占位符
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                repeat(4) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(80.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFFE0E0E0)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "...",
+                            color = Color(0xFF999999),
+                            fontSize = 12.sp
+                        )
+                    }
                 }
-            )
-            RecommendedUserCard(
-                name = "小雨",
-                status = UserStatus.BUSY,
-                iconRes = "group_28",
-                modifier = Modifier.weight(1f),
-                onClick = {
-                    val intent = Intent(context, UserDetailActivity::class.java)
-                    // ✅ 修复：添加 user_id 传递
-                    intent.putExtra("user_id", 23820513L)
-                    intent.putExtra("user_name", "小雨")
-                    intent.putExtra("user_status", "忙碌")
-                    intent.putExtra("user_age", "22岁")
-                    intent.putExtra("user_location", "上海")
-                    intent.putExtra("user_description", "活泼开朗的女孩，喜欢运动和旅行。希望能遇到有趣的人一起分享快乐。")
-                    intent.putExtra("user_avatar", com.example.myapplication.R.drawable.group_27)
-                    context.startActivity(intent)
+            }
+        } else if (users.isEmpty()) {
+            // 空状态
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                repeat(4) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(80.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFFF5F5F5)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "暂无",
+                            color = Color(0xFF999999),
+                            fontSize = 12.sp
+                        )
+                    }
                 }
-            )
-            RecommendedUserCard(
-                name = "小美",
-                status = UserStatus.IDLE,
-                iconRes = "group_29",
-                modifier = Modifier.weight(1f),
-                onClick = {
-                    val intent = Intent(context, UserDetailActivity::class.java)
-                    // ✅ 修复：添加 user_id 传递
-                    intent.putExtra("user_id", 23820516L)
-                    intent.putExtra("user_name", "小美")
-                    intent.putExtra("user_status", "空闲")
-                    intent.putExtra("user_age", "25岁")
-                    intent.putExtra("user_location", "广州")
-                    intent.putExtra("user_description", "充满正能量的女孩，喜欢聊天和交朋友。希望能遇到有趣的人一起分享生活的美好。")
-                    intent.putExtra("user_avatar", com.example.myapplication.R.drawable.group_29)
-                    context.startActivity(intent)
+            }
+        } else {
+            // 显示用户卡片（最多4个）
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                users.take(4).forEachIndexed { index, user ->
+                    RecommendedUserCard(
+                        name = user.nickname ?: user.username ?: "用户${user.id}",
+                        status = UserStatus.IDLE,
+                        iconRes = getAvatarResourceForUser(index),
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            val intent = Intent(context, UserDetailActivity::class.java)
+                            // ✅ 使用API返回的真实user_id和属性（不再硬编码）
+                            intent.putExtra("user_id", user.id ?: 0L)
+                            intent.putExtra("user_name", user.nickname ?: user.username)
+                            intent.putExtra("user_status", user.status ?: "OFFLINE")
+                            intent.putExtra("user_age", user.age?.toString() ?: "")
+                            intent.putExtra("user_location", user.location ?: "未知")
+                            intent.putExtra("user_description", user.signature ?: "这是一个有趣的用户")
+                            intent.putExtra("user_avatar", getImageResourceId(getAvatarResourceForUser(index))) // TODO: 后续使用user.avatarUrl
+                            context.startActivity(intent)
+                        }
+                    )
                 }
-            )
-            RecommendedUserCard(
-                name = "小琳",
-                status = UserStatus.BUSY,
-                iconRes = "group_30",
-                modifier = Modifier.weight(1f),
-                onClick = {
-                    val intent = Intent(context, UserDetailActivity::class.java)
-                    // ✅ 修复：添加 user_id 传递
-                    intent.putExtra("user_id", 23820517L)
-                    intent.putExtra("user_name", "小琳")
-                    intent.putExtra("user_status", "忙碌")
-                    intent.putExtra("user_age", "23岁")
-                    intent.putExtra("user_location", "深圳")
-                    intent.putExtra("user_description", "温柔善良的女孩，喜欢阅读和写作。希望能找到心灵相通的朋友。")
-                    intent.putExtra("user_avatar", com.example.myapplication.R.drawable.group_30)
-                    context.startActivity(intent)
+                // 如果用户少于4个，填充空白占位符
+                if (users.size < 4) {
+                    repeat(4 - users.size) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(80.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFFF5F5F5))
+                        )
+                    }
                 }
-            )
+            }
         }
     }
+}
+
+// 辅助函数：为用户分配头像资源
+private fun getAvatarResourceForUser(index: Int): String {
+    val avatars = listOf("group_27", "group_28", "group_29", "group_30")
+    return avatars[index % avatars.size]
 }
 
 @Composable
@@ -368,6 +551,7 @@ private fun MessageListSection(filteredMessages: List<Message>) {
                     onClick = {
                         // 跳转到聊天页面
                         val intent = Intent(context, ChatActivity::class.java).apply {
+                            putExtra("user_id", message.userId ?: -1L)  // ✅ 传递对方用户ID
                             putExtra("user_name", message.name)
                             putExtra("user_avatar", message.avatarImage)
                             putExtra("user_status", if (message.isOnline) "在线" else "离线")
@@ -415,22 +599,11 @@ private fun CallListSection() {
                     onClick = {
                         // 跳转到用户详情页面
                         val intent = Intent(context, UserDetailActivity::class.java).apply {
-                            // ✅ 修复：添加 user_id 传递（基于通话列表数据映射到真实用户）
-                            val userId = when (call.name) {
-                                "你的小可爱512" -> 23820512L
-                                "漫步的美人鱼" -> 23820513L
-                                "小雅" -> 23820516L
-                                "小雨" -> 23820517L
-                                "小美" -> 23820518L
-                                else -> 23820512L + (callList.indexOf(call) % 4)  // 默认使用索引映射
-                            }
-                            putExtra("user_id", userId)
+                            // ✅ 使用CallItem中的真实user_id（不再硬编码映射）
+                            putExtra("user_id", call.userId)
                             putExtra("user_name", call.name)
-                            putExtra("user_status", if (call.isMissed) "未接" else "已接通话")
-                            putExtra("user_age", "25") // 默认年龄
-                            putExtra("user_location", "北京") // 默认位置
-                            putExtra("user_description", "这是一个可爱的用户")
-                            putExtra("user_avatar", call.avatarImage)
+                            // ✅ 移除硬编码的status、age、location，让UserDetailActivity从API加载
+                            putExtra("user_avatar", getImageResourceId(call.avatarImage))
                         }
                         context.startActivity(intent)
                     }
@@ -992,7 +1165,8 @@ data class Message(
     val time: String,
     val avatarImage: String,
     val unreadCount: Int = 0,
-    val isOnline: Boolean = false
+    val isOnline: Boolean = false,
+    val userId: Long? = null  // 对方用户ID
 )
 
 data class CallItem(
@@ -1000,7 +1174,8 @@ data class CallItem(
     val time: String,
     val avatarImage: String,
     val isMissed: Boolean = false,
-    val callStatus: String = "已取消通话" // 通话状态：已取消通话、通话时长等
+    val callStatus: String = "已取消通话", // 通话状态：已取消通话、通话时长等
+    val userId: Long = 0L // 用户ID，默认0表示无效
 )
 
 data class RelationshipItem(
@@ -1109,34 +1284,40 @@ private val callList = listOf(
         time = "刚刚",
         avatarImage = "group_27",
         isMissed = false,
-        callStatus = "00:00:36"
+        callStatus = "00:00:36",
+        userId = 23820512L
     ),
     CallItem(
         name = "漫步的美人鱼",
         time = "12小时前",
         avatarImage = "group_28",
         isMissed = true,
-        callStatus = "已取消通话"
+        callStatus = "已取消通话",
+        userId = 23820513L
     ),
     CallItem(
         name = "小雅",
         time = "1天前",
         avatarImage = "group_29",
         isMissed = false,
-        callStatus = "00:01:24"
+        callStatus = "00:01:24",
+        userId = 23820516L
     ),
     CallItem(
         name = "小雨",
         time = "2天前",
         avatarImage = "group_30",
         isMissed = false,
-        callStatus = "00:00:18"
+        callStatus = "00:00:18",
+        userId = 23820517L
     ),
     CallItem(
         name = "小美",
         time = "3天前",
         avatarImage = "group_27",
-        isMissed = true
+        isMissed = true,
+        callStatus = "已取消通话",
+        userId = 23820518L
     )
 )
 

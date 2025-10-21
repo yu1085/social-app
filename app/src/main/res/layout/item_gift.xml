@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:gravity="center"
+    android:background="?attr/selectableItemBackground">
+
+    <!-- 礼物图标 -->
+    <TextView
+        android:id="@+id/tv_gift_icon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:text="🎁"
+        android:textSize="32sp"
+        android:gravity="center" />
+
+    <!-- 礼物名称 -->
+    <TextView
+        android:id="@+id/tv_gift_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="礼物"
+        android:textSize="12sp"
+        android:textColor="#333333"
+        android:layout_marginTop="4dp" />
+
+    <!-- 礼物价格 -->
+    <TextView
+        android:id="@+id/tv_gift_price"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="10金币"
+        android:textSize="10sp"
+        android:textColor="#FF69B4"
+        android:layout_marginTop="2dp" />
+</LinearLayout>

@@ -9,9 +9,17 @@ import com.socialmeet.backend.service.CallRecordService;
 import com.socialmeet.backend.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 消息控制器
@@ -25,6 +33,9 @@ public class MessageController {
 
     private final MessageService messageService;
     private final CallRecordService callRecordService;
+
+    @Value("${file.upload.path:uploads/images}")
+    private String uploadPath;
     
     /**
      * 发送消息
@@ -178,6 +189,52 @@ public class MessageController {
         } catch (Exception e) {
             log.error("测试推送失败", e);
             return ApiResponse.error("测试推送失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 上传图片
+     */
+    @PostMapping("/upload-image")
+    public ApiResponse<String> uploadImage(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ApiResponse.error("文件不能为空");
+            }
+
+            // 验证文件类型
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                return ApiResponse.error("只支持图片文件");
+            }
+
+            // 创建上传目录
+            File uploadDir = new File(uploadPath);
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
+
+            // 生成唯一文件名
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String filename = UUID.randomUUID().toString() + extension;
+
+            // 保存文件
+            Path filePath = Paths.get(uploadPath, filename);
+            Files.copy(file.getInputStream(), filePath);
+
+            // 返回文件访问URL（相对路径）
+            String imageUrl = "/uploads/images/" + filename;
+            log.info("图片上传成功 - 文件名: {}, URL: {}", filename, imageUrl);
+
+            return ApiResponse.success(imageUrl);
+
+        } catch (IOException e) {
+            log.error("图片上传失败", e);
+            return ApiResponse.error("图片上传失败: " + e.getMessage());
         }
     }
 }

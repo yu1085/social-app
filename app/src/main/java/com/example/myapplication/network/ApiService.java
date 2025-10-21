@@ -223,23 +223,28 @@ public interface ApiService {
     Call<ApiResponse<PostDTO>> unlikePost(@Header("Authorization") String authHeader, @Path("postId") Long postId);
     
     // 获取消息列表
-    @GET("messages")
+    @GET("message")
     Call<ApiResponse<List<MessageDTO>>> getMessages(@Header("Authorization") String authHeader);
-    
+
     // 发送消息
-    @POST("messages")
-    Call<ApiResponse<MessageDTO>> sendMessage(@Header("Authorization") String authHeader, @Body MessageDTO message);
-    
+    @POST("message/send")
+    Call<ApiResponse<MessageDTO>> sendMessage(
+            @Header("Authorization") String authHeader,
+            @Query("senderId") Long senderId,
+            @Query("receiverId") Long receiverId,
+            @Query("content") String content,
+            @Query("messageType") String messageType);
+
     // 获取聊天记录
-    @GET("messages/chat-history")
+    @GET("message/chat-history")
     Call<ApiResponse<List<MessageDTO>>> getChatHistory(
             @Header("Authorization") String authHeader,
             @Query("userId1") Long userId1,
             @Query("userId2") Long userId2
     );
-    
+
     // 获取未读消息数量
-    @GET("messages/unread-count")
+    @GET("message/unread-count")
     Call<ApiResponse<Integer>> getUnreadCount(@Header("Authorization") String authHeader);
 
     // 获取在线人数统计
@@ -488,4 +493,63 @@ public interface ApiService {
             @Header("Authorization") String authHeader,
             @Body java.util.Map<String, String> request
     );
+
+    // ========== 关系列表相关API（动态数据） ==========
+
+    /**
+     * 获取推荐用户列表
+     * @param size 返回数量，默认4
+     */
+    @GET("users/recommended")
+    Call<ApiResponse<List<UserDTO>>> getRecommendedUsers(@Query("size") int size);
+
+    /**
+     * 获取知友列表
+     * @param page 页码
+     * @param size 每页数量
+     */
+    @GET("users/acquaintances")
+    Call<ApiResponse<List<UserDTO>>> getAcquaintances(
+            @Query("page") int page,
+            @Query("size") int size
+    );
+
+    /**
+     * 获取喜欢列表
+     * @param page 页码
+     * @param size 每页数量
+     */
+    @GET("users/likes")
+    Call<ApiResponse<List<UserDTO>>> getLikes(
+            @Query("page") int page,
+            @Query("size") int size
+    );
+
+    /**
+     * 获取亲密列表
+     * @param page 页码
+     * @param size 每页数量
+     */
+    @GET("users/intimate")
+    Call<ApiResponse<List<UserDTO>>> getIntimate(
+            @Query("page") int page,
+            @Query("size") int size
+    );
+
+    /**
+     * 获取会话列表
+     * @param userId 当前用户ID
+     */
+    @GET("message/conversations")
+    Call<ApiResponse<List<com.example.myapplication.dto.ConversationDTO>>> getConversations(
+            @Query("userId") Long userId
+    );
+
+    /**
+     * 上传聊天图片
+     * @param file 图片文件
+     */
+    @Multipart
+    @POST("message/upload-image")
+    Call<ApiResponse<String>> uploadChatImage(@Part MultipartBody.Part file);
 }

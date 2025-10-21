@@ -259,13 +259,13 @@ public class UserDetailActivity extends AppCompatActivity {
         authManager = AuthManager.getInstance(this);
         userToken = authManager.getToken();
 
-        // 使用从Intent传递的真实用户ID
+        // ✅ 修复：使用从Intent传递的真实用户ID，不再使用默认测试ID
         if (userId != null && userId != -1L) {
             receiverUserId = userId;
+            Log.d("UserDetailActivity", "接收到有效用户ID: " + receiverUserId);
         } else {
-            // 如果没有传递用户ID，使用默认测试ID
-            receiverUserId = 23820512L; // 测试用：video_caller
-            Log.w("UserDetailActivity", "未传递用户ID，使用默认测试ID");
+            receiverUserId = null;
+            Log.w("UserDetailActivity", "⚠️ 未传递用户ID，通话功能将不可用");
         }
 
         Log.d("UserDetailActivity", "初始化通话服务，Token: " + (userToken != null ? "已获取" : "未获取") + ", receiverUserId: " + receiverUserId);
@@ -400,8 +400,26 @@ public class UserDetailActivity extends AppCompatActivity {
         });
         
         llMessageButton.setOnClickListener(v -> {
-            Toast.makeText(this, "私信她", Toast.LENGTH_SHORT).show();
-            // TODO: 实现私信功能
+            // ✅ 实现私信功能 - 跳转到ChatActivity
+            if (currentUserId == null || currentUserId == -1L) {
+                Toast.makeText(this, "用户信息错误，无法发起私信", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // ✅ 检查是否是自己
+            Long loginUserId = authManager != null ? AuthManager.getInstance(this).getUserId() : null;
+            if (loginUserId != null && loginUserId.equals(currentUserId)) {
+                Toast.makeText(this, "不能给自己发送私信", Toast.LENGTH_SHORT).show();
+                Log.w("UserDetailActivity", "尝试给自己发送私信，已拦截 - userId: " + currentUserId);
+                return;
+            }
+
+            android.content.Intent intent = new android.content.Intent(this, ChatActivity.class);
+            intent.putExtra("user_id", currentUserId);
+            intent.putExtra("user_name", tvUserName.getText().toString());
+            intent.putExtra("user_avatar", ""); // TODO: 从用户信息获取头像URL
+            startActivity(intent);
+            Log.d("UserDetailActivity", "跳转到聊天界面 - userId: " + currentUserId + ", name: " + tvUserName.getText());
         });
         
         llLikeButton.setOnClickListener(v -> {

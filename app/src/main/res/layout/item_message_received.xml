@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp"
+    android:gravity="start">
+
+    <!-- 对方头像 -->
+    <ImageView
+        android:id="@+id/iv_sender_avatar"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/avatar_placeholder"
+        android:layout_marginEnd="8dp" />
+
+    <!-- 消息气泡 -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:maxWidth="250dp">
+
+        <!-- 发送者姓名 -->
+        <TextView
+            android:id="@+id/tv_sender_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="#999999"
+            android:layout_marginBottom="4dp" />
+
+        <!-- 消息内容 -->
+        <TextView
+            android:id="@+id/tv_message_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/message_bubble_received"
+            android:padding="12dp"
+            android:textSize="14sp"
+            android:textColor="#333333" />
+
+        <!-- 时间戳 -->
+        <TextView
+            android:id="@+id/tv_timestamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="10sp"
+            android:textColor="#CCCCCC"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+</LinearLayout>
