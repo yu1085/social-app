@@ -552,4 +552,199 @@ public interface ApiService {
     @Multipart
     @POST("message/upload-image")
     Call<ApiResponse<String>> uploadChatImage(@Part MultipartBody.Part file);
+
+    // ========== 用户关系管理API ==========
+
+    /**
+     * 添加知友
+     * @param authHeader 认证头
+     * @param targetUserId 目标用户ID
+     */
+    @POST("users/{targetUserId}/friend")
+    Call<ApiResponse<String>> addFriend(
+            @Header("Authorization") String authHeader,
+            @Path("targetUserId") Long targetUserId
+    );
+
+    /**
+     * 删除知友
+     * @param authHeader 认证头
+     * @param targetUserId 目标用户ID
+     */
+    @DELETE("users/{targetUserId}/friend")
+    Call<ApiResponse<String>> removeFriend(
+            @Header("Authorization") String authHeader,
+            @Path("targetUserId") Long targetUserId
+    );
+
+    /**
+     * 添加喜欢
+     * @param authHeader 认证头
+     * @param targetUserId 目标用户ID
+     */
+    @POST("users/{targetUserId}/like")
+    Call<ApiResponse<String>> addLike(
+            @Header("Authorization") String authHeader,
+            @Path("targetUserId") Long targetUserId
+    );
+
+    /**
+     * 取消喜欢
+     * @param authHeader 认证头
+     * @param targetUserId 目标用户ID
+     */
+    @DELETE("users/{targetUserId}/like")
+    Call<ApiResponse<String>> removeLike(
+            @Header("Authorization") String authHeader,
+            @Path("targetUserId") Long targetUserId
+    );
+
+    /**
+     * 检查是否已喜欢
+     * @param authHeader 认证头
+     * @param targetUserId 目标用户ID
+     */
+    @GET("users/{targetUserId}/is-liked")
+    Call<ApiResponse<Boolean>> isLiked(
+            @Header("Authorization") String authHeader,
+            @Path("targetUserId") Long targetUserId
+    );
+
+    /**
+     * 检查是否是知友
+     * @param authHeader 认证头
+     * @param targetUserId 目标用户ID
+     */
+    @GET("users/{targetUserId}/is-friend")
+    Call<ApiResponse<Boolean>> isFriend(
+            @Header("Authorization") String authHeader,
+            @Path("targetUserId") Long targetUserId
+    );
+
+    /**
+     * 批量删除知友
+     * @param authHeader 认证头
+     * @param targetUserIds 目标用户ID列表
+     */
+    @DELETE("users/friends/batch")
+    Call<ApiResponse<String>> removeFriendsBatch(
+            @Header("Authorization") String authHeader,
+            @Body List<Long> targetUserIds
+    );
+
+    /**
+     * 批量取消喜欢
+     * @param authHeader 认证头
+     * @param targetUserIds 目标用户ID列表
+     */
+    @DELETE("users/likes/batch")
+    Call<ApiResponse<String>> removeLikesBatch(
+            @Header("Authorization") String authHeader,
+            @Body List<Long> targetUserIds
+    );
+
+    // ========== 订阅状态通知相关API ==========
+
+    /**
+     * 订阅用户状态通知
+     */
+    @POST("users/{targetUserId}/subscribe")
+    Call<ApiResponse<String>> subscribeUser(
+            @Header("Authorization") String authHeader,
+            @Path("targetUserId") Long targetUserId
+    );
+
+    /**
+     * 取消订阅用户状态通知
+     */
+    @DELETE("users/{targetUserId}/subscribe")
+    Call<ApiResponse<String>> unsubscribeUser(
+            @Header("Authorization") String authHeader,
+            @Path("targetUserId") Long targetUserId
+    );
+
+    /**
+     * 检查是否已订阅
+     */
+    @GET("users/{targetUserId}/is-subscribed")
+    Call<ApiResponse<Boolean>> isSubscribed(
+            @Header("Authorization") String authHeader,
+            @Path("targetUserId") Long targetUserId
+    );
+
+    // ========== 备注相关API ==========
+
+    /**
+     * 设置用户备注
+     */
+    @POST("users/{targetUserId}/remark")
+    Call<ApiResponse<String>> setUserRemark(
+            @Header("Authorization") String authHeader,
+            @Path("targetUserId") Long targetUserId,
+            @Query("remark") String remark
+    );
+
+    /**
+     * 获取用户备注
+     */
+    @GET("users/{targetUserId}/remark")
+    Call<ApiResponse<String>> getUserRemark(
+            @Header("Authorization") String authHeader,
+            @Path("targetUserId") Long targetUserId
+    );
+
+    // ========== 黑名单相关API ==========
+
+    /**
+     * 加入黑名单
+     */
+    @POST("users/{targetUserId}/blacklist")
+    Call<ApiResponse<String>> addToBlacklist(
+            @Header("Authorization") String authHeader,
+            @Path("targetUserId") Long targetUserId
+    );
+
+    /**
+     * 移出黑名单
+     */
+    @DELETE("users/{targetUserId}/blacklist")
+    Call<ApiResponse<String>> removeFromBlacklist(
+            @Header("Authorization") String authHeader,
+            @Path("targetUserId") Long targetUserId
+    );
+
+    /**
+     * 检查是否在黑名单
+     */
+    @GET("users/{targetUserId}/is-blacklisted")
+    Call<ApiResponse<Boolean>> isBlacklisted(
+            @Header("Authorization") String authHeader,
+            @Path("targetUserId") Long targetUserId
+    );
+
+    /**
+     * 获取黑名单列表
+     */
+    @GET("users/blacklist")
+    Call<ApiResponse<List<UserDTO>>> getBlacklistUsers(
+            @Header("Authorization") String authHeader
+    );
+
+    /**
+     * 批量移出黑名单
+     */
+    @retrofit2.http.HTTP(method = "DELETE", path = "users/blacklist/batch", hasBody = true)
+    Call<ApiResponse<String>> batchRemoveFromBlacklist(
+            @Header("Authorization") String authHeader,
+            @Body List<Long> userIds
+    );
+
+    /**
+     * 查询账号状态
+     */
+    @GET("users/{targetUserId}/account-status")
+    Call<ApiResponse<Map<String, Object>>> getAccountStatus(
+            @Header("Authorization") String authHeader,
+            @Path("targetUserId") Long targetUserId
+    );
 }

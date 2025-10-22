@@ -56,7 +56,11 @@ public class UserDetailActivity extends AppCompatActivity {
     private Long currentUserId; // 当前查看的用户ID
     private Long receiverUserId; // 接收方用户ID(仅用于通话)
     private CallPrices currentCallPrices; // 当前通话价格信息
-    
+    private boolean isLiked = false; // 是否已喜欢
+    private boolean isSubscribed = false; // 是否已订阅状态通知
+    private boolean isBlacklisted = false; // 是否在黑名单
+    private String userRemark = ""; // 用户备注
+
     // 用户图片资源数组
     private int[] userImages = {
         R.drawable.rectangle_411_1,
@@ -102,6 +106,18 @@ public class UserDetailActivity extends AppCompatActivity {
 
         // 加载用户通话价格信息
         loadUserCallPrices();
+
+        // 加载喜欢状态
+        loadLikeStatus();
+
+        // 加载订阅状态
+        loadSubscribeStatus();
+
+        // 加载黑名单状态
+        loadBlacklistStatus();
+
+        // 加载备注
+        loadUserRemark();
     }
 
     /**
@@ -423,8 +439,7 @@ public class UserDetailActivity extends AppCompatActivity {
         });
         
         llLikeButton.setOnClickListener(v -> {
-            Toast.makeText(this, "喜欢", Toast.LENGTH_SHORT).show();
-            // TODO: 实现喜欢功能
+            toggleLike();
         });
         
         llCopyIdButton.setOnClickListener(v -> {
@@ -505,47 +520,64 @@ public class UserDetailActivity extends AppCompatActivity {
     private void showMenuDialog() {
         // 创建底部弹出的菜单布局
         View menuView = getLayoutInflater().inflate(R.layout.bottom_menu_dialog, null);
-        
+
         // 创建BottomSheetDialog
-        com.google.android.material.bottomsheet.BottomSheetDialog bottomSheetDialog = 
+        com.google.android.material.bottomsheet.BottomSheetDialog bottomSheetDialog =
             new com.google.android.material.bottomsheet.BottomSheetDialog(this);
         bottomSheetDialog.setContentView(menuView);
-        
+
+        // 更新菜单项文本
+        TextView tvLikeMenu = menuView.findViewById(R.id.ll_like_menu).findViewById(android.R.id.text1);
+        if (tvLikeMenu == null) {
+            tvLikeMenu = (TextView) ((android.view.ViewGroup) menuView.findViewById(R.id.ll_like_menu)).getChildAt(0);
+        }
+        if (tvLikeMenu != null) {
+            tvLikeMenu.setText(isLiked ? "取消喜欢" : "喜欢");
+        }
+
+        TextView tvSubscribeMenu = menuView.findViewById(R.id.ll_subscribe_menu).findViewById(android.R.id.text1);
+        if (tvSubscribeMenu == null) {
+            tvSubscribeMenu = (TextView) ((android.view.ViewGroup) menuView.findViewById(R.id.ll_subscribe_menu)).getChildAt(0);
+        }
+        if (tvSubscribeMenu != null) {
+            tvSubscribeMenu.setText(isSubscribed ? "取消订阅状态通知" : "订阅状态通知");
+        }
+
         // 设置菜单项的点击事件
         menuView.findViewById(R.id.ll_like_menu).setOnClickListener(v -> {
-            Toast.makeText(this, "已喜欢", Toast.LENGTH_SHORT).show();
+            toggleLikeFromMenu();
             bottomSheetDialog.dismiss();
         });
-        
+
         menuView.findViewById(R.id.ll_subscribe_menu).setOnClickListener(v -> {
-            Toast.makeText(this, "订阅状态通知", Toast.LENGTH_SHORT).show();
+            toggleSubscribe();
             bottomSheetDialog.dismiss();
         });
-        
+
         menuView.findViewById(R.id.ll_query_status_menu).setOnClickListener(v -> {
-            Toast.makeText(this, "查询账号状态", Toast.LENGTH_SHORT).show();
+            queryAccountStatus();
             bottomSheetDialog.dismiss();
         });
-        
+
         menuView.findViewById(R.id.ll_set_remark_menu).setOnClickListener(v -> {
-            Toast.makeText(this, "设置备注", Toast.LENGTH_SHORT).show();
+            showSetRemarkDialog();
             bottomSheetDialog.dismiss();
         });
-        
+
         menuView.findViewById(R.id.ll_report_menu).setOnClickListener(v -> {
-            Toast.makeText(this, "举报", Toast.LENGTH_SHORT).show();
+            showReportDialog();
             bottomSheetDialog.dismiss();
         });
-        
+
         menuView.findViewById(R.id.ll_blacklist_menu).setOnClickListener(v -> {
-            Toast.makeText(this, "加入黑名单", Toast.LENGTH_SHORT).show();
+            showBlacklistDialog();
             bottomSheetDialog.dismiss();
         });
-        
+
         menuView.findViewById(R.id.ll_cancel_menu).setOnClickListener(v -> {
             bottomSheetDialog.dismiss();
         });
-        
+
         // 显示底部菜单
         bottomSheetDialog.show();
     }
@@ -791,5 +823,565 @@ public class UserDetailActivity extends AppCompatActivity {
         }.execute();
     }
 
-  
+    /**
+     * 加载喜欢状态
+     */
+    private void loadLikeStatus() {
+        if (userToken == null || currentUserId == null || currentUserId == -1L) {
+            return;
+        }
+
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    retrofit2.Call<com.example.myapplication.dto.ApiResponse<Boolean>> call =
+                        com.example.myapplication.network.NetworkConfig.getApiService()
+                            .isLiked(authManager.getAuthHeader(), currentUserId);
+
+                    retrofit2.Response<com.example.myapplication.dto.ApiResponse<Boolean>> response = call.execute();
+
+                    if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                        return response.body().getData();
+                    }
+                    return false;
+                } catch (Exception e) {
+                    Log.e("UserDetailActivity", "加载喜欢状态失败", e);
+                    return false;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Boolean liked) {
+                isLiked = liked;
+                updateLikeButtonUI();
+            }
+        }.execute();
+    }
+
+    /**
+     * 切换喜欢状态
+     */
+    private void toggleLike() {
+        if (userToken == null) {
+            Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (currentUserId == null || currentUserId == -1L) {
+            Toast.makeText(this, "用户信息错误", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 检查是否是自己
+        Long loginUserId = authManager.getUserId();
+        if (loginUserId != null && loginUserId.equals(currentUserId)) {
+            Toast.makeText(this, "不能喜欢自己", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    retrofit2.Call<com.example.myapplication.dto.ApiResponse<String>> call;
+
+                    if (isLiked) {
+                        // 取消喜欢
+                        call = com.example.myapplication.network.NetworkConfig.getApiService()
+                                .removeLike(authManager.getAuthHeader(), currentUserId);
+                    } else {
+                        // 添加喜欢
+                        call = com.example.myapplication.network.NetworkConfig.getApiService()
+                                .addLike(authManager.getAuthHeader(), currentUserId);
+                    }
+
+                    retrofit2.Response<com.example.myapplication.dto.ApiResponse<String>> response = call.execute();
+
+                    if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                        return true;
+                    }
+                    return false;
+                } catch (Exception e) {
+                    Log.e("UserDetailActivity", "切换喜欢状态失败", e);
+                    return false;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Boolean success) {
+                if (success) {
+                    isLiked = !isLiked;
+                    updateLikeButtonUI();
+                    Toast.makeText(UserDetailActivity.this, isLiked ? "已喜欢" : "已取消喜欢", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(UserDetailActivity.this, "操作失败，请稍后重试", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }.execute();
+    }
+
+    /**
+     * 更新喜欢按钮UI
+     * 如果已喜欢，隐藏按钮；未喜欢则显示按钮
+     */
+    private void updateLikeButtonUI() {
+        if (isLiked) {
+            // 已喜欢 - 隐藏按钮
+            llLikeButton.setVisibility(View.GONE);
+            Log.d("UserDetailActivity", "喜欢按钮已隐藏 - 已喜欢该用户");
+        } else {
+            // 未喜欢 - 显示按钮
+            llLikeButton.setVisibility(View.VISIBLE);
+            Log.d("UserDetailActivity", "喜欢按钮已显示 - 未喜欢该用户");
+        }
+    }
+
+    /**
+     * 从菜单切换喜欢状态
+     */
+    private void toggleLikeFromMenu() {
+        if (userToken == null) {
+            Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (currentUserId == null || currentUserId == -1L) {
+            Toast.makeText(this, "用户信息错误", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    retrofit2.Call<com.example.myapplication.dto.ApiResponse<String>> call;
+
+                    if (isLiked) {
+                        call = com.example.myapplication.network.NetworkConfig.getApiService()
+                                .removeLike(authManager.getAuthHeader(), currentUserId);
+                    } else {
+                        call = com.example.myapplication.network.NetworkConfig.getApiService()
+                                .addLike(authManager.getAuthHeader(), currentUserId);
+                    }
+
+                    retrofit2.Response<com.example.myapplication.dto.ApiResponse<String>> response = call.execute();
+                    return response.isSuccessful() && response.body() != null && response.body().isSuccess();
+                } catch (Exception e) {
+                    Log.e("UserDetailActivity", "切换喜欢状态失败", e);
+                    return false;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Boolean success) {
+                if (success) {
+                    isLiked = !isLiked;
+                    updateLikeButtonUI();
+                    Toast.makeText(UserDetailActivity.this, isLiked ? "已加入喜欢列表" : "已从喜欢列表移出", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(UserDetailActivity.this, "操作失败，请稍后重试", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }.execute();
+    }
+
+    /**
+     * 加载订阅状态
+     */
+    private void loadSubscribeStatus() {
+        if (userToken == null || currentUserId == null || currentUserId == -1L) {
+            return;
+        }
+
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    retrofit2.Call<com.example.myapplication.dto.ApiResponse<Boolean>> call =
+                        com.example.myapplication.network.NetworkConfig.getApiService()
+                            .isSubscribed(authManager.getAuthHeader(), currentUserId);
+
+                    retrofit2.Response<com.example.myapplication.dto.ApiResponse<Boolean>> response = call.execute();
+
+                    if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                        return response.body().getData();
+                    }
+                    return false;
+                } catch (Exception e) {
+                    Log.e("UserDetailActivity", "加载订阅状态失败", e);
+                    return false;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Boolean subscribed) {
+                isSubscribed = subscribed;
+                Log.d("UserDetailActivity", "订阅状态: " + isSubscribed);
+            }
+        }.execute();
+    }
+
+    /**
+     * 切换订阅状态
+     */
+    private void toggleSubscribe() {
+        if (userToken == null) {
+            Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (currentUserId == null || currentUserId == -1L) {
+            Toast.makeText(this, "用户信息错误", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    retrofit2.Call<com.example.myapplication.dto.ApiResponse<String>> call;
+
+                    if (isSubscribed) {
+                        call = com.example.myapplication.network.NetworkConfig.getApiService()
+                                .unsubscribeUser(authManager.getAuthHeader(), currentUserId);
+                    } else {
+                        call = com.example.myapplication.network.NetworkConfig.getApiService()
+                                .subscribeUser(authManager.getAuthHeader(), currentUserId);
+                    }
+
+                    retrofit2.Response<com.example.myapplication.dto.ApiResponse<String>> response = call.execute();
+                    return response.isSuccessful() && response.body() != null && response.body().isSuccess();
+                } catch (Exception e) {
+                    Log.e("UserDetailActivity", "切换订阅状态失败", e);
+                    return false;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Boolean success) {
+                if (success) {
+                    isSubscribed = !isSubscribed;
+                    Toast.makeText(UserDetailActivity.this, isSubscribed ? "订阅成功，将收到TA的状态通知" : "已取消订阅状态通知", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(UserDetailActivity.this, "操作失败，请稍后重试", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }.execute();
+    }
+
+    /**
+     * 加载黑名单状态
+     */
+    private void loadBlacklistStatus() {
+        if (userToken == null || currentUserId == null || currentUserId == -1L) {
+            return;
+        }
+
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    retrofit2.Call<com.example.myapplication.dto.ApiResponse<Boolean>> call =
+                        com.example.myapplication.network.NetworkConfig.getApiService()
+                            .isBlacklisted(authManager.getAuthHeader(), currentUserId);
+
+                    retrofit2.Response<com.example.myapplication.dto.ApiResponse<Boolean>> response = call.execute();
+
+                    if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                        return response.body().getData();
+                    }
+                    return false;
+                } catch (Exception e) {
+                    Log.e("UserDetailActivity", "加载黑名单状态失败", e);
+                    return false;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Boolean blacklisted) {
+                isBlacklisted = blacklisted;
+                Log.d("UserDetailActivity", "黑名单状态: " + isBlacklisted);
+            }
+        }.execute();
+    }
+
+    /**
+     * 加载用户备注
+     */
+    private void loadUserRemark() {
+        if (userToken == null || currentUserId == null || currentUserId == -1L) {
+            return;
+        }
+
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... voids) {
+                try {
+                    retrofit2.Call<com.example.myapplication.dto.ApiResponse<String>> call =
+                        com.example.myapplication.network.NetworkConfig.getApiService()
+                            .getUserRemark(authManager.getAuthHeader(), currentUserId);
+
+                    retrofit2.Response<com.example.myapplication.dto.ApiResponse<String>> response = call.execute();
+
+                    if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                        return response.body().getData();
+                    }
+                    return "";
+                } catch (Exception e) {
+                    Log.e("UserDetailActivity", "加载备注失败", e);
+                    return "";
+                }
+            }
+
+            @Override
+            protected void onPostExecute(String remark) {
+                userRemark = remark != null ? remark : "";
+                Log.d("UserDetailActivity", "用户备注: " + userRemark);
+            }
+        }.execute();
+    }
+
+    /**
+     * 查询账号状态
+     */
+    private void queryAccountStatus() {
+        if (userToken == null) {
+            Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (currentUserId == null || currentUserId == -1L) {
+            Toast.makeText(this, "用户信息错误", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        new AsyncTask<Void, Void, java.util.Map<String, Object>>() {
+            @Override
+            protected java.util.Map<String, Object> doInBackground(Void... voids) {
+                try {
+                    retrofit2.Call<com.example.myapplication.dto.ApiResponse<java.util.Map<String, Object>>> call =
+                        com.example.myapplication.network.NetworkConfig.getApiService()
+                            .getAccountStatus(authManager.getAuthHeader(), currentUserId);
+
+                    retrofit2.Response<com.example.myapplication.dto.ApiResponse<java.util.Map<String, Object>>> response = call.execute();
+
+                    if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                        return response.body().getData();
+                    }
+                    return null;
+                } catch (Exception e) {
+                    Log.e("UserDetailActivity", "查询账号状态失败", e);
+                    return null;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(java.util.Map<String, Object> statusInfo) {
+                if (statusInfo != null) {
+                    String message = (String) statusInfo.get("message");
+                    String status = (String) statusInfo.get("status");
+                    Boolean isOnline = (Boolean) statusInfo.get("isOnline");
+                    Boolean isVip = (Boolean) statusInfo.get("isVip");
+
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("账号状态查询结果:\n\n");
+                    sb.append("状态: ").append(status).append("\n");
+                    sb.append("在线: ").append(isOnline ? "是" : "否").append("\n");
+                    sb.append("VIP: ").append(isVip ? "是" : "否").append("\n");
+                    sb.append("\n").append(message);
+
+                    new android.app.AlertDialog.Builder(UserDetailActivity.this)
+                            .setTitle("账号状态")
+                            .setMessage(sb.toString())
+                            .setPositiveButton("确定", null)
+                            .show();
+                } else {
+                    Toast.makeText(UserDetailActivity.this, "查询失败，请稍后重试", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }.execute();
+    }
+
+    /**
+     * 显示设置备注对话框
+     */
+    private void showSetRemarkDialog() {
+        android.widget.EditText editText = new android.widget.EditText(this);
+        editText.setText(userRemark);
+        editText.setHint("请输入备注");
+
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("设置备注")
+                .setView(editText)
+                .setPositiveButton("确定", (dialog, which) -> {
+                    String remark = editText.getText().toString().trim();
+                    setUserRemark(remark);
+                })
+                .setNegativeButton("取消", null)
+                .show();
+    }
+
+    /**
+     * 设置用户备注
+     */
+    private void setUserRemark(String remark) {
+        if (userToken == null) {
+            Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (currentUserId == null || currentUserId == -1L) {
+            Toast.makeText(this, "用户信息错误", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    retrofit2.Call<com.example.myapplication.dto.ApiResponse<String>> call =
+                        com.example.myapplication.network.NetworkConfig.getApiService()
+                            .setUserRemark(authManager.getAuthHeader(), currentUserId, remark);
+
+                    retrofit2.Response<com.example.myapplication.dto.ApiResponse<String>> response = call.execute();
+                    return response.isSuccessful() && response.body() != null && response.body().isSuccess();
+                } catch (Exception e) {
+                    Log.e("UserDetailActivity", "设置备注失败", e);
+                    return false;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Boolean success) {
+                if (success) {
+                    userRemark = remark;
+                    Toast.makeText(UserDetailActivity.this, "备注设置成功", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(UserDetailActivity.this, "设置失败，请稍后重试", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }.execute();
+    }
+
+    /**
+     * 显示举报对话框
+     */
+    private void showReportDialog() {
+        View reportView = getLayoutInflater().inflate(R.layout.dialog_report, null);
+
+        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(this)
+                .setView(reportView)
+                .create();
+
+        // 设置举报选项点击事件
+        reportView.findViewById(R.id.ll_report_spam).setOnClickListener(v -> {
+            submitReport("垃圾广告");
+            dialog.dismiss();
+        });
+
+        reportView.findViewById(R.id.ll_report_harassment).setOnClickListener(v -> {
+            submitReport("骚扰信息");
+            dialog.dismiss();
+        });
+
+        reportView.findViewById(R.id.ll_report_fraud).setOnClickListener(v -> {
+            submitReport("欺诈行为");
+            dialog.dismiss();
+        });
+
+        reportView.findViewById(R.id.ll_report_fake).setOnClickListener(v -> {
+            submitReport("虚假信息");
+            dialog.dismiss();
+        });
+
+        reportView.findViewById(R.id.ll_report_other).setOnClickListener(v -> {
+            submitReport("其他");
+            dialog.dismiss();
+        });
+
+        reportView.findViewById(R.id.btn_cancel_report).setOnClickListener(v -> {
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+
+    /**
+     * 提交举报
+     */
+    private void submitReport(String reason) {
+        Toast.makeText(this, "举报成功，我们将尽快处理。举报原因: " + reason, Toast.LENGTH_SHORT).show();
+        Log.d("UserDetailActivity", "举报用户 " + currentUserId + ", 原因: " + reason);
+    }
+
+    /**
+     * 显示黑名单对话框
+     */
+    private void showBlacklistDialog() {
+        View blacklistView = getLayoutInflater().inflate(R.layout.dialog_blacklist, null);
+
+        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(this)
+                .setView(blacklistView)
+                .create();
+
+        TextView tvMessage = blacklistView.findViewById(R.id.tv_blacklist_message);
+        tvMessage.setText("加入黑名单后，你将不会收到TA的任何消息，TA也无法查看你的动态。");
+
+        blacklistView.findViewById(R.id.btn_confirm_blacklist).setOnClickListener(v -> {
+            addToBlacklist();
+            dialog.dismiss();
+        });
+
+        blacklistView.findViewById(R.id.btn_cancel_blacklist).setOnClickListener(v -> {
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+
+    /**
+     * 加入黑名单
+     */
+    private void addToBlacklist() {
+        if (userToken == null) {
+            Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (currentUserId == null || currentUserId == -1L) {
+            Toast.makeText(this, "用户信息错误", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    retrofit2.Call<com.example.myapplication.dto.ApiResponse<String>> call =
+                        com.example.myapplication.network.NetworkConfig.getApiService()
+                            .addToBlacklist(authManager.getAuthHeader(), currentUserId);
+
+                    retrofit2.Response<com.example.myapplication.dto.ApiResponse<String>> response = call.execute();
+                    return response.isSuccessful() && response.body() != null && response.body().isSuccess();
+                } catch (Exception e) {
+                    Log.e("UserDetailActivity", "加入黑名单失败", e);
+                    return false;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Boolean success) {
+                if (success) {
+                    isBlacklisted = true;
+                    Toast.makeText(UserDetailActivity.this, "已加入黑名单", Toast.LENGTH_SHORT).show();
+                    // 返回上一页
+                    finish();
+                } else {
+                    Toast.makeText(UserDetailActivity.this, "操作失败，请稍后重试", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }.execute();
+    }
+
 }

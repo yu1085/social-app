@@ -38,6 +38,7 @@ public class UserController {
     private final UserRepository userRepository;
     private final UserPhotoRepository userPhotoRepository;
     private final FileUploadService fileUploadService;
+    private final com.socialmeet.backend.service.UserRelationshipService userRelationshipService;
 
     /**
      * 获取当前用户信息
@@ -486,16 +487,23 @@ public class UserController {
             }
 
             // 获取用户列表（排除当前用户，按创建时间倒序）
-            List<UserDTO> users = authService.searchUsers(null, null, null, null, null, 0, size + 1);
+            List<UserDTO> users = authService.searchUsers(null, null, null, null, null, 0, size + 10);
 
-            // 过滤掉当前用户
+            // 获取黑名单用户ID列表
+            List<Long> blacklistedUserIds = currentUserId != null
+                ? userRelationshipService.getBlacklistedUserIds(currentUserId)
+                : List.of();
+
+            // 过滤掉当前用户和黑名单用户
             final Long finalCurrentUserId = currentUserId;
             List<UserDTO> recommendedUsers = users.stream()
                     .filter(user -> finalCurrentUserId == null || !user.getId().equals(finalCurrentUserId))
+                    .filter(user -> !blacklistedUserIds.contains(user.getId()))
                     .limit(size)
                     .collect(Collectors.toList());
 
-            log.info("推荐用户列表获取成功 - 返回 {} 个用户", recommendedUsers.size());
+            log.info("推荐用户列表获取成功 - 返回 {} 个用户, 过滤了 {} 个黑名单用户",
+                    recommendedUsers.size(), blacklistedUserIds.size());
             return ApiResponse.success(recommendedUsers);
 
         } catch (Exception e) {
@@ -515,12 +523,44 @@ public class UserController {
         try {
             log.info("获取知友列表 - page: {}, size: {}", page, size);
 
-            // 简单实现：返回随机用户列表
-            // TODO: 实际应用中应该基于好友关系表
-            List<UserDTO> users = authService.searchUsers(null, null, null, null, null, page, size);
+            // 优先从关系表获取，如果没有则返回随机用户
+            Long currentUserId = null;
+            if (authHeader != null) {
+                try {
+                    String token = jwtUtil.extractTokenFromHeader(authHeader);
+                    if (token != null) {
+                        currentUserId = jwtUtil.getUserIdFromToken(token);
+                    }
+                } catch (Exception e) {
+                    log.warn("解析token失败", e);
+                }
+            }
 
-            log.info("知友列表获取成功 - 返回 {} 个用户", users.size());
-            return ApiResponse.success(users);
+            // 获取黑名单用户ID列表
+            List<Long> blacklistedUserIds = currentUserId != null
+                ? userRelationshipService.getBlacklistedUserIds(currentUserId)
+                : List.of();
+
+            List<UserDTO> users;
+            if (currentUserId != null) {
+                users = userRelationshipService.getFriendsList(currentUserId);
+                if (users.isEmpty()) {
+                    // 如果没有知友关系，返回随机用户列表
+                    users = authService.searchUsers(null, null, null, null, null, page, size + blacklistedUserIds.size());
+                }
+            } else {
+                users = authService.searchUsers(null, null, null, null, null, page, size);
+            }
+
+            // 过滤黑名单用户
+            List<UserDTO> filteredUsers = users.stream()
+                    .filter(user -> !blacklistedUserIds.contains(user.getId()))
+                    .limit(size)
+                    .collect(Collectors.toList());
+
+            log.info("知友列表获取成功 - 返回 {} 个用户, 过滤了 {} 个黑名单用户",
+                    filteredUsers.size(), blacklistedUserIds.size());
+            return ApiResponse.success(filteredUsers);
 
         } catch (Exception e) {
             log.error("获取知友列表失败", e);
@@ -539,12 +579,44 @@ public class UserController {
         try {
             log.info("获取喜欢列表 - page: {}, size: {}", page, size);
 
-            // 简单实现：返回女性用户列表
-            // TODO: 实际应用中应该基于喜欢关系表
-            List<UserDTO> users = authService.searchUsers(null, "FEMALE", null, null, null, page, size);
+            // 优先从关系表获取，如果没有则返回女性用户列表
+            Long currentUserId = null;
+            if (authHeader != null) {
+                try {
+                    String token = jwtUtil.extractTokenFromHeader(authHeader);
+                    if (token != null) {
+                        currentUserId = jwtUtil.getUserIdFromToken(token);
+                    }
+                } catch (Exception e) {
+                    log.warn("解析token失败", e);
+                }
+            }
 
-            log.info("喜欢列表获取成功 - 返回 {} 个用户", users.size());
-            return ApiResponse.success(users);
+            // 获取黑名单用户ID列表
+            List<Long> blacklistedUserIds = currentUserId != null
+                ? userRelationshipService.getBlacklistedUserIds(currentUserId)
+                : List.of();
+
+            List<UserDTO> users;
+            if (currentUserId != null) {
+                users = userRelationshipService.getLikesList(currentUserId);
+                if (users.isEmpty()) {
+                    // 如果没有喜欢关系，返回女性用户列表
+                    users = authService.searchUsers(null, "FEMALE", null, null, null, page, size + blacklistedUserIds.size());
+                }
+            } else {
+                users = authService.searchUsers(null, "FEMALE", null, null, null, page, size);
+            }
+
+            // 过滤黑名单用户
+            List<UserDTO> filteredUsers = users.stream()
+                    .filter(user -> !blacklistedUserIds.contains(user.getId()))
+                    .limit(size)
+                    .collect(Collectors.toList());
+
+            log.info("喜欢列表获取成功 - 返回 {} 个用户, 过滤了 {} 个黑名单用户",
+                    filteredUsers.size(), blacklistedUserIds.size());
+            return ApiResponse.success(filteredUsers);
 
         } catch (Exception e) {
             log.error("获取喜欢列表失败", e);
@@ -563,16 +635,600 @@ public class UserController {
         try {
             log.info("获取亲密列表 - page: {}, size: {}", page, size);
 
-            // 简单实现：返回用户列表
-            // TODO: 实际应用中应该基于聊天频率统计
-            List<UserDTO> users = authService.searchUsers(null, null, null, null, null, page, size);
+            // 优先从关系表获取，如果没有则返回用户列表
+            Long currentUserId = null;
+            if (authHeader != null) {
+                try {
+                    String token = jwtUtil.extractTokenFromHeader(authHeader);
+                    if (token != null) {
+                        currentUserId = jwtUtil.getUserIdFromToken(token);
+                    }
+                } catch (Exception e) {
+                    log.warn("解析token失败", e);
+                }
+            }
 
-            log.info("亲密列表获取成功 - 返回 {} 个用户", users.size());
-            return ApiResponse.success(users);
+            // 获取黑名单用户ID列表
+            List<Long> blacklistedUserIds = currentUserId != null
+                ? userRelationshipService.getBlacklistedUserIds(currentUserId)
+                : List.of();
+
+            List<UserDTO> users;
+            if (currentUserId != null) {
+                users = userRelationshipService.getIntimateList(currentUserId);
+                if (users.isEmpty()) {
+                    // 如果没有亲密关系，返回用户列表
+                    users = authService.searchUsers(null, null, null, null, null, page, size + blacklistedUserIds.size());
+                }
+            } else {
+                users = authService.searchUsers(null, null, null, null, null, page, size);
+            }
+
+            // 过滤黑名单用户
+            List<UserDTO> filteredUsers = users.stream()
+                    .filter(user -> !blacklistedUserIds.contains(user.getId()))
+                    .limit(size)
+                    .collect(Collectors.toList());
+
+            log.info("亲密列表获取成功 - 返回 {} 个用户, 过滤了 {} 个黑名单用户",
+                    filteredUsers.size(), blacklistedUserIds.size());
+            return ApiResponse.success(filteredUsers);
 
         } catch (Exception e) {
             log.error("获取亲密列表失败", e);
             return ApiResponse.error("获取亲密列表失败: " + e.getMessage());
+        }
+    }
+
+    // ========== 用户关系管理接口 ==========
+
+    /**
+     * 添加知友
+     */
+    @PostMapping("/{targetUserId}/friend")
+    public ApiResponse<String> addFriend(
+            @PathVariable Long targetUserId,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            boolean success = userRelationshipService.addFriend(userId, targetUserId);
+
+            if (success) {
+                log.info("添加知友成功 - userId: {}, targetUserId: {}", userId, targetUserId);
+                return ApiResponse.success("添加知友成功");
+            } else {
+                return ApiResponse.error("添加知友失败");
+            }
+
+        } catch (Exception e) {
+            log.error("添加知友失败", e);
+            return ApiResponse.error("添加知友失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 删除知友
+     */
+    @DeleteMapping("/{targetUserId}/friend")
+    public ApiResponse<String> removeFriend(
+            @PathVariable Long targetUserId,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            boolean success = userRelationshipService.removeFriend(userId, targetUserId);
+
+            if (success) {
+                log.info("删除知友成功 - userId: {}, targetUserId: {}", userId, targetUserId);
+                return ApiResponse.success("删除知友成功");
+            } else {
+                return ApiResponse.error("删除知友失败");
+            }
+
+        } catch (Exception e) {
+            log.error("删除知友失败", e);
+            return ApiResponse.error("删除知友失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 添加喜欢
+     */
+    @PostMapping("/{targetUserId}/like")
+    public ApiResponse<String> addLike(
+            @PathVariable Long targetUserId,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            boolean success = userRelationshipService.addLike(userId, targetUserId);
+
+            if (success) {
+                log.info("添加喜欢成功 - userId: {}, targetUserId: {}", userId, targetUserId);
+                return ApiResponse.success("添加喜欢成功");
+            } else {
+                return ApiResponse.error("添加喜欢失败");
+            }
+
+        } catch (Exception e) {
+            log.error("添加喜欢失败", e);
+            return ApiResponse.error("添加喜欢失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 取消喜欢
+     */
+    @DeleteMapping("/{targetUserId}/like")
+    public ApiResponse<String> removeLike(
+            @PathVariable Long targetUserId,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            boolean success = userRelationshipService.removeLike(userId, targetUserId);
+
+            if (success) {
+                log.info("取消喜欢成功 - userId: {}, targetUserId: {}", userId, targetUserId);
+                return ApiResponse.success("取消喜欢成功");
+            } else {
+                return ApiResponse.error("取消喜欢失败");
+            }
+
+        } catch (Exception e) {
+            log.error("取消喜欢失败", e);
+            return ApiResponse.error("取消喜欢失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 检查是否已喜欢
+     */
+    @GetMapping("/{targetUserId}/is-liked")
+    public ApiResponse<Boolean> isLiked(
+            @PathVariable Long targetUserId,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            boolean isLiked = userRelationshipService.isLiked(userId, targetUserId);
+
+            return ApiResponse.success(isLiked);
+
+        } catch (Exception e) {
+            log.error("检查喜欢状态失败", e);
+            return ApiResponse.error("检查喜欢状态失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 检查是否是知友
+     */
+    @GetMapping("/{targetUserId}/is-friend")
+    public ApiResponse<Boolean> isFriend(
+            @PathVariable Long targetUserId,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            boolean isFriend = userRelationshipService.isFriend(userId, targetUserId);
+
+            return ApiResponse.success(isFriend);
+
+        } catch (Exception e) {
+            log.error("检查知友状态失败", e);
+            return ApiResponse.error("检查知友状态失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 批量删除知友
+     */
+    @DeleteMapping("/friends/batch")
+    public ApiResponse<String> removeFriendsBatch(
+            @RequestBody List<Long> targetUserIds,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+
+            if (targetUserIds == null || targetUserIds.isEmpty()) {
+                return ApiResponse.error("未选择要删除的知友");
+            }
+
+            int successCount = 0;
+            for (Long targetUserId : targetUserIds) {
+                boolean success = userRelationshipService.removeFriend(userId, targetUserId);
+                if (success) {
+                    successCount++;
+                }
+            }
+
+            log.info("批量删除知友完成 - userId: {}, 成功删除: {}/{}", userId, successCount, targetUserIds.size());
+            return ApiResponse.success(String.format("成功删除%d个知友", successCount));
+
+        } catch (Exception e) {
+            log.error("批量删除知友失败", e);
+            return ApiResponse.error("批量删除知友失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 批量取消喜欢
+     */
+    @DeleteMapping("/likes/batch")
+    public ApiResponse<String> removeLikesBatch(
+            @RequestBody List<Long> targetUserIds,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+
+            if (targetUserIds == null || targetUserIds.isEmpty()) {
+                return ApiResponse.error("未选择要取消喜欢的用户");
+            }
+
+            int successCount = 0;
+            for (Long targetUserId : targetUserIds) {
+                boolean success = userRelationshipService.removeLike(userId, targetUserId);
+                if (success) {
+                    successCount++;
+                }
+            }
+
+            log.info("批量取消喜欢完成 - userId: {}, 成功取消: {}/{}", userId, successCount, targetUserIds.size());
+            return ApiResponse.success(String.format("成功取消%d个喜欢", successCount));
+
+        } catch (Exception e) {
+            log.error("批量取消喜欢失败", e);
+            return ApiResponse.error("批量取消喜欢失败: " + e.getMessage());
+        }
+    }
+
+    // ========== 订阅状态通知相关API ==========
+
+    /**
+     * 订阅用户状态通知
+     */
+    @PostMapping("/{targetUserId}/subscribe")
+    public ApiResponse<String> subscribeUser(
+            @PathVariable Long targetUserId,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            boolean success = userRelationshipService.subscribeUser(userId, targetUserId);
+
+            if (success) {
+                log.info("订阅状态通知成功 - userId: {}, targetUserId: {}", userId, targetUserId);
+                return ApiResponse.success("订阅成功");
+            } else {
+                return ApiResponse.error("订阅失败");
+            }
+
+        } catch (Exception e) {
+            log.error("订阅状态通知失败", e);
+            return ApiResponse.error("订阅失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 取消订阅用户状态通知
+     */
+    @DeleteMapping("/{targetUserId}/subscribe")
+    public ApiResponse<String> unsubscribeUser(
+            @PathVariable Long targetUserId,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            boolean success = userRelationshipService.unsubscribeUser(userId, targetUserId);
+
+            if (success) {
+                log.info("取消订阅成功 - userId: {}, targetUserId: {}", userId, targetUserId);
+                return ApiResponse.success("取消订阅成功");
+            } else {
+                return ApiResponse.error("取消订阅失败");
+            }
+
+        } catch (Exception e) {
+            log.error("取消订阅失败", e);
+            return ApiResponse.error("取消订阅失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 检查是否已订阅
+     */
+    @GetMapping("/{targetUserId}/is-subscribed")
+    public ApiResponse<Boolean> isSubscribed(
+            @PathVariable Long targetUserId,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            boolean isSubscribed = userRelationshipService.isSubscribed(userId, targetUserId);
+
+            return ApiResponse.success(isSubscribed);
+
+        } catch (Exception e) {
+            log.error("检查订阅状态失败", e);
+            return ApiResponse.error("检查订阅状态失败: " + e.getMessage());
+        }
+    }
+
+    // ========== 备注相关API ==========
+
+    /**
+     * 设置用户备注
+     */
+    @PostMapping("/{targetUserId}/remark")
+    public ApiResponse<String> setUserRemark(
+            @PathVariable Long targetUserId,
+            @RequestParam String remark,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            boolean success = userRelationshipService.setUserRemark(userId, targetUserId, remark);
+
+            if (success) {
+                log.info("设置备注成功 - userId: {}, targetUserId: {}, remark: {}", userId, targetUserId, remark);
+                return ApiResponse.success("备注设置成功");
+            } else {
+                return ApiResponse.error("设置备注失败");
+            }
+
+        } catch (Exception e) {
+            log.error("设置备注失败", e);
+            return ApiResponse.error("设置备注失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取用户备注
+     */
+    @GetMapping("/{targetUserId}/remark")
+    public ApiResponse<String> getUserRemark(
+            @PathVariable Long targetUserId,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            String remark = userRelationshipService.getUserRemark(userId, targetUserId);
+
+            return ApiResponse.success(remark != null ? remark : "");
+
+        } catch (Exception e) {
+            log.error("获取备注失败", e);
+            return ApiResponse.error("获取备注失败: " + e.getMessage());
+        }
+    }
+
+    // ========== 黑名单相关API ==========
+
+    /**
+     * 加入黑名单
+     */
+    @PostMapping("/{targetUserId}/blacklist")
+    public ApiResponse<String> addToBlacklist(
+            @PathVariable Long targetUserId,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            boolean success = userRelationshipService.addToBlacklist(userId, targetUserId);
+
+            if (success) {
+                log.info("加入黑名单成功 - userId: {}, targetUserId: {}", userId, targetUserId);
+                return ApiResponse.success("已加入黑名单");
+            } else {
+                return ApiResponse.error("加入黑名单失败");
+            }
+
+        } catch (Exception e) {
+            log.error("加入黑名单失败", e);
+            return ApiResponse.error("加入黑名单失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 移出黑名单
+     */
+    @DeleteMapping("/{targetUserId}/blacklist")
+    public ApiResponse<String> removeFromBlacklist(
+            @PathVariable Long targetUserId,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            boolean success = userRelationshipService.removeFromBlacklist(userId, targetUserId);
+
+            if (success) {
+                log.info("移出黑名单成功 - userId: {}, targetUserId: {}", userId, targetUserId);
+                return ApiResponse.success("已移出黑名单");
+            } else {
+                return ApiResponse.error("移出黑名单失败");
+            }
+
+        } catch (Exception e) {
+            log.error("移出黑名单失败", e);
+            return ApiResponse.error("移出黑名单失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 检查是否在黑名单
+     */
+    @GetMapping("/{targetUserId}/is-blacklisted")
+    public ApiResponse<Boolean> isBlacklisted(
+            @PathVariable Long targetUserId,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            boolean isBlacklisted = userRelationshipService.isBlacklisted(userId, targetUserId);
+
+            return ApiResponse.success(isBlacklisted);
+
+        } catch (Exception e) {
+            log.error("检查黑名单状态失败", e);
+            return ApiResponse.error("检查黑名单状态失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取黑名单列表
+     */
+    @GetMapping("/blacklist")
+    public ApiResponse<List<UserDTO>> getBlacklistUsers(
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            List<UserDTO> blacklistedUsers = userRelationshipService.getBlacklistUsers(userId);
+
+            log.info("获取黑名单列表成功 - userId: {}, 黑名单用户数: {}", userId, blacklistedUsers.size());
+            return ApiResponse.success(blacklistedUsers);
+
+        } catch (Exception e) {
+            log.error("获取黑名单列表失败", e);
+            return ApiResponse.error("获取黑名单列表失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 批量移出黑名单
+     */
+    @DeleteMapping("/blacklist/batch")
+    public ApiResponse<String> batchRemoveFromBlacklist(
+            @RequestBody List<Long> targetUserIds,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            Long userId = jwtUtil.getUserIdFromToken(token);
+
+            if (targetUserIds == null || targetUserIds.isEmpty()) {
+                return ApiResponse.error("未选择要移出的用户");
+            }
+
+            int successCount = userRelationshipService.batchRemoveFromBlacklist(userId, targetUserIds);
+
+            log.info("批量移出黑名单完成 - userId: {}, 成功移出: {}/{}", userId, successCount, targetUserIds.size());
+            return ApiResponse.success(String.format("成功移出%d个用户", successCount));
+
+        } catch (Exception e) {
+            log.error("批量移出黑名单失败", e);
+            return ApiResponse.error("批量移出黑名单失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 查询账号状态
+     */
+    @GetMapping("/{targetUserId}/account-status")
+    public ApiResponse<Map<String, Object>> getAccountStatus(
+            @PathVariable Long targetUserId,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            if (token == null) {
+                return ApiResponse.error("未提供有效的认证令牌");
+            }
+
+            // 获取用户信息
+            var user = userRepository.findById(targetUserId)
+                    .orElseThrow(() -> new RuntimeException("用户不存在"));
+
+            Map<String, Object> statusInfo = new HashMap<>();
+            statusInfo.put("userId", user.getId());
+            statusInfo.put("username", user.getUsername());
+            statusInfo.put("status", user.getStatus() != null ? user.getStatus().name() : "ACTIVE");
+            statusInfo.put("isOnline", user.getIsOnline());
+            statusInfo.put("isVip", user.getIsVip());
+            statusInfo.put("isVerified", false); // TODO: 实现认证逻辑
+            statusInfo.put("accountAge", "正常"); // TODO: 根据创建时间计算
+            statusInfo.put("message", "账号状态正常");
+
+            log.info("查询账号状态 - userId: {}, targetUserId: {}", jwtUtil.getUserIdFromToken(token), targetUserId);
+            return ApiResponse.success("查询成功", statusInfo);
+
+        } catch (Exception e) {
+            log.error("查询账号状态失败", e);
+            return ApiResponse.error("查询账号状态失败: " + e.getMessage());
         }
     }
 

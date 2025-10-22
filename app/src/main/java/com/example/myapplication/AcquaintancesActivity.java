@@ -259,13 +259,58 @@ public class AcquaintancesActivity extends AppCompatActivity {
     }
     
     private void performDelete() {
-        // 这里可以添加实际的删除逻辑
-        Toast.makeText(this, "删除功能待实现", Toast.LENGTH_SHORT).show();
-        
-        // 退出选择模式
-        isSelectionMode = false;
-        ivSettings.setImageResource(R.drawable.ic_settings);
-        exitSelectionMode();
+        // 收集选中的用户ID
+        List<Long> selectedUserIds = new ArrayList<>();
+        for (int i = 0; i < selectedItems.size(); i++) {
+            if (selectedItems.get(i) && i < acquaintanceUsers.size()) {
+                selectedUserIds.add(acquaintanceUsers.get(i).getId());
+            }
+        }
+
+        if (selectedUserIds.isEmpty()) {
+            Toast.makeText(this, "未选择任何知友", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Log.d(TAG, "准备批量删除知友，数量: " + selectedUserIds.size());
+
+        // 获取认证token
+        String token = com.example.myapplication.auth.AuthManager.getInstance(this).getToken();
+        if (token == null || token.isEmpty()) {
+            Toast.makeText(this, "未登录，请先登录", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 调用批量删除API
+        apiService.removeFriendsBatch("Bearer " + token, selectedUserIds)
+                .enqueue(new Callback<ApiResponse<String>>() {
+                    @Override
+                    public void onResponse(Call<ApiResponse<String>> call, Response<ApiResponse<String>> response) {
+                        if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                            Log.d(TAG, "批量删除知友成功: " + response.body().getMessage());
+                            Toast.makeText(AcquaintancesActivity.this,
+                                    response.body().getMessage(), Toast.LENGTH_SHORT).show();
+
+                            // 重新加载列表
+                            loadAcquaintances();
+
+                            // 退出选择模式
+                            isSelectionMode = false;
+                            ivSettings.setImageResource(R.drawable.ic_settings);
+                            exitSelectionMode();
+                        } else {
+                            Log.e(TAG, "批量删除知友失败: " +
+                                    (response.body() != null ? response.body().getMessage() : "Unknown error"));
+                            Toast.makeText(AcquaintancesActivity.this, "删除失败", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ApiResponse<String>> call, Throwable t) {
+                        Log.e(TAG, "批量删除知友网络异常", t);
+                        Toast.makeText(AcquaintancesActivity.this, "网络错误", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
     
     private void loadAcquaintances() {
